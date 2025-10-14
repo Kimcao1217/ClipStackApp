@@ -32,3 +32,7 @@ Package.resolved
 # Personal files
 *.tmp
 *.temp
+
+# 开发日志（仅本地保存，不提交到GitHub）
+开发日志.md
+DEV_NOTES.md

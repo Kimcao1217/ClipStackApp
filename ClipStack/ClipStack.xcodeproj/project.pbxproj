@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		262ED03E2E9DEF1A00D8BBDB /* ClipItem+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 262ED03D2E9DEF1A00D8BBDB /* ClipItem+Extensions.swift */; };
 		26ADDD392E9CC9DF00D3B9E6 /* ClipStackApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26ADDD382E9CC9DF00D3B9E6 /* ClipStackApp.swift */; };
 		26ADDD3B2E9CC9DF00D3B9E6 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26ADDD3A2E9CC9DF00D3B9E6 /* ContentView.swift */; };
 		26ADDD3D2E9CC9E100D3B9E6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 26ADDD3C2E9CC9E100D3B9E6 /* Assets.xcassets */; };
@@ -36,6 +37,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		262ED03D2E9DEF1A00D8BBDB /* ClipItem+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ClipItem+Extensions.swift"; sourceTree = "<group>"; };
 		26ADDD352E9CC9DF00D3B9E6 /* ClipStack.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ClipStack.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		26ADDD382E9CC9DF00D3B9E6 /* ClipStackApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipStackApp.swift; sourceTree = "<group>"; };
 		26ADDD3A2E9CC9DF00D3B9E6 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -104,6 +106,7 @@
 				26ADDD412E9CC9E100D3B9E6 /* Persistence.swift */,
 				26ADDD432E9CC9E100D3B9E6 /* ClipStack.xcdatamodeld */,
 				26ADDD3E2E9CC9E100D3B9E6 /* Preview Content */,
+				262ED03D2E9DEF1A00D8BBDB /* ClipItem+Extensions.swift */,
 			);
 			path = ClipStack;
 			sourceTree = "<group>";
@@ -266,6 +269,7 @@
 				26ADDD452E9CC9E100D3B9E6 /* ClipStack.xcdatamodeld in Sources */,
 				26ADDD422E9CC9E100D3B9E6 /* Persistence.swift in Sources */,
 				26ADDD3B2E9CC9DF00D3B9E6 /* ContentView.swift in Sources */,
+				262ED03E2E9DEF1A00D8BBDB /* ClipItem+Extensions.swift in Sources */,
 				26ADDD392E9CC9DF00D3B9E6 /* ClipStackApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -355,7 +359,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -412,7 +416,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -489,7 +493,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 3WHRA4R358;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.kimcao.clipstack.ClipStackTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -509,7 +513,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 3WHRA4R358;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.kimcao.clipstack.ClipStackTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";

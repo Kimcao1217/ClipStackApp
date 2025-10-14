@@ -1,0 +1,191 @@
+//
+//  ClipItem+Extensions.swift
+//  ClipStack
+//
+//  Created by Kim Cao on 14/10/2025.
+//
+//  为ClipItem实体添加便利方法和计算属性
+//
+
+import Foundation
+import CoreData
+
+extension ClipItem {
+    
+    // MARK: - 便利初始化方法
+    
+    /// 创建新的剪贴板条目的便利方法
+    /// - Parameters:
+    ///   - content: 内容文本
+    ///   - contentType: 内容类型（text/link/image）
+    ///   - sourceApp: 来源应用名称
+    ///   - context: Core Data管理上下文
+    convenience init(content: String,
+                    contentType: String = "text",
+                    sourceApp: String = "ClipStack",
+                    context: NSManagedObjectContext) {
+        // 调用Core Data的指定初始化方法
+        self.init(context: context)
+        
+        // 设置基本属性
+        self.id = UUID()
+        self.content = content
+        self.contentType = contentType
+        self.sourceApp = sourceApp
+        self.createdAt = Date()
+        self.isStarred = false
+        self.usageCount = 0
+        self.lastUsedAt = nil
+    }
+    
+    // MARK: - 计算属性
+    
+    /// 获取内容类型对应的图标
+    var typeIcon: String {
+        switch contentType {
+        case "text":
+            return "📄"
+        case "link":
+            return "🔗"
+        case "image":
+            return "🖼️"
+        default:
+            return "📄"
+        }
+    }
+    
+    /// 获取来源应用对应的图标
+    var sourceIcon: String {
+        // 使用nil合并运算符(??)提供默认值，然后安全地调用lowercased()
+        switch (sourceApp ?? "").lowercased() {
+        case "微信":
+            return "💬"
+        case "safari":
+            return "🌐"
+        case "备忘录":
+            return "📝"
+        case "邮件":
+            return "✉️"
+        default:
+            return "📱"
+        }
+    }
+    
+    /// 获取相对时间显示文本（如"刚刚"、"5分钟前"、"1小时前"）
+    var relativeTimeString: String {
+        guard let createdAt = createdAt else { return "未知时间" }
+        
+        let now = Date()
+        let interval = now.timeIntervalSince(createdAt)
+        
+        // 根据iOS用户习惯优化时间显示
+        if interval < 60 {
+            // 0-60秒显示"刚刚"
+            return "刚刚"
+        } else if interval < 3600 {
+            // 1-59分钟显示分钟数
+            let minutes = Int(interval / 60)
+            return "\(minutes)分钟前"
+        } else if interval < 86400 {
+            // 1-23小时显示小时数
+            let hours = Int(interval / 3600)
+            return "\(hours)小时前"
+        } else if interval < 172800 {
+            // 24-48小时显示"昨天"
+            return "昨天"
+        } else if interval < 604800 {
+            // 2-6天显示天数
+            let days = Int(interval / 86400)
+            return "\(days)天前"
+        } else {
+            // 7天以上显示具体日期
+            let formatter = DateFormatter()
+            formatter.locale = Locale(identifier: "zh_CN")
+            
+            let calendar = Calendar.current
+            let currentYear = calendar.component(.year, from: now)
+            let createdYear = calendar.component(.year, from: createdAt)
+            
+            // 如果是今年，只显示月/日；如果是往年，显示年/月/日
+            if currentYear == createdYear {
+                formatter.dateFormat = "M月d日"  // 例如：10月14日
+            } else {
+                formatter.dateFormat = "yyyy年M月d日"  // 例如：2024年10月14日
+            }
+            
+            return formatter.string(from: createdAt)
+        }
+    }
+    
+    /// 获取内容的预览文本（最多显示100个字符）
+    var previewContent: String {
+        // 安全地处理可选的content属性
+        guard let content = content else { return "" }
+        
+        if content.count <= 100 {
+            return content
+        } else {
+            let index = content.index(content.startIndex, offsetBy: 97)
+            return String(content[..<index]) + "..."
+        }
+    }
+    
+    // MARK: - 业务方法
+    
+    /// 标记条目为已使用（增加使用次数，更新最后使用时间）
+    func markAsUsed() {
+        self.usageCount += 1
+        self.lastUsedAt = Date()
+    }
+    
+    /// 切换收藏状态
+    func toggleStarred() {
+        self.isStarred.toggle()
+    }
+    
+    /// 检查是否为链接类型内容
+    var isLink: Bool {
+        return contentType == "link" || (content?.starts(with: "http") == true)
+    }
+    
+    /// 检查是否为图片类型内容
+    var isImage: Bool {
+        return contentType == "image"
+    }
+}
+
+// MARK: - Core Data便利方法
+
+extension ClipItem {
+    
+    /// 获取所有剪贴板条目的请求（按创建时间倒序）
+    static func allItemsFetchRequest() -> NSFetchRequest<ClipItem> {
+        let request: NSFetchRequest<ClipItem> = ClipItem.fetchRequest()
+        request.sortDescriptors = [
+            NSSortDescriptor(keyPath: \ClipItem.createdAt, ascending: false)
+        ]
+        return request
+    }
+    
+    /// 获取收藏的剪贴板条目的请求
+    static func starredItemsFetchRequest() -> NSFetchRequest<ClipItem> {
+        let request: NSFetchRequest<ClipItem> = ClipItem.fetchRequest()
+        request.predicate = NSPredicate(format: "isStarred == %@", NSNumber(value: true))
+        request.sortDescriptors = [
+            NSSortDescriptor(keyPath: \ClipItem.createdAt, ascending: false)
+        ]
+        return request
+    }
+    
+    /// 根据内容类型获取条目的请求
+    /// - Parameter type: 内容类型（text/link/image）
+    /// - Returns: 配置好的获取请求
+    static func itemsByTypeFetchRequest(type: String) -> NSFetchRequest<ClipItem> {
+        let request: NSFetchRequest<ClipItem> = ClipItem.fetchRequest()
+        request.predicate = NSPredicate(format: "contentType == %@", type)
+        request.sortDescriptors = [
+            NSSortDescriptor(keyPath: \ClipItem.createdAt, ascending: false)
+        ]
+        return request
+    }
+}
