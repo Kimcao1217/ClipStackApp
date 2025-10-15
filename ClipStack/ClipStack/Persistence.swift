@@ -5,11 +5,15 @@
 //  Created by Kim Cao on 13/10/2025.
 //  Core Data数据持久化管理器
 //  负责初始化Core Data栈并提供预览数据
+//  支持App Group共享数据
 
 import CoreData
 import Foundation
 
 struct PersistenceController {
+    // App Group标识符 - 必须与Xcode配置的完全一致
+    static let appGroupIdentifier = "group.com.kimcao.clipstack"
+    
     // 单例模式，整个App共享一个数据管理器
     static let shared = PersistenceController()
 
@@ -50,8 +54,6 @@ struct PersistenceController {
         do {
             try viewContext.save()
         } catch {
-            // 如果保存失败，我们在这里处理错误
-            // 在实际开发中，可以添加错误日志或用户提示
             let nsError = error as NSError
             fatalError("预览数据创建失败: \(nsError), \(nsError.userInfo)")
         }
@@ -70,18 +72,61 @@ struct PersistenceController {
         if inMemory {
             // 如果是内存模式，数据不会保存到磁盘
             container.persistentStoreDescriptions.first!.url = URL(fileURLWithPath: "/dev/null")
+        } else {
+            // 🔑 关键：使用App Group共享容器路径
+            // 这样主App和扩展都能访问同一个数据库文件
+            if let appGroupURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: PersistenceController.appGroupIdentifier) {
+                let storeURL = appGroupURL.appendingPathComponent("ClipStack.sqlite")
+                
+                // 配置持久化存储描述符
+                let storeDescription = NSPersistentStoreDescription(url: storeURL)
+                
+                // 启用持久化历史跟踪（用于多进程同步）
+                storeDescription.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
+                
+                // 启用远程变更通知（当扩展修改数据时通知主App）
+                storeDescription.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
+                
+                container.persistentStoreDescriptions = [storeDescription]
+                
+                print("✅ Core Data将使用App Group路径: \(storeURL.path)")
+            } else {
+                print("⚠️ 无法获取App Group路径，将使用默认路径")
+            }
         }
         
         // 加载持久化存储
-        container.loadPersistentStores(completionHandler: { _, error in
+        container.loadPersistentStores(completionHandler: { description, error in
             if let error = error as NSError? {
                 // 在实际发布的应用中，应该优雅地处理这个错误
-                // 比如显示用户友好的错误信息，或者重新创建数据库
                 fatalError("Core Data加载失败: \(error), \(error.userInfo)")
             }
+            
+            print("✅ Core Data加载成功: \(description)")
         })
         
         // 启用自动合并来自其他上下文的更改
+        // 这对于App和Extension同时修改数据非常重要
         container.viewContext.automaticallyMergesChangesFromParent = true
+        
+        // 设置合并策略：新数据覆盖旧数据
+        container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+    }
+    
+    // MARK: - 便利方法
+    
+    /// 保存主上下文的更改
+    func save() {
+        let context = container.viewContext
+        
+        if context.hasChanges {
+            do {
+                try context.save()
+                print("✅ Core Data保存成功")
+            } catch {
+                let nsError = error as NSError
+                print("❌ Core Data保存失败: \(nsError), \(nsError.userInfo)")
+            }
+        }
     }
 }

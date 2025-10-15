@@ -15,12 +15,11 @@ struct ContentView: View {
     // 获取Core Data管理上下文，用于数据操作
     @Environment(\.managedObjectContext) private var viewContext
     
-    // 从Core Data获取所有剪贴板条目，按创建时间倒序排列
-    @FetchRequest(
-        sortDescriptors: [NSSortDescriptor(keyPath: \ClipItem.createdAt, ascending: false)],
-        animation: .default
-    )
-    private var clipItems: FetchedResults<ClipItem>
+    // ⚠️ 接收刷新管理器
+    @EnvironmentObject private var dataRefreshManager: DataRefreshManager
+    
+    // ⚠️ 改用 @State 存储数据，而不是 @FetchRequest
+    @State private var clipItems: [ClipItem] = []
     
     // 控制是否显示添加新条目的弹窗
     @State private var showingAddSheet = false
@@ -60,6 +59,41 @@ struct ContentView: View {
                 addNewItemSheet
             }
         }
+        .onAppear {
+            // 首次加载数据
+            loadData()
+        }
+        .onChange(of: dataRefreshManager.lastRefreshDate) { _ in
+            // 监听远程变更，重新加载数据
+            print("🎨 检测到远程变更，重新加载数据...")
+            loadData()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
+            print("🔄 App返回前台，重新加载数据...")
+            loadData()
+        }
+    }
+    
+    // MARK: - 数据加载
+    
+    /// 从Core Data加载数据
+    private func loadData() {
+        let fetchRequest: NSFetchRequest<ClipItem> = ClipItem.fetchRequest()
+        fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \ClipItem.createdAt, ascending: false)]
+        
+        do {
+            let items = try viewContext.fetch(fetchRequest)
+            
+            // 使用动画更新UI
+            withAnimation {
+                clipItems = items
+            }
+            
+            print("✅ 成功加载 \(items.count) 条数据")
+        } catch {
+            print("❌ 数据加载失败: \(error.localizedDescription)")
+            clipItems = []
+        }
     }
     
     // MARK: - 子视图
@@ -95,12 +129,19 @@ struct ContentView: View {
     private var clipItemsList: some View {
         List {
             ForEach(clipItems) { clipItem in
-                ClipItemRowView(clipItem: clipItem)
-                    .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                ClipItemRowView(clipItem: clipItem, onUpdate: {
+                    // 当条目更新时，重新加载数据
+                    loadData()
+                })
+                .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
             }
             .onDelete(perform: deleteItems)
         }
-        .listStyle(.plain) // iOS 15兼容的写法
+        .listStyle(.plain)
+        // 支持下拉刷新
+        .refreshable {
+            loadData()
+        }
     }
     
     /// 添加新条目的弹窗界面
@@ -160,49 +201,49 @@ struct ContentView: View {
         // 检查内容是否为空
         guard !content.isEmpty else { return }
         
-        // 使用动画包装数据变更
-        withAnimation {
-            // 创建新的剪贴板条目
-            let newItem = ClipItem(
-                content: content,
-                contentType: determineContentType(content: content),
-                sourceApp: newItemSource,
-                context: viewContext
-            )
+        // 创建新的剪贴板条目
+        let newItem = ClipItem(
+            content: content,
+            contentType: determineContentType(content: content),
+            sourceApp: newItemSource,
+            context: viewContext
+        )
+        
+        // 保存到Core Data
+        do {
+            try viewContext.save()
+            print("✅ 成功添加新条目: \(content.prefix(50))...")
             
-            // 保存到Core Data
-            do {
-                try viewContext.save()
-                print("✅ 成功添加新条目: \(content.prefix(50))...")
-                
-                // 关闭弹窗并重置输入
-                dismissAddSheet()
-            } catch {
-                // 错误处理
-                let nsError = error as NSError
-                print("❌ 保存失败: \(nsError.localizedDescription)")
-                // 在实际应用中，这里应该显示用户友好的错误信息
-            }
+            // 关闭弹窗并重置输入
+            dismissAddSheet()
+            
+            // 重新加载数据
+            loadData()
+        } catch {
+            // 错误处理
+            let nsError = error as NSError
+            print("❌ 保存失败: \(nsError.localizedDescription)")
         }
     }
     
     /// 删除选中的剪贴板条目
     /// - Parameter offsets: 要删除的条目在列表中的位置
     private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            // 遍历要删除的条目
-            offsets.map { clipItems[$0] }.forEach { item in
-                print("🗑️ 删除条目: \(item.previewContent)")
-                viewContext.delete(item)
-            }
+        // 遍历要删除的条目
+        offsets.map { clipItems[$0] }.forEach { item in
+            print("🗑️ 删除条目: \(item.previewContent)")
+            viewContext.delete(item)
+        }
+        
+        // 保存更改
+        do {
+            try viewContext.save()
             
-            // 保存更改
-            do {
-                try viewContext.save()
-            } catch {
-                let nsError = error as NSError
-                print("❌ 删除操作保存失败: \(nsError.localizedDescription)")
-            }
+            // 重新加载数据
+            loadData()
+        } catch {
+            let nsError = error as NSError
+            print("❌ 删除操作保存失败: \(nsError.localizedDescription)")
         }
     }
     
@@ -234,6 +275,9 @@ struct ClipItemRowView: View {
     // 使用@ObservedObject来观察对象变化
     @ObservedObject var clipItem: ClipItem
     @Environment(\.managedObjectContext) private var viewContext
+    
+    // 回调：当数据更新时通知父视图
+    let onUpdate: () -> Void
     
     var body: some View {
         HStack(spacing: 12) {
@@ -292,11 +336,11 @@ struct ClipItemRowView: View {
         let generator = UIImpactFeedbackGenerator(style: .light)
         generator.impactOccurred()
         
-        // 先修改数据，再保存，使用正确的动画方式
+        // 先修改数据，再保存
         clipItem.isStarred.toggle()
         print("📝 状态已切换为: \(clipItem.isStarred)")
         
-        // 保存到Core Data（不需要withAnimation包装）
+        // 保存到Core Data
         do {
             try viewContext.save()
             print(clipItem.isStarred ? "⭐ 已收藏并保存" : "☆ 取消收藏并保存")
@@ -312,7 +356,10 @@ struct ClipItemRowView: View {
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
+        let dataRefreshManager = DataRefreshManager()
+        
         ContentView()
             .environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
+            .environmentObject(dataRefreshManager)
     }
 }
