@@ -2,14 +2,13 @@
 //  ContentView.swift
 //  ClipStack
 //
-//  Created by Kim Cao on 13/10/2025.
-//
-//
 //  主界面视图 - 显示剪贴板历史记录列表
 //
 
 import SwiftUI
 import CoreData
+import WidgetKit
+import UIKit
 
 struct ContentView: View {
     // 获取Core Data管理上下文，用于数据操作
@@ -28,11 +27,17 @@ struct ContentView: View {
     // 新条目的来源应用
     @State private var newItemSource = "手动添加"
     
+    // ⚠️ 新增：加载状态标记
+    @State private var isInitialLoadComplete = false
+    
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
                 // 主要内容区域
-                if clipItems.isEmpty {
+                if clipItems.isEmpty && !isInitialLoadComplete {
+                    // 首次加载中的占位视图
+                    loadingView
+                } else if clipItems.isEmpty {
                     // 空状态显示
                     emptyStateView
                 } else {
@@ -47,37 +52,128 @@ struct ContentView: View {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     // 添加按钮
                     Button {
+                        let startTime = CFAbsoluteTimeGetCurrent()
+                        
+                        // ⚠️ 直接显示弹窗
                         showingAddSheet = true
+                        
+                        let timeElapsed = (CFAbsoluteTimeGetCurrent() - startTime) * 1000
+                        print("⏱️ 点击 + 按钮耗时: \(String(format: "%.2f", timeElapsed))ms")
                     } label: {
                         Image(systemName: "plus.circle.fill")
                             .foregroundColor(.blue)
                     }
                 }
             }
-            .sheet(isPresented: $showingAddSheet) {
-                // 添加新条目的弹窗
-                addNewItemSheet
+            .fullScreenCover(isPresented: $showingAddSheet) {
+                // ⚠️ 使用独立的视图
+                AddItemSheetView(
+                    content: $newItemContent,
+                    source: $newItemSource,
+                    onSave: { content, source in
+                        addNewItem(content: content, source: source)
+                    },
+                    onCancel: {
+                        dismissAddSheet()
+                    }
+                )
             }
         }
         .onAppear {
-            // 首次加载数据
-            loadData()
+            // ⚠️ 优化：后台预热 + 异步加载数据
+            prewarmCoreDataInBackground()
+            loadDataAsync()
+            
+            // ⚠️ 启动后 0.3 秒开始预热（更早开始）
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                // 预热键盘
+                KeyboardPrewarmer.shared.prewarmInBackground()
+                
+                // ⚠️ 预热弹窗视图（真实渲染）
+                SheetPrewarmer.shared.prewarmAddItemSheet()
+            }
         }
         .onChange(of: dataRefreshManager.lastRefreshDate) { _ in
             // 监听远程变更，重新加载数据
             print("🎨 检测到远程变更，重新加载数据...")
-            loadData()
+            loadDataAsync()
         }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
             print("🔄 App返回前台，重新加载数据...")
-            loadData()
+            loadDataAsync()
         }
     }
     
-    // MARK: - 数据加载
+    // MARK: - 性能优化：Core Data 预热和异步加载
     
-    /// 从Core Data加载数据
-    private func loadData() {
+    /// 在后台线程预热 Core Data（不阻塞主线程）
+    private func prewarmCoreDataInBackground() {
+        DispatchQueue.global(qos: .userInitiated).async {
+            let startTime = CFAbsoluteTimeGetCurrent()
+            
+            // 创建后台上下文
+            let backgroundContext = PersistenceController.shared.container.newBackgroundContext()
+            
+            // 执行一次简单查询（预热索引和缓存）
+            let fetchRequest: NSFetchRequest<ClipItem> = ClipItem.fetchRequest()
+            fetchRequest.fetchLimit = 1
+            
+            do {
+                _ = try backgroundContext.fetch(fetchRequest)
+                let timeElapsed = (CFAbsoluteTimeGetCurrent() - startTime) * 1000
+                print("🔥 Core Data 预热完成，耗时: \(String(format: "%.2f", timeElapsed))ms")
+            } catch {
+                print("⚠️ Core Data 预热失败: \(error)")
+            }
+        }
+    }
+    
+    /// 异步加载数据（不阻塞主线程）
+    private func loadDataAsync() {
+        let startTime = CFAbsoluteTimeGetCurrent()
+        
+        // 在后台线程执行查询
+        DispatchQueue.global(qos: .userInitiated).async {
+            // 创建后台上下文
+            let backgroundContext = PersistenceController.shared.container.newBackgroundContext()
+            
+            let fetchRequest: NSFetchRequest<ClipItem> = ClipItem.fetchRequest()
+            fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \ClipItem.createdAt, ascending: false)]
+            
+            do {
+                // 后台查询
+                let items = try backgroundContext.fetch(fetchRequest)
+                
+                // 将对象转换到主上下文（避免跨线程访问）
+                let objectIDs = items.map { $0.objectID }
+                
+                // 回到主线程更新 UI
+                DispatchQueue.main.async {
+                    let mainContextItems = objectIDs.compactMap { objectID in
+                        try? viewContext.existingObject(with: objectID) as? ClipItem
+                    }
+                    
+                    // 使用动画更新UI
+                    withAnimation {
+                        clipItems = mainContextItems
+                        isInitialLoadComplete = true
+                    }
+                    
+                    let timeElapsed = (CFAbsoluteTimeGetCurrent() - startTime) * 1000
+                    print("✅ 异步加载 \(mainContextItems.count) 条数据，耗时: \(String(format: "%.2f", timeElapsed))ms")
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    print("❌ 数据加载失败: \(error.localizedDescription)")
+                    clipItems = []
+                    isInitialLoadComplete = true
+                }
+            }
+        }
+    }
+    
+    /// 同步加载数据（用于保存/删除后的立即刷新）
+    private func loadDataSync() {
         let fetchRequest: NSFetchRequest<ClipItem> = ClipItem.fetchRequest()
         fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \ClipItem.createdAt, ascending: false)]
         
@@ -89,7 +185,7 @@ struct ContentView: View {
                 clipItems = items
             }
             
-            print("✅ 成功加载 \(items.count) 条数据")
+            print("✅ 同步加载 \(items.count) 条数据")
         } catch {
             print("❌ 数据加载失败: \(error.localizedDescription)")
             clipItems = []
@@ -97,6 +193,19 @@ struct ContentView: View {
     }
     
     // MARK: - 子视图
+    
+    /// 加载中视图
+    private var loadingView: some View {
+        VStack(spacing: 20) {
+            ProgressView()
+                .scaleEffect(1.5)
+            
+            Text("加载中...")
+                .font(.body)
+                .foregroundColor(.secondary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
     
     /// 空状态视图 - 当没有剪贴板条目时显示
     private var emptyStateView: some View {
@@ -130,8 +239,8 @@ struct ContentView: View {
         List {
             ForEach(clipItems) { clipItem in
                 ClipItemRowView(clipItem: clipItem, onUpdate: {
-                    // 当条目更新时，重新加载数据
-                    loadData()
+                    // 当条目更新时，重新加载数据（同步）
+                    loadDataSync()
                 })
                 .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
             }
@@ -140,94 +249,53 @@ struct ContentView: View {
         .listStyle(.plain)
         // 支持下拉刷新
         .refreshable {
-            loadData()
-        }
-    }
-    
-    /// 添加新条目的弹窗界面
-    private var addNewItemSheet: some View {
-        NavigationView {
-            VStack(spacing: 20) {
-                // 内容输入区域
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("内容")
-                        .font(.headline)
-                    
-                    TextEditor(text: $newItemContent)
-                        .frame(minHeight: 120)
-                        .padding(8)
-                        .background(Color(.systemGray6))
-                        .cornerRadius(8)
-                }
-                
-                // 来源应用选择
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("来源应用")
-                        .font(.headline)
-                    
-                    TextField("输入来源应用名称", text: $newItemSource)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                }
-                
-                Spacer()
-            }
-            .padding()
-            .navigationTitle("添加新条目")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("取消") {
-                        dismissAddSheet()
-                    }
-                }
-                
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("保存") {
-                        addNewItem()
-                    }
-                    .disabled(newItemContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                }
-            }
+            loadDataAsync()
         }
     }
     
     // MARK: - 数据操作方法
     
     /// 添加新的剪贴板条目
-    private func addNewItem() {
+    private func addNewItem(content: String, source: String) {
+        let startTime = CFAbsoluteTimeGetCurrent()
+        
         // 去除前后空格
-        let content = newItemContent.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedContent = content.trimmingCharacters(in: .whitespacesAndNewlines)
         
         // 检查内容是否为空
-        guard !content.isEmpty else { return }
+        guard !trimmedContent.isEmpty else { return }
         
         // 创建新的剪贴板条目
         let newItem = ClipItem(
-            content: content,
-            contentType: determineContentType(content: content),
-            sourceApp: newItemSource,
+            content: trimmedContent,
+            contentType: determineContentType(content: trimmedContent),
+            sourceApp: source,
             context: viewContext
         )
         
         // 保存到Core Data
         do {
             try viewContext.save()
-            print("✅ 成功添加新条目: \(content.prefix(50))...")
+            
+            let timeElapsed = (CFAbsoluteTimeGetCurrent() - startTime) * 1000
+            print("✅ 成功添加新条目，耗时: \(String(format: "%.2f", timeElapsed))ms - \(trimmedContent.prefix(50))...")
+            
+            // 通知 Widget 刷新
+            WidgetCenter.shared.reloadAllTimelines()
             
             // 关闭弹窗并重置输入
             dismissAddSheet()
             
-            // 重新加载数据
-            loadData()
+            // 同步刷新（因为用户期待立即看到）
+            loadDataSync()
         } catch {
             // 错误处理
             let nsError = error as NSError
             print("❌ 保存失败: \(nsError.localizedDescription)")
         }
     }
-    
+
     /// 删除选中的剪贴板条目
-    /// - Parameter offsets: 要删除的条目在列表中的位置
     private func deleteItems(offsets: IndexSet) {
         // 遍历要删除的条目
         offsets.map { clipItems[$0] }.forEach { item in
@@ -239,8 +307,11 @@ struct ContentView: View {
         do {
             try viewContext.save()
             
-            // 重新加载数据
-            loadData()
+            // 通知 Widget 刷新
+            WidgetCenter.shared.reloadAllTimelines()
+            
+            // 同步刷新
+            loadDataSync()
         } catch {
             let nsError = error as NSError
             print("❌ 删除操作保存失败: \(nsError.localizedDescription)")
@@ -265,6 +336,187 @@ struct ContentView: View {
         
         // 默认为文本类型
         return "text"
+    }
+}
+
+// MARK: - 独立的添加条目弹窗视图
+
+struct AddItemSheetView: View {
+    @Binding var content: String
+    @Binding var source: String
+    let onSave: (String, String) -> Void
+    let onCancel: () -> Void
+    
+    var body: some View {
+        NavigationView {
+            VStack(spacing: 20) {
+                // 内容输入区域
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("内容")
+                        .font(.headline)
+                    
+                    TextEditor(text: $content)
+                        .frame(minHeight: 120)
+                        .padding(8)
+                        .background(Color(.systemGray6))
+                        .cornerRadius(8)
+                }
+                
+                // 来源应用选择
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("来源应用")
+                        .font(.headline)
+                    
+                    TextField("输入来源应用名称", text: $source)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                }
+                
+                Spacer()
+            }
+            .padding()
+            .navigationTitle("添加新条目")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("取消") {
+                        onCancel()
+                    }
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("保存") {
+                        onSave(content, source)
+                    }
+                    .disabled(content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                }
+            }
+        }
+    }
+}
+
+// MARK: - 弹窗预热管理器（单例）
+
+class SheetPrewarmer {
+    static let shared = SheetPrewarmer()
+    
+    private var prewarmedController: UIHostingController<AddItemSheetView>?
+    private var isPrewarmed = false
+    
+    private init() {}
+    
+    /// 预热添加条目弹窗
+    func prewarmAddItemSheet() {
+        guard !isPrewarmed else {
+            print("📋 弹窗已预热，跳过")
+            return
+        }
+        
+        let startTime = CFAbsoluteTimeGetCurrent()
+        print("📋 开始预热弹窗视图...")
+        
+        DispatchQueue.main.async { [weak self] in
+            // 创建绑定
+            let dummyContent = Binding<String>(get: { "" }, set: { _ in })
+            let dummySource = Binding<String>(get: { "手动添加" }, set: { _ in })
+            
+            // 创建视图
+            let sheetView = AddItemSheetView(
+                content: dummyContent,
+                source: dummySource,
+                onSave: { _, _ in },
+                onCancel: { }
+            )
+            
+            // ⚠️ 创建 UIHostingController（真实渲染）
+            let controller = UIHostingController(rootView: sheetView)
+            
+            // 设置视图大小（触发布局）
+            controller.view.frame = CGRect(x: 0, y: 0, width: 390, height: 844)
+            controller.view.layoutIfNeeded()
+            
+            // 保留引用
+            self?.prewarmedController = controller
+            self?.isPrewarmed = true
+            
+            let timeElapsed = (CFAbsoluteTimeGetCurrent() - startTime) * 1000
+            print("✅ 弹窗视图预热完成，耗时: \(String(format: "%.2f", timeElapsed))ms")
+        }
+    }
+    
+    /// 清理预热资源
+    func cleanup() {
+        prewarmedController = nil
+        isPrewarmed = false
+        print("🧹 弹窗预热资源已清理")
+    }
+}
+
+// MARK: - 键盘预热管理器（单例，全局共享）
+
+/// 键盘预热管理器 - 负责在后台静默预热键盘，完全不阻塞 UI
+class KeyboardPrewarmer {
+    static let shared = KeyboardPrewarmer()
+    
+    private var isPrewarming = false
+    private var isPrewarmed = false
+    private var hiddenTextField: UITextField?
+    
+    private init() {}
+    
+    /// 在后台预热键盘（完全异步，不阻塞任何操作）
+    func prewarmInBackground() {
+        // 避免重复预热
+        guard !isPrewarming && !isPrewarmed else {
+            print("⌨️ 键盘已预热或正在预热，跳过")
+            return
+        }
+        
+        isPrewarming = true
+        let startTime = CFAbsoluteTimeGetCurrent()
+        
+        print("⌨️ 开始后台预热键盘...")
+        
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            
+            // 创建隐藏的输入框
+            let textField = UITextField()
+            textField.isHidden = true
+            textField.frame = CGRect(x: -100, y: -100, width: 1, height: 1)
+            textField.alpha = 0
+            
+            // 添加到窗口
+            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+               let window = windowScene.windows.first {
+                window.addSubview(textField)
+                self.hiddenTextField = textField
+                
+                // 触发键盘加载
+                textField.becomeFirstResponder()
+                
+                // 延迟清理（给键盘足够时间初始化）
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    textField.resignFirstResponder()
+                    
+                    let timeElapsed = (CFAbsoluteTimeGetCurrent() - startTime) * 1000
+                    print("✅ 键盘预热完成，耗时: \(String(format: "%.2f", timeElapsed))ms")
+                    
+                    self.isPrewarming = false
+                    self.isPrewarmed = true
+                }
+            } else {
+                self.isPrewarming = false
+            }
+        }
+    }
+    
+    /// 清理预热资源（在 App 进入后台时调用）
+    func cleanup() {
+        hiddenTextField?.removeFromSuperview()
+        hiddenTextField = nil
+        isPrewarmed = false
+        isPrewarming = false
+        print("🧹 键盘预热资源已清理")
     }
 }
 
@@ -330,20 +582,17 @@ struct ClipItemRowView: View {
     
     /// 切换收藏状态
     private func toggleStarred() {
-        print("🔘 收藏按钮被点击了！当前状态: \(clipItem.isStarred)")
-        
         // 添加触觉反馈
         let generator = UIImpactFeedbackGenerator(style: .light)
         generator.impactOccurred()
         
         // 先修改数据，再保存
         clipItem.isStarred.toggle()
-        print("📝 状态已切换为: \(clipItem.isStarred)")
         
         // 保存到Core Data
         do {
             try viewContext.save()
-            print(clipItem.isStarred ? "⭐ 已收藏并保存" : "☆ 取消收藏并保存")
+            print(clipItem.isStarred ? "⭐ 已收藏" : "☆ 取消收藏")
         } catch {
             print("❌ 收藏状态保存失败: \(error.localizedDescription)")
             // 如果保存失败，回滚状态

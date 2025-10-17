@@ -7,6 +7,7 @@
 
 import SwiftUI
 import CoreData
+import WidgetKit 
 
 @main
 struct ClipStackApp: App {
@@ -19,13 +20,96 @@ struct ClipStackApp: App {
         WindowGroup {
             ContentView()
                 .environment(\.managedObjectContext, persistenceController.container.viewContext)
-                // ⚠️ 关键：让ContentView能响应刷新信号
                 .environmentObject(dataRefreshManager)
                 .onAppear {
                     // App启动时开始监听远程变更
                     dataRefreshManager.startObserving(persistenceController: persistenceController)
                 }
+                // 处理 Widget 跳转
+                .onOpenURL { url in
+                    handleWidgetURL(url)
+                }
+                // ⚠️ 新增：App 进入后台时清理键盘资源
+                .onReceive(NotificationCenter.default.publisher(for: UIApplication.didEnterBackgroundNotification)) { _ in
+                    print("📱 App 进入后台，清理键盘资源...")
+                    KeyboardPrewarmer.shared.cleanup()
+                }
+                // ⚠️ 新增：App 返回前台时重新预热键盘
+                .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
+                    print("📱 App 返回前台，重新预热键盘...")
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        KeyboardPrewarmer.shared.prewarmInBackground()
+                    }
+                }
         }
+    }
+    
+    // MARK: - Widget URL 处理
+    
+    /// 处理从 Widget 跳转进来的 URL
+    private func handleWidgetURL(_ url: URL) {
+        print("📱 收到 Widget URL: \(url)")
+        
+        // 解析 URL（格式：clipstack://copy/UUID 或 clipstack://refresh）
+        guard url.scheme == "clipstack" else {
+            print("⚠️ 不是 ClipStack URL")
+            return
+        }
+        
+        if url.host == "copy", let idString = url.pathComponents.last, let id = UUID(uuidString: idString) {
+            // 复制指定条目
+            copyItemToClipboard(id: id)
+        } else if url.host == "refresh" {
+            // 手动刷新 Widget
+            refreshWidget()
+        }
+    }
+    
+    /// 复制指定条目到系统剪贴板
+    private func copyItemToClipboard(id: UUID) {
+        print("📋 正在复制条目: \(id)")
+        
+        let context = persistenceController.container.viewContext
+        let fetchRequest: NSFetchRequest<ClipItem> = ClipItem.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        
+        do {
+            let items = try context.fetch(fetchRequest)
+            
+            if let item = items.first, let content = item.content {
+                // 复制到剪贴板
+                UIPasteboard.general.string = content
+                
+                // 增加使用次数
+                item.usageCount += 1
+                item.lastUsedAt = Date()
+                
+                try context.save()
+                
+                print("✅ 已复制到剪贴板: \(content.prefix(50))...")
+                
+                // 显示成功提示（使用触觉反馈）
+                let generator = UINotificationFeedbackGenerator()
+                generator.notificationOccurred(.success)
+                
+            } else {
+                print("⚠️ 未找到对应的条目")
+            }
+        } catch {
+            print("❌ 复制失败: \(error)")
+        }
+    }
+    
+    /// 手动刷新 Widget
+    private func refreshWidget() {
+        print("🔄 手动刷新 Widget...")
+        WidgetCenter.shared.reloadAllTimelines()
+        
+        // 触觉反馈
+        let generator = UIImpactFeedbackGenerator(style: .light)
+        generator.impactOccurred()
+        
+        print("✅ Widget 刷新请求已发送")
     }
 }
 
@@ -78,7 +162,10 @@ class DataRefreshManager: ObservableObject {
             // ⚠️ 关键：通知SwiftUI重新查询数据
             self?.lastRefreshDate = Date()
             
-            print("✅ 上下文刷新完成！UI应该已更新")
+            // 通知 Widget 刷新
+            WidgetCenter.shared.reloadAllTimelines()
+            
+            print("✅ 上下文刷新完成！UI应该已更新，Widget 也已刷新")
         }
     }
     
