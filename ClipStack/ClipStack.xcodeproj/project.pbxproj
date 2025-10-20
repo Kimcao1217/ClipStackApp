@@ -14,6 +14,7 @@
 		262ED0542E9F8A4200D8BBDB /* ClipStack.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 26ADDD432E9CC9E100D3B9E6 /* ClipStack.xcdatamodeld */; };
 		262ED0552E9F8A5600D8BBDB /* Persistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26ADDD412E9CC9E100D3B9E6 /* Persistence.swift */; };
 		262ED0562E9F8A6300D8BBDB /* ClipItem+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 262ED03D2E9DEF1A00D8BBDB /* ClipItem+Extensions.swift */; };
+		26A5A12C2EA6029F00DE1816 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26A5A12B2EA6029F00DE1816 /* AppDelegate.swift */; };
 		26ADDD392E9CC9DF00D3B9E6 /* ClipStackApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26ADDD382E9CC9DF00D3B9E6 /* ClipStackApp.swift */; };
 		26ADDD3B2E9CC9DF00D3B9E6 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26ADDD3A2E9CC9DF00D3B9E6 /* ContentView.swift */; };
 		26ADDD3D2E9CC9E100D3B9E6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 26ADDD3C2E9CC9E100D3B9E6 /* Assets.xcassets */; };
@@ -100,6 +101,7 @@
 		262ED0492E9F862A00D8BBDB /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/MainInterface.storyboard; sourceTree = "<group>"; };
 		262ED04B2E9F862A00D8BBDB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		262ED0532E9F869E00D8BBDB /* ClipStackShare.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ClipStackShare.entitlements; sourceTree = "<group>"; };
+		26A5A12B2EA6029F00DE1816 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		26ADDD352E9CC9DF00D3B9E6 /* ClipStack.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ClipStack.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		26ADDD382E9CC9DF00D3B9E6 /* ClipStackApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipStackApp.swift; sourceTree = "<group>"; };
 		26ADDD3A2E9CC9DF00D3B9E6 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -227,6 +229,7 @@
 				26ADDD432E9CC9E100D3B9E6 /* ClipStack.xcdatamodeld */,
 				26ADDD3E2E9CC9E100D3B9E6 /* Preview Content */,
 				262ED03D2E9DEF1A00D8BBDB /* ClipItem+Extensions.swift */,
+				26A5A12B2EA6029F00DE1816 /* AppDelegate.swift */,
 			);
 			path = ClipStack;
 			sourceTree = "<group>";
@@ -518,6 +521,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				26A5A12C2EA6029F00DE1816 /* AppDelegate.swift in Sources */,
 				26ADDD452E9CC9E100D3B9E6 /* ClipStack.xcdatamodeld in Sources */,
 				26ADDD422E9CC9E100D3B9E6 /* Persistence.swift in Sources */,
 				26ADDD3B2E9CC9DF00D3B9E6 /* ContentView.swift in Sources */,

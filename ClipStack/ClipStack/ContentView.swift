@@ -300,6 +300,8 @@ struct ContentView: View {
         // 遍历要删除的条目
         offsets.map { clipItems[$0] }.forEach { item in
             print("🗑️ 删除条目: \(item.previewContent)")
+            
+            // 从 Core Data 删除
             viewContext.delete(item)
         }
         

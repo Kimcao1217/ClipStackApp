@@ -7,10 +7,11 @@
 
 import SwiftUI
 import CoreData
-import WidgetKit 
+import WidgetKit
 
 @main
 struct ClipStackApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     let persistenceController = PersistenceController.shared
     
     // 用于监听Core Data远程变更通知
@@ -29,12 +30,12 @@ struct ClipStackApp: App {
                 .onOpenURL { url in
                     handleWidgetURL(url)
                 }
-                // ⚠️ 新增：App 进入后台时清理键盘资源
+                // App 进入后台时清理键盘资源
                 .onReceive(NotificationCenter.default.publisher(for: UIApplication.didEnterBackgroundNotification)) { _ in
                     print("📱 App 进入后台，清理键盘资源...")
                     KeyboardPrewarmer.shared.cleanup()
                 }
-                // ⚠️ 新增：App 返回前台时重新预热键盘
+                // App 返回前台时重新预热键盘
                 .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
                     print("📱 App 返回前台，重新预热键盘...")
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
@@ -116,6 +117,7 @@ struct ClipStackApp: App {
 // MARK: - 数据刷新管理器
 
 /// 管理Core Data远程变更通知和数据刷新
+/// ⚠️ 使用 NSPersistentCloudKitContainer 自动同步，不需要手动上传
 class DataRefreshManager: ObservableObject {
     // ⚠️ 关键：这个属性变化会触发SwiftUI重新渲染
     @Published var lastRefreshDate = Date()
@@ -133,8 +135,8 @@ class DataRefreshManager: ObservableObject {
             object: persistenceController.container.persistentStoreCoordinator,
             queue: .main
         ) { [weak self] notification in
-            print("📡 收到远程变更通知！")
-            self?.handleRemoteChange(persistenceController: persistenceController)
+            print("📡 收到远程变更通知！（CloudKit 自动同步）")
+            self?.handleRemoteChange()
         }
         
         // 监听App进入前台事件
@@ -143,29 +145,23 @@ class DataRefreshManager: ObservableObject {
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            print("📱 App进入前台，执行刷新...")
-            self?.handleRemoteChange(persistenceController: persistenceController)
+            print("📱 App进入前台，刷新数据...")
+            self?.handleRemoteChange()
         }
     }
     
     /// 处理远程变更
-    private func handleRemoteChange(persistenceController: PersistenceController) {
-        print("🔄 正在刷新Core Data上下文...")
+    private func handleRemoteChange() {
+        print("🔄 刷新UI...")
         
-        let viewContext = persistenceController.container.viewContext
-        
-        // 在主线程刷新上下文
         DispatchQueue.main.async { [weak self] in
-            // 刷新所有对象
-            viewContext.refreshAllObjects()
-            
             // ⚠️ 关键：通知SwiftUI重新查询数据
             self?.lastRefreshDate = Date()
             
             // 通知 Widget 刷新
             WidgetCenter.shared.reloadAllTimelines()
             
-            print("✅ 上下文刷新完成！UI应该已更新，Widget 也已刷新")
+            print("✅ UI 刷新完成")
         }
     }
     
