@@ -8,6 +8,7 @@
 import UIKit
 import CoreData
 import UniformTypeIdentifiers
+import WidgetKit
 
 class ShareViewController: UIViewController {
     
@@ -34,6 +35,7 @@ class ShareViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        print("🚀 Share Extension viewDidLoad 开始")
         
         // 设置UI
         setupUI()
@@ -86,13 +88,13 @@ class ShareViewController: UIViewController {
     
     /// 处理ItemProvider，按优先级尝试不同类型
     private func handleItemProvider(_ itemProvider: NSItemProvider) {
-        // 优先级1：纯文本
-        if itemProvider.hasItemConformingToTypeIdentifier(UTType.text.identifier) {
-            handleTextContent(itemProvider)
-        }
-        // 优先级2：URL（网页链接）
-        else if itemProvider.hasItemConformingToTypeIdentifier(UTType.url.identifier) {
+        // 优先级1：URL（网页链接）
+        if itemProvider.hasItemConformingToTypeIdentifier(UTType.url.identifier) {
             handleURLContent(itemProvider)
+        }
+        // 优先级2：纯文本
+        else if itemProvider.hasItemConformingToTypeIdentifier(UTType.text.identifier) {
+            handleTextContent(itemProvider)
         }
         // 优先级3：图片
         else if itemProvider.hasItemConformingToTypeIdentifier(UTType.image.identifier) {
@@ -194,30 +196,41 @@ class ShareViewController: UIViewController {
         let context = persistenceController.container.newBackgroundContext()
         
         context.perform {
-            // 创建新的剪贴板条目
-            let newItem = ClipItem(
-                content: content,
-                contentType: contentType,
-                sourceApp: sourceApp,
-                context: context
-            )
+            // ⚠️ 修复：正确创建 ClipItem 对象
+            let newItem = ClipItem(context: context)
+            newItem.id = UUID()
+            newItem.content = content
+            newItem.contentType = contentType
+            newItem.sourceApp = sourceApp
+            newItem.createdAt = Date()
+            newItem.isStarred = false
+            newItem.usageCount = 0
             
-            print("💾 正在保存: 类型=\(contentType), 来源=\(sourceApp)")
+            print("💾 正在保存:")
+            print("  - ID: \(newItem.id?.uuidString ?? "nil")")
+            print("  - 内容: \(content.prefix(50))...")
+            print("  - 类型: \(contentType)")
+            print("  - 来源: \(sourceApp)")
+            print("  - 创建时间: \(newItem.createdAt?.description ?? "nil")")
             
             // 保存到持久化存储
             do {
                 try context.save()
-                print("✅ 保存成功！")
+                print("✅ Share Extension 保存成功！")
+
+                WidgetCenter.shared.reloadAllTimelines()
+                print("🔄 已触发 Widget 刷新")
                 
-                // 在主线程显示成功消息并关闭扩展
+                // ⚠️ 确保在主线程更新 UI
                 DispatchQueue.main.async {
                     self.showSuccess()
                 }
             } catch {
-                print("❌ 保存失败: \(error.localizedDescription)")
+                print("❌ Share Extension 保存失败: \(error.localizedDescription)")
+                print("❌ 详细错误: \(error)")
                 
                 DispatchQueue.main.async {
-                    self.showError("保存失败，请重试")
+                    self.showError("保存失败: \(error.localizedDescription)")
                 }
             }
         }
@@ -226,27 +239,34 @@ class ShareViewController: UIViewController {
     // MARK: - UI反馈方法
     
     private func showSuccess() {
+        print("🎉 显示成功提示")
+        
         activityIndicator.stopAnimating()
         activityIndicator.isHidden = true
         
-        statusLabel.text = "✅ 已保存到ClipStack"
+        statusLabel.text = "✅ 已保存到 ClipStack"
+        statusLabel.textColor = .systemGreen
         
         // 添加触觉反馈
         let generator = UINotificationFeedbackGenerator()
         generator.notificationOccurred(.success)
         
-        // 1秒后自动关闭
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+        // ⚠️ 延长显示时间到 1.5 秒，让用户看到提示
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
+            print("🚪 关闭 Share Extension")
             self?.extensionContext?.completeRequest(returningItems: nil, completionHandler: nil)
         }
     }
     
     private func showError(_ message: String) {
+        print("❌ 显示错误提示: \(message)")
+        
         DispatchQueue.main.async {
             self.activityIndicator.stopAnimating()
             self.activityIndicator.isHidden = true
             
             self.statusLabel.text = "❌ \(message)"
+            self.statusLabel.textColor = .systemRed
             
             // 添加触觉反馈
             let generator = UINotificationFeedbackGenerator()
@@ -254,6 +274,7 @@ class ShareViewController: UIViewController {
             
             // 2秒后关闭
             DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
+                print("🚪 关闭 Share Extension（错误）")
                 self?.extensionContext?.cancelRequest(withError: NSError(domain: "ClipStack", code: -1))
             }
         }
@@ -281,7 +302,7 @@ class ShareViewController: UIViewController {
             }
         }
         
-        // 默认返回"分享扩展"
+        // 默认返回"分享"
         return "分享"
     }
 }
