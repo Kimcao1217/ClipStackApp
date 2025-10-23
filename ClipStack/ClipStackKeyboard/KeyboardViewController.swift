@@ -3,7 +3,7 @@
 //  ClipStackKeyboard
 //
 //  自定义键盘扩展主控制器
-//  显示剪贴板历史记录并支持快速插入
+//  显示剪贴板历史记录（含图片）并支持快速插入/复制
 
 import UIKit
 import CoreData
@@ -132,8 +132,7 @@ class KeyboardViewController: UIInputViewController {
     }
     
     private func setupKeyboardHeight() {
-        // ⚠️ 关键：设置键盘高度为280（根据官方文档建议）
-        // 参考：https://developer.apple.com/documentation/uikit/configuring-a-custom-keyboard-interface
+        // 设置键盘高度为280（根据官方文档建议）
         heightConstraint = NSLayoutConstraint(
             item: view!,
             attribute: .height,
@@ -210,12 +209,167 @@ class KeyboardViewController: UIInputViewController {
     
     @objc private func handleSwitchKeyboard() {
         // 切换到系统默认键盘或其他键盘
-        // ⚠️ 关键：调用UIInputViewController的方法
         advanceToNextInputMode()
         print("🌐 切换键盘")
     }
     
     private func handleItemTap(_ item: ClipItem) {
+        // ⭐ 根据内容类型处理
+        if item.contentType == "image" {
+            // 图片类型：复制到剪贴板
+            copyImageToPasteboard(item)
+        } else {
+            // 文本/链接类型：插入到输入框
+            insertTextToInputField(item)
+        }
+    }
+    
+    /// ⭐ 新增：复制图片到剪贴板
+private func copyImageToPasteboard(_ item: ClipItem) {
+    guard let imageData = item.imageData,
+          let image = UIImage(data: imageData) else {
+        print("⚠️ 图片数据为空")
+        showToast("❌ 图片加载失败")
+        return
+    }
+    
+    // ⭐ 检查是否有完全访问权限
+    if !hasFullAccess() {
+        showFullAccessRequiredAlert()
+        return
+    }
+    
+    // 复制到系统剪贴板
+    UIPasteboard.general.image = image
+    
+    print("📋 图片已复制到剪贴板")
+    showToast("✅ 图片已复制")
+    
+    // 更新使用计数
+    updateUsageCount(for: item)
+    
+    // 触觉反馈
+    let generator = UIImpactFeedbackGenerator(style: .medium)
+    generator.impactOccurred()
+}
+
+/// ⭐ 检测是否有完全访问权限
+private func hasFullAccess() -> Bool {
+    // 方法1：尝试访问剪贴板
+    if UIPasteboard.general.hasStrings || UIPasteboard.general.hasImages {
+        return true
+    }
+    
+    // 方法2：检查是否能写入
+    let testString = "test"
+    UIPasteboard.general.string = testString
+    let canWrite = UIPasteboard.general.string == testString
+    
+    return canWrite
+}
+
+/// ⭐ 显示权限请求提示
+private func showFullAccessRequiredAlert() {
+    // 创建提示视图
+    let alertView = UIView()
+    alertView.backgroundColor = UIColor.systemBackground
+    alertView.layer.cornerRadius = 12
+    alertView.layer.shadowColor = UIColor.black.cgColor
+    alertView.layer.shadowOpacity = 0.3
+    alertView.layer.shadowOffset = CGSize(width: 0, height: 2)
+    alertView.layer.shadowRadius = 8
+    alertView.translatesAutoresizingMaskIntoConstraints = false
+    
+    // 图标
+    let iconLabel = UILabel()
+    iconLabel.text = "🔒"
+    iconLabel.font = .systemFont(ofSize: 40)
+    iconLabel.translatesAutoresizingMaskIntoConstraints = false
+    alertView.addSubview(iconLabel)
+    
+    // 标题
+    let titleLabel = UILabel()
+    titleLabel.text = "需要开启\"允许完全访问\""
+    titleLabel.font = .systemFont(ofSize: 16, weight: .semibold)
+    titleLabel.textAlignment = .center
+    titleLabel.translatesAutoresizingMaskIntoConstraints = false
+    alertView.addSubview(titleLabel)
+    
+    // 说明
+    let messageLabel = UILabel()
+    messageLabel.text = "复制图片到剪贴板需要此权限\n\n设置 → 通用 → 键盘 → ClipStack\n→ 开启\"允许完全访问\""
+    messageLabel.font = .systemFont(ofSize: 12)
+    messageLabel.textColor = .secondaryLabel
+    messageLabel.numberOfLines = 0
+    messageLabel.textAlignment = .center
+    messageLabel.translatesAutoresizingMaskIntoConstraints = false
+    alertView.addSubview(messageLabel)
+    
+    // 关闭按钮
+    let closeButton = UIButton(type: .system)
+    closeButton.setTitle("我知道了", for: .normal)
+    closeButton.titleLabel?.font = .systemFont(ofSize: 14, weight: .medium)
+    closeButton.backgroundColor = .systemBlue
+    closeButton.setTitleColor(.white, for: .normal)
+    closeButton.layer.cornerRadius = 8
+    closeButton.translatesAutoresizingMaskIntoConstraints = false
+    closeButton.addTarget(self, action: #selector(dismissAlert), for: .touchUpInside)
+    alertView.addSubview(closeButton)
+    
+    // 添加到视图
+    view.addSubview(alertView)
+    
+    // 保存引用（用于关闭）
+    alertView.tag = 999
+    
+    // 布局
+    NSLayoutConstraint.activate([
+        alertView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+        alertView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+        alertView.widthAnchor.constraint(equalToConstant: 280),
+        
+        iconLabel.topAnchor.constraint(equalTo: alertView.topAnchor, constant: 20),
+        iconLabel.centerXAnchor.constraint(equalTo: alertView.centerXAnchor),
+        
+        titleLabel.topAnchor.constraint(equalTo: iconLabel.bottomAnchor, constant: 12),
+        titleLabel.leadingAnchor.constraint(equalTo: alertView.leadingAnchor, constant: 16),
+        titleLabel.trailingAnchor.constraint(equalTo: alertView.trailingAnchor, constant: -16),
+        
+        messageLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 8),
+        messageLabel.leadingAnchor.constraint(equalTo: alertView.leadingAnchor, constant: 16),
+        messageLabel.trailingAnchor.constraint(equalTo: alertView.trailingAnchor, constant: -16),
+        
+        closeButton.topAnchor.constraint(equalTo: messageLabel.bottomAnchor, constant: 20),
+        closeButton.leadingAnchor.constraint(equalTo: alertView.leadingAnchor, constant: 16),
+        closeButton.trailingAnchor.constraint(equalTo: alertView.trailingAnchor, constant: -16),
+        closeButton.heightAnchor.constraint(equalToConstant: 44),
+        closeButton.bottomAnchor.constraint(equalTo: alertView.bottomAnchor, constant: -20)
+    ])
+    
+    // 淡入动画
+    alertView.alpha = 0
+    alertView.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
+    UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0, options: [], animations: {
+        alertView.alpha = 1
+        alertView.transform = .identity
+    })
+    
+    print("🔒 显示权限请求提示")
+}
+
+@objc private func dismissAlert() {
+    if let alertView = view.viewWithTag(999) {
+        UIView.animate(withDuration: 0.2, animations: {
+            alertView.alpha = 0
+            alertView.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
+        }) { _ in
+            alertView.removeFromSuperview()
+        }
+    }
+}
+    
+    /// 插入文本到输入框
+    private func insertTextToInputField(_ item: ClipItem) {
         guard let content = item.content else {
             print("⚠️ 条目内容为空")
             return
@@ -223,11 +377,21 @@ class KeyboardViewController: UIInputViewController {
         
         print("📝 准备插入文本: \(content.prefix(50))...")
         
-        // ⚠️ 关键：使用textDocumentProxy插入文本到当前输入框
-        // 参考：https://developer.apple.com/documentation/uikit/uiinputviewcontroller/textdocumentproxy
+        // 使用textDocumentProxy插入文本到当前输入框
         textDocumentProxy.insertText(content)
         
-        // 更新使用计数（在后台上下文中）
+        // 更新使用计数
+        updateUsageCount(for: item)
+        
+        // 触觉反馈
+        let generator = UIImpactFeedbackGenerator(style: .light)
+        generator.impactOccurred()
+        
+        print("✅ 文本插入成功")
+    }
+    
+    /// 更新使用次数
+    private func updateUsageCount(for item: ClipItem) {
         let context = persistenceController.container.newBackgroundContext()
         context.perform {
             // 在后台上下文中获取对象
@@ -242,12 +406,36 @@ class KeyboardViewController: UIInputViewController {
                 }
             }
         }
+    }
+    
+    /// ⭐ 显示提示信息（Toast）
+    private func showToast(_ message: String) {
+        // 创建一个临时标签显示提示
+        let toastLabel = UILabel()
+        toastLabel.text = message
+        toastLabel.font = .systemFont(ofSize: 14, weight: .medium)
+        toastLabel.textColor = .white
+        toastLabel.backgroundColor = UIColor.black.withAlphaComponent(0.8)
+        toastLabel.textAlignment = .center
+        toastLabel.layer.cornerRadius = 8
+        toastLabel.layer.masksToBounds = true
+        toastLabel.translatesAutoresizingMaskIntoConstraints = false
         
-        // 添加触觉反馈
-        let generator = UIImpactFeedbackGenerator(style: .light)
-        generator.impactOccurred()
+        view.addSubview(toastLabel)
         
-        print("✅ 文本插入成功")
+        NSLayoutConstraint.activate([
+            toastLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            toastLabel.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            toastLabel.heightAnchor.constraint(equalToConstant: 40),
+            toastLabel.widthAnchor.constraint(greaterThanOrEqualToConstant: 120)
+        ])
+        
+        // 1.5秒后淡出消失
+        UIView.animate(withDuration: 0.3, delay: 1.5, options: [], animations: {
+            toastLabel.alpha = 0
+        }) { _ in
+            toastLabel.removeFromSuperview()
+        }
     }
     
     // MARK: - 系统方法重写

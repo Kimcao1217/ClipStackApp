@@ -66,40 +66,147 @@ struct ClipStackApp: App {
         }
     }
     
-    /// 复制指定条目到系统剪贴板
-    private func copyItemToClipboard(id: UUID) {
-        print("📋 正在复制条目: \(id)")
+    /// 复制指定条目到系统剪贴板（⭐ 支持图片）
+private func copyItemToClipboard(id: UUID) {
+    print("📋 正在复制条目: \(id)")
+    
+    let context = persistenceController.container.viewContext
+    let fetchRequest: NSFetchRequest<ClipItem> = ClipItem.fetchRequest()
+    fetchRequest.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+    
+    do {
+        let items = try context.fetch(fetchRequest)
         
-        let context = persistenceController.container.viewContext
-        let fetchRequest: NSFetchRequest<ClipItem> = ClipItem.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        guard let item = items.first else {
+            print("⚠️ 未找到对应的条目")
+            return
+        }
         
-        do {
-            let items = try context.fetch(fetchRequest)
-            
-            if let item = items.first, let content = item.content {
-                // 复制到剪贴板
+        // ⭐ 根据内容类型复制
+        if item.contentType == "image" {
+            // 复制图片
+            if let imageData = item.imageData, let image = UIImage(data: imageData) {
+                UIPasteboard.general.image = image
+                print("✅ 已复制图片到剪贴板（尺寸：\(item.imageWidth)×\(item.imageHeight)）")
+                
+                // 显示成功提示
+                showSuccessHUD(message: "✅ 图片已复制")
+            } else {
+                print("❌ 图片数据无效")
+                showErrorHUD(message: "❌ 图片加载失败")
+                return
+            }
+        } else {
+            // 复制文本/链接
+            if let content = item.content {
                 UIPasteboard.general.string = content
-                
-                // 增加使用次数
-                item.usageCount += 1
-                item.lastUsedAt = Date()
-                
-                try context.save()
-                
                 print("✅ 已复制到剪贴板: \(content.prefix(50))...")
                 
-                // 显示成功提示（使用触觉反馈）
-                let generator = UINotificationFeedbackGenerator()
-                generator.notificationOccurred(.success)
-                
+                // 显示成功提示
+                showSuccessHUD(message: "✅ 已复制")
             } else {
-                print("⚠️ 未找到对应的条目")
+                print("⚠️ 内容为空")
+                return
             }
-        } catch {
-            print("❌ 复制失败: \(error)")
+        }
+        
+        // 增加使用次数
+        item.usageCount += 1
+        item.lastUsedAt = Date()
+        
+        try context.save()
+        
+        // 触觉反馈
+        let generator = UINotificationFeedbackGenerator()
+        generator.notificationOccurred(.success)
+        
+    } catch {
+        print("❌ 复制失败: \(error)")
+        showErrorHUD(message: "❌ 复制失败")
+    }
+}
+
+// MARK: - HUD 提示（⭐ 新增）
+/// 显示成功提示（⭐ 修复重复添加子视图问题）
+private func showSuccessHUD(message: String) {
+    DispatchQueue.main.async {
+        // ⭐ createHUD 内部已经添加到 window，不需要再次 addSubview
+        let hud = createHUD(message: message, icon: "✅", color: .systemGreen)
+        
+        UIView.animate(withDuration: 0.3, delay: 0, options: [], animations: {
+            hud.alpha = 1
+        }) { _ in
+            UIView.animate(withDuration: 0.3, delay: 1.5, options: [], animations: {
+                hud.alpha = 0
+            }) { _ in
+                hud.removeFromSuperview()
+            }
         }
     }
+}
+
+/// 显示错误提示（⭐ 修复重复添加子视图问题）
+private func showErrorHUD(message: String) {
+    DispatchQueue.main.async {
+        // ⭐ createHUD 内部已经添加到 window，不需要再次 addSubview
+        let hud = createHUD(message: message, icon: "❌", color: .systemRed)
+        
+        UIView.animate(withDuration: 0.3, delay: 0, options: [], animations: {
+            hud.alpha = 1
+        }) { _ in
+            UIView.animate(withDuration: 0.3, delay: 1.5, options: [], animations: {
+                hud.alpha = 0
+            }) { _ in
+                hud.removeFromSuperview()
+            }
+        }
+    }
+}
+
+/// 创建 HUD 视图（⭐ 修复定位问题）
+private func createHUD(message: String, icon: String, color: UIColor) -> UIView {
+    guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+          let window = windowScene.windows.first else {
+        return UIView()
+    }
+    
+    let hud = UIView()
+    hud.backgroundColor = UIColor.black.withAlphaComponent(0.8)
+    hud.layer.cornerRadius = 12
+    hud.translatesAutoresizingMaskIntoConstraints = false
+    hud.alpha = 0
+    
+    let label = UILabel()
+    label.text = message
+    label.textColor = .white
+    label.font = .systemFont(ofSize: 16, weight: .medium)
+    label.numberOfLines = 0
+    label.textAlignment = .center
+    label.translatesAutoresizingMaskIntoConstraints = false
+    
+    hud.addSubview(label)
+    
+    // ⭐ 关键修复：先添加到 window，再设置约束
+    window.addSubview(hud)
+    
+    NSLayoutConstraint.activate([
+        // HUD 居中显示
+        hud.centerXAnchor.constraint(equalTo: window.centerXAnchor),
+        hud.centerYAnchor.constraint(equalTo: window.centerYAnchor),
+        
+        // HUD 最小宽度 120，最大宽度 280
+        hud.widthAnchor.constraint(greaterThanOrEqualToConstant: 120),
+        hud.widthAnchor.constraint(lessThanOrEqualToConstant: 280),
+        
+        // Label 布局
+        label.leadingAnchor.constraint(equalTo: hud.leadingAnchor, constant: 20),
+        label.trailingAnchor.constraint(equalTo: hud.trailingAnchor, constant: -20),
+        label.topAnchor.constraint(equalTo: hud.topAnchor, constant: 12),
+        label.bottomAnchor.constraint(equalTo: hud.bottomAnchor, constant: -12)
+    ])
+    
+    return hud
+}
     
     /// 手动刷新 Widget
     private func refreshWidget() {

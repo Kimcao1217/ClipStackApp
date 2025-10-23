@@ -2,13 +2,14 @@
 //  WidgetDataProvider.swift
 //  ClipStackWidget
 //
-//  Widget 数据提供器 - 负责从 Core Data 加载数据
+//  Widget 数据提供器 - 负责从 Core Data 加载数据（⭐ 支持图片）
 //
 
 import Foundation
 import CoreData
+import UIKit
 
-/// Widget 使用的简化数据模型
+/// Widget 使用的简化数据模型（⭐ 新增图片支持）
 struct WidgetClipItem: Identifiable {
     let id: UUID
     let content: String
@@ -16,6 +17,13 @@ struct WidgetClipItem: Identifiable {
     let sourceApp: String
     let createdAt: Date
     let isStarred: Bool
+    
+    // ⭐ 新增：图片相关属性
+    let imageData: Data?
+    let imageFormat: String?
+    let imageWidth: Int
+    let imageHeight: Int
+    let thumbnailSize: Int
     
     // 类型图标
     var typeIcon: String {
@@ -27,8 +35,52 @@ struct WidgetClipItem: Identifiable {
         }
     }
     
+    // ⭐ 是否有图片
+    var hasImage: Bool {
+        return contentType == "image" && imageData != nil
+    }
+    
+    // ⭐ 获取缩略图 UIImage
+    var thumbnailImage: UIImage? {
+        guard let imageData = imageData else { return nil }
+        return UIImage(data: imageData)
+    }
+    
+    // ⭐ 图片描述（格式 • 尺寸 • 大小）
+    var imageDescription: String {
+        guard hasImage else { return "" }
+        
+        var parts: [String] = []
+        
+        if let format = imageFormat, !format.isEmpty {
+            parts.append(format)
+        }
+        
+        if imageWidth > 0 && imageHeight > 0 {
+            parts.append("\(imageWidth)×\(imageHeight)")
+        }
+        
+        if thumbnailSize > 0 {
+            if thumbnailSize < 1024 {
+                parts.append("\(thumbnailSize)B")
+            } else if thumbnailSize < 1024 * 1024 {
+                parts.append(String(format: "%.1fKB", Double(thumbnailSize) / 1024.0))
+            } else {
+                parts.append(String(format: "%.1fMB", Double(thumbnailSize) / 1024.0 / 1024.0))
+            }
+        }
+        
+        return parts.joined(separator: " • ")
+    }
+    
     // 内容预览（最多50字符）
     var preview: String {
+        // ⭐ 图片类型显示图片信息
+        if hasImage {
+            return imageDescription
+        }
+        
+        // 文本/链接类型显示内容
         if content.count <= 50 {
             return content
         } else {
@@ -110,7 +162,6 @@ class WidgetDataProvider {
                 
                 items = results.compactMap { object in
                     guard let id = object.value(forKey: "id") as? UUID,
-                          let content = object.value(forKey: "content") as? String,
                           let contentType = object.value(forKey: "contentType") as? String,
                           let sourceApp = object.value(forKey: "sourceApp") as? String,
                           let createdAt = object.value(forKey: "createdAt") as? Date,
@@ -118,13 +169,28 @@ class WidgetDataProvider {
                         return nil
                     }
                     
+                    // ⭐ 获取内容（图片类型可能为空）
+                    let content = object.value(forKey: "content") as? String ?? ""
+                    
+                    // ⭐ 获取图片相关属性
+                    let imageData = object.value(forKey: "imageData") as? Data
+                    let imageFormat = object.value(forKey: "imageFormat") as? String
+                    let imageWidth = object.value(forKey: "imageWidth") as? Int ?? 0
+                    let imageHeight = object.value(forKey: "imageHeight") as? Int ?? 0
+                    let thumbnailSize = object.value(forKey: "thumbnailSize") as? Int ?? 0
+                    
                     return WidgetClipItem(
                         id: id,
                         content: content,
                         contentType: contentType,
                         sourceApp: sourceApp,
                         createdAt: createdAt,
-                        isStarred: isStarred
+                        isStarred: isStarred,
+                        imageData: imageData,
+                        imageFormat: imageFormat,
+                        imageWidth: imageWidth,
+                        imageHeight: imageHeight,
+                        thumbnailSize: thumbnailSize
                     )
                 }
                 

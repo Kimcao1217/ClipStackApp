@@ -3,7 +3,7 @@
 //  ClipStackShare
 //
 //  Share Extension主控制器
-//  处理从其他App分享来的内容并保存到Core Data
+//  处理从其他App分享来的内容（文本/链接/图片）并保存到Core Data
 
 import UIKit
 import CoreData
@@ -37,10 +37,7 @@ class ShareViewController: UIViewController {
         super.viewDidLoad()
         print("🚀 Share Extension viewDidLoad 开始")
         
-        // 设置UI
         setupUI()
-        
-        // 开始处理分享内容
         handleSharedContent()
     }
     
@@ -49,7 +46,6 @@ class ShareViewController: UIViewController {
     private func setupUI() {
         view.backgroundColor = .systemBackground
         
-        // 添加状态标签
         view.addSubview(statusLabel)
         NSLayoutConstraint.activate([
             statusLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
@@ -58,14 +54,12 @@ class ShareViewController: UIViewController {
             statusLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -40)
         ])
         
-        // 添加加载指示器
         view.addSubview(activityIndicator)
         NSLayoutConstraint.activate([
             activityIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             activityIndicator.bottomAnchor.constraint(equalTo: statusLabel.topAnchor, constant: -20)
         ])
         
-        // 初始状态
         statusLabel.text = "正在保存..."
         activityIndicator.startAnimating()
     }
@@ -73,7 +67,6 @@ class ShareViewController: UIViewController {
     // MARK: - 处理分享内容
     
     private func handleSharedContent() {
-        // 获取扩展上下文和输入项
         guard let extensionItem = extensionContext?.inputItems.first as? NSExtensionItem,
               let itemProvider = extensionItem.attachments?.first else {
             showError("无法获取分享内容")
@@ -81,24 +74,22 @@ class ShareViewController: UIViewController {
         }
         
         print("📦 收到分享请求，开始处理...")
-        
-        // 尝试按优先级处理不同类型的内容
         handleItemProvider(itemProvider)
     }
     
     /// 处理ItemProvider，按优先级尝试不同类型
     private func handleItemProvider(_ itemProvider: NSItemProvider) {
-        // 优先级1：URL（网页链接）
-        if itemProvider.hasItemConformingToTypeIdentifier(UTType.url.identifier) {
+        // 优先级1：图片
+        if itemProvider.hasItemConformingToTypeIdentifier(UTType.image.identifier) {
+            handleImageContent(itemProvider)
+        }
+        // 优先级2：URL（网页链接）
+        else if itemProvider.hasItemConformingToTypeIdentifier(UTType.url.identifier) {
             handleURLContent(itemProvider)
         }
-        // 优先级2：纯文本
+        // 优先级3：纯文本
         else if itemProvider.hasItemConformingToTypeIdentifier(UTType.text.identifier) {
             handleTextContent(itemProvider)
-        }
-        // 优先级3：图片
-        else if itemProvider.hasItemConformingToTypeIdentifier(UTType.image.identifier) {
-            handleImageContent(itemProvider)
         }
         // 不支持的类型
         else {
@@ -118,7 +109,6 @@ class ShareViewController: UIViewController {
                 return
             }
             
-            // 提取文本内容
             var textContent: String?
             
             if let text = item as? String {
@@ -134,11 +124,16 @@ class ShareViewController: UIViewController {
             
             print("📝 成功提取文本内容: \(content.prefix(50))...")
             
-            // 保存到Core Data
             self.saveClipItem(
                 content: content,
                 contentType: self.determineContentType(content: content),
-                sourceApp: self.getSourceAppName()
+                sourceApp: self.getSourceAppName(),
+                imageData: nil,
+                imageWidth: 0,
+                imageHeight: 0,
+                imageFormat: nil,
+                originalSize: 0,
+                thumbnailSize: 0
             )
         }
     }
@@ -170,33 +165,141 @@ class ShareViewController: UIViewController {
             
             print("🔗 成功提取URL: \(content)")
             
-            // 保存到Core Data
             self.saveClipItem(
                 content: content,
                 contentType: "link",
-                sourceApp: self.getSourceAppName()
+                sourceApp: self.getSourceAppName(),
+                imageData: nil,
+                imageWidth: 0,
+                imageHeight: 0,
+                imageFormat: nil,
+                originalSize: 0,
+                thumbnailSize: 0
             )
         }
     }
     
-    // MARK: - 处理图片内容
+    // MARK: - 处理图片内容（⭐ 新增）
     
     private func handleImageContent(_ itemProvider: NSItemProvider) {
-        // 图片处理比较复杂，暂时先提示用户
-        // 在后续版本中实现图片存储
-        DispatchQueue.main.async {
-            self.showError("图片分享功能即将推出")
+        print("🖼️ 开始处理图片...")
+        
+        itemProvider.loadItem(forTypeIdentifier: UTType.image.identifier, options: nil) { [weak self] (item, error) in
+            guard let self = self else { return }
+            
+            if let error = error {
+                print("❌ 加载图片失败: \(error.localizedDescription)")
+                self.showError("读取图片失败")
+                return
+            }
+            
+            // 从不同来源提取 UIImage
+            var image: UIImage?
+            var originalSize: Int64 = 0
+            var imageFormat: String = "JPEG"
+            
+            if let img = item as? UIImage {
+                // 直接是 UIImage
+                image = img
+                print("✅ 直接获取到 UIImage")
+            } else if let data = item as? Data {
+                // 是 Data，转为 UIImage
+                image = UIImage(data: data)
+                originalSize = Int64(data.count)
+                
+                // 检测图片格式
+                if data.count > 0 {
+                    let byte = data[0]
+                    if byte == 0xFF {
+                        imageFormat = "JPEG"
+                    } else if byte == 0x89 {
+                        imageFormat = "PNG"
+                    } else if byte == 0x00 {
+                        imageFormat = "HEIC"
+                    }
+                }
+                
+                print("✅ 从 Data 转换为 UIImage（\(data.count) 字节）")
+            } else if let url = item as? URL {
+                // 是文件 URL
+                if let data = try? Data(contentsOf: url) {
+                    image = UIImage(data: data)
+                    originalSize = Int64(data.count)
+                    imageFormat = url.pathExtension.uppercased()
+                    print("✅ 从文件 URL 加载图片（\(data.count) 字节）")
+                }
+            }
+            
+            guard let originalImage = image else {
+                self.showError("无法读取图片")
+                return
+            }
+            
+            print("📐 原图尺寸: \(originalImage.size.width) × \(originalImage.size.height)")
+            
+            // 压缩图片
+            guard let compressedData = self.compressImage(originalImage, targetWidth: 400) else {
+                self.showError("图片压缩失败")
+                return
+            }
+            
+            print("✅ 图片压缩完成: \(originalSize) 字节 → \(compressedData.count) 字节")
+            
+            // 保存到 Core Data
+            self.saveClipItem(
+                content: "图片", // 占位文本
+                contentType: "image",
+                sourceApp: self.getSourceAppName(),
+                imageData: compressedData,
+                imageWidth: Int32(originalImage.size.width),
+                imageHeight: Int32(originalImage.size.height),
+                imageFormat: imageFormat,
+                originalSize: originalSize,
+                thumbnailSize: Int64(compressedData.count)
+            )
         }
     }
     
-    // MARK: - 保存到Core Data
+    /// 压缩图片到指定宽度（保持宽高比）
+    private func compressImage(_ image: UIImage, targetWidth: CGFloat = 400) -> Data? {
+        let originalSize = image.size
+        
+        // 如果原图已经很小，不需要压缩
+        if originalSize.width <= targetWidth {
+            return image.jpegData(compressionQuality: 0.7)
+        }
+        
+        // 计算压缩比例
+        let scale = targetWidth / originalSize.width
+        let newHeight = originalSize.height * scale
+        let newSize = CGSize(width: targetWidth, height: newHeight)
+        
+        // 使用 UIGraphicsImageRenderer 高质量缩放
+        let renderer = UIGraphicsImageRenderer(size: newSize)
+        let resizedImage = renderer.image { context in
+            image.draw(in: CGRect(origin: .zero, size: newSize))
+        }
+        
+        // 转为 JPEG（质量 70%）
+        return resizedImage.jpegData(compressionQuality: 0.7)
+    }
     
-    private func saveClipItem(content: String, contentType: String, sourceApp: String) {
-        // 在后台上下文中保存数据
+    // MARK: - 保存到Core Data（⭐ 更新参数）
+    
+    private func saveClipItem(
+        content: String,
+        contentType: String,
+        sourceApp: String,
+        imageData: Data?,
+        imageWidth: Int32,
+        imageHeight: Int32,
+        imageFormat: String?,
+        originalSize: Int64,
+        thumbnailSize: Int64
+    ) {
         let context = persistenceController.container.newBackgroundContext()
         
         context.perform {
-            // ⚠️ 修复：正确创建 ClipItem 对象
             let newItem = ClipItem(context: context)
             newItem.id = UUID()
             newItem.content = content
@@ -206,28 +309,36 @@ class ShareViewController: UIViewController {
             newItem.isStarred = false
             newItem.usageCount = 0
             
+            // ⭐ 保存图片数据
+            if let imageData = imageData {
+                newItem.imageData = imageData
+                newItem.imageWidth = imageWidth
+                newItem.imageHeight = imageHeight
+                newItem.imageFormat = imageFormat
+                newItem.originalSize = originalSize
+                newItem.thumbnailSize = thumbnailSize
+            }
+            
             print("💾 正在保存:")
-            print("  - ID: \(newItem.id?.uuidString ?? "nil")")
-            print("  - 内容: \(content.prefix(50))...")
             print("  - 类型: \(contentType)")
             print("  - 来源: \(sourceApp)")
-            print("  - 创建时间: \(newItem.createdAt?.description ?? "nil")")
+            if contentType == "image" {
+                print("  - 原图: \(imageWidth) × \(imageHeight)")
+                print("  - 缩略图: \(thumbnailSize) 字节")
+            }
             
-            // 保存到持久化存储
             do {
                 try context.save()
                 print("✅ Share Extension 保存成功！")
-
+                
                 WidgetCenter.shared.reloadAllTimelines()
                 print("🔄 已触发 Widget 刷新")
                 
-                // ⚠️ 确保在主线程更新 UI
                 DispatchQueue.main.async {
                     self.showSuccess()
                 }
             } catch {
                 print("❌ Share Extension 保存失败: \(error.localizedDescription)")
-                print("❌ 详细错误: \(error)")
                 
                 DispatchQueue.main.async {
                     self.showError("保存失败: \(error.localizedDescription)")
@@ -247,11 +358,9 @@ class ShareViewController: UIViewController {
         statusLabel.text = "✅ 已保存到 ClipStack"
         statusLabel.textColor = .systemGreen
         
-        // 添加触觉反馈
         let generator = UINotificationFeedbackGenerator()
         generator.notificationOccurred(.success)
         
-        // ⚠️ 延长显示时间到 1.5 秒，让用户看到提示
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
             print("🚪 关闭 Share Extension")
             self?.extensionContext?.completeRequest(returningItems: nil, completionHandler: nil)
@@ -268,11 +377,9 @@ class ShareViewController: UIViewController {
             self.statusLabel.text = "❌ \(message)"
             self.statusLabel.textColor = .systemRed
             
-            // 添加触觉反馈
             let generator = UINotificationFeedbackGenerator()
             generator.notificationOccurred(.error)
             
-            // 2秒后关闭
             DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
                 print("🚪 关闭 Share Extension（错误）")
                 self?.extensionContext?.cancelRequest(withError: NSError(domain: "ClipStack", code: -1))
@@ -282,27 +389,18 @@ class ShareViewController: UIViewController {
     
     // MARK: - 工具方法
     
-    /// 判断内容类型
     private func determineContentType(content: String) -> String {
-        // 简单的链接检测
         if content.lowercased().hasPrefix("http://") || content.lowercased().hasPrefix("https://") {
             return "link"
         }
-        
         return "text"
     }
     
-    /// 获取来源应用名称
     private func getSourceAppName() -> String {
-        // 尝试从扩展上下文获取来源应用名称
-        if let extensionItem = extensionContext?.inputItems.first as? NSExtensionItem {
-            // 检查是否有来源应用信息
-            if let sourceApplication = extensionItem.userInfo?["NSExtensionItemSourceApplicationKey"] as? String {
-                return sourceApplication
-            }
+        if let extensionItem = extensionContext?.inputItems.first as? NSExtensionItem,
+           let sourceApplication = extensionItem.userInfo?["NSExtensionItemSourceApplicationKey"] as? String {
+            return sourceApplication
         }
-        
-        // 默认返回"分享"
         return "分享"
     }
 }

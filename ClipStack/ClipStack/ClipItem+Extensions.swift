@@ -9,6 +9,7 @@
 
 import Foundation
 import CoreData
+import UIKit
 
 extension ClipItem {
     
@@ -187,5 +188,58 @@ extension ClipItem {
             NSSortDescriptor(keyPath: \ClipItem.createdAt, ascending: false)
         ]
         return request
+    }
+}
+
+// MARK: - 图片相关扩展（⭐ 新增）
+
+extension ClipItem {
+    
+    /// 是否包含图片数据
+    var hasImage: Bool {
+        return imageData != nil && contentType == "image"
+    }
+    
+    /// 获取缩略图 UIImage
+    var thumbnailImage: UIImage? {
+        guard let imageData = imageData else { return nil }
+        return UIImage(data: imageData)
+    }
+    
+    /// 图片尺寸描述（如 "1920×1080"）
+    var imageSizeDescription: String {
+        guard hasImage else { return "" }
+        return "\(imageWidth) × \(imageHeight)"
+    }
+    
+    /// 图片文件大小描述（如 "2.3 MB"）
+    var imageSizeText: String {
+        guard hasImage else { return "" }
+        
+        let size = originalSize > 0 ? originalSize : thumbnailSize
+        
+        if size < 1024 {
+            return "\(size) B"
+        } else if size < 1024 * 1024 {
+            return String(format: "%.1f KB", Double(size) / 1024.0)
+        } else {
+            return String(format: "%.1f MB", Double(size) / 1024.0 / 1024.0)
+        }
+    }
+    
+    /// 图片格式+尺寸+大小的完整描述（如 "JPEG • 1920×1080 • 2.3 MB"）
+    var imageFullDescription: String {
+        guard hasImage else { return "" }
+        
+        var parts: [String] = []
+        
+        if let format = imageFormat, !format.isEmpty {
+            parts.append(format)
+        }
+        
+        parts.append(imageSizeDescription)
+        parts.append(imageSizeText)
+        
+        return parts.joined(separator: " • ")
     }
 }
