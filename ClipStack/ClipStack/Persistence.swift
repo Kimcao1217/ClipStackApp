@@ -118,3 +118,79 @@ struct PersistenceController {
         }
     }
 }
+
+// MARK: - 查询方法扩展（⭐ 新增：支持搜索和筛选）
+
+extension PersistenceController {
+    
+    /// 根据搜索关键词和筛选类型查询条目
+    /// - Parameters:
+    ///   - searchText: 搜索关键词（为空则不搜索）
+    ///   - filterType: 筛选类型（all/text/link/image/starred）
+    ///   - context: Core Data 上下文
+    /// - Returns: 查询到的条目数组
+    static func fetchItems(
+        searchText: String,
+        filterType: FilterType,
+        context: NSManagedObjectContext
+    ) -> [ClipItem] {
+        let request: NSFetchRequest<ClipItem> = ClipItem.fetchRequest()
+        
+        var predicates: [NSPredicate] = []
+        
+        // 1️⃣ 筛选条件（根据类型）
+        switch filterType {
+        case .all:
+            break  // 不添加条件，显示全部
+            
+        case .text:
+            predicates.append(NSPredicate(format: "contentType == %@", "text"))
+            
+        case .link:
+            predicates.append(NSPredicate(format: "contentType == %@", "link"))
+            
+        case .image:
+            predicates.append(NSPredicate(format: "contentType == %@", "image"))
+            
+        case .starred:
+            predicates.append(NSPredicate(format: "isStarred == %@", NSNumber(value: true)))
+        }
+        
+        // 2️⃣ 搜索条件（模糊匹配 content 字段）
+        if !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            // ⚠️ [cd] 表示不区分大小写、不区分音调（支持中文）
+            predicates.append(NSPredicate(format: "content CONTAINS[cd] %@", searchText))
+        }
+        
+        // 3️⃣ 组合所有条件（AND 逻辑）
+        if !predicates.isEmpty {
+            request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
+        }
+        
+        // 4️⃣ 按创建时间倒序排列
+        request.sortDescriptors = [
+            NSSortDescriptor(keyPath: \ClipItem.createdAt, ascending: false)
+        ]
+        
+        // 5️⃣ 执行查询
+        do {
+            let items = try context.fetch(request)
+            print("✅ 查询到 \(items.count) 条数据（搜索：\(searchText.isEmpty ? "无" : searchText)，筛选：\(filterType.rawValue)）")
+            return items
+        } catch {
+            print("❌ 查询失败: \(error)")
+            return []
+        }
+    }
+}
+
+// MARK: - 筛选类型枚举（⭐ 新增）
+
+/// 内容筛选类型
+enum FilterType: String, CaseIterable {
+    case all = "全部"
+    case text = "文本"
+    case link = "链接"
+    case image = "图片"
+    case starred = "⭐收藏"
+}

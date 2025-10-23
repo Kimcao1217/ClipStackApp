@@ -25,6 +25,7 @@
 		26ADDD592E9CC9E100D3B9E6 /* ClipStackUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26ADDD582E9CC9E100D3B9E6 /* ClipStackUITests.swift */; };
 		26ADDD5B2E9CC9E100D3B9E6 /* ClipStackUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26ADDD5A2E9CC9E100D3B9E6 /* ClipStackUITestsLaunchTests.swift */; };
 		26E270142EA8D68800884641 /* ImageViewer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26E270132EA8D68800884641 /* ImageViewer.swift */; };
+		26E270162EA9D9C500884641 /* ClipItemDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26E270152EA9D9C500884641 /* ClipItemDetailView.swift */; };
 		26E2F44A2EA0840300FD77EE /* KeyboardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26E2F4492EA0840300FD77EE /* KeyboardViewController.swift */; };
 		26E2F44E2EA0840300FD77EE /* ClipStackKeyboard.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 26E2F4472EA0840300FD77EE /* ClipStackKeyboard.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		26E2F4532EA0850F00FD77EE /* ClipStack.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 26ADDD432E9CC9E100D3B9E6 /* ClipStack.xcdatamodeld */; };
@@ -116,6 +117,7 @@
 		26ADDD582E9CC9E100D3B9E6 /* ClipStackUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipStackUITests.swift; sourceTree = "<group>"; };
 		26ADDD5A2E9CC9E100D3B9E6 /* ClipStackUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipStackUITestsLaunchTests.swift; sourceTree = "<group>"; };
 		26E270132EA8D68800884641 /* ImageViewer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageViewer.swift; sourceTree = "<group>"; };
+		26E270152EA9D9C500884641 /* ClipItemDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipItemDetailView.swift; sourceTree = "<group>"; };
 		26E2F4472EA0840300FD77EE /* ClipStackKeyboard.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ClipStackKeyboard.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		26E2F4492EA0840300FD77EE /* KeyboardViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardViewController.swift; sourceTree = "<group>"; };
 		26E2F44B2EA0840300FD77EE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -233,6 +235,7 @@
 				262ED03D2E9DEF1A00D8BBDB /* ClipItem+Extensions.swift */,
 				26A5A12B2EA6029F00DE1816 /* AppDelegate.swift */,
 				26E270132EA8D68800884641 /* ImageViewer.swift */,
+				26E270152EA9D9C500884641 /* ClipItemDetailView.swift */,
 			);
 			path = ClipStack;
 			sourceTree = "<group>";
@@ -524,6 +527,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				26E270162EA9D9C500884641 /* ClipItemDetailView.swift in Sources */,
 				26A5A12C2EA6029F00DE1816 /* AppDelegate.swift in Sources */,
 				26ADDD452E9CC9E100D3B9E6 /* ClipStack.xcdatamodeld in Sources */,
 				26ADDD422E9CC9E100D3B9E6 /* Persistence.swift in Sources */,

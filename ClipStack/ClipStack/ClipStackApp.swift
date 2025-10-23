@@ -223,49 +223,52 @@ private func createHUD(message: String, icon: String, color: UIColor) -> UIView 
 
 // MARK: - 数据刷新管理器
 
-/// 管理Core Data远程变更通知和数据刷新
-/// ⚠️ 使用 NSPersistentCloudKitContainer 自动同步，不需要手动上传
 class DataRefreshManager: ObservableObject {
-    // ⚠️ 关键：这个属性变化会触发SwiftUI重新渲染
     @Published var lastRefreshDate = Date()
     
     private var remoteChangeToken: NSObjectProtocol?
     private var willEnterForegroundToken: NSObjectProtocol?
     
-    /// 开始监听Core Data的远程变更通知
+    // ⭐ 新增：防抖定时器
+    private var refreshDebounceTimer: Timer?
+    
     func startObserving(persistenceController: PersistenceController) {
         print("👂 开始监听Core Data远程变更...")
         
-        // 监听持久化存储的远程变更通知
         remoteChangeToken = NotificationCenter.default.addObserver(
             forName: .NSPersistentStoreRemoteChange,
             object: persistenceController.container.persistentStoreCoordinator,
             queue: .main
         ) { [weak self] notification in
             print("📡 收到远程变更通知！（CloudKit 自动同步）")
-            self?.handleRemoteChange()
+            self?.scheduleRefresh()  // ⭐ 改用防抖刷新
         }
         
-        // 监听App进入前台事件
         willEnterForegroundToken = NotificationCenter.default.addObserver(
             forName: UIApplication.willEnterForegroundNotification,
             object: nil,
             queue: .main
         ) { [weak self] _ in
             print("📱 App进入前台，刷新数据...")
+            self?.scheduleRefresh()  // ⭐ 改用防抖刷新
+        }
+    }
+    
+    // ⭐ 新增：防抖刷新（300ms 内多次触发只执行一次）
+    private func scheduleRefresh() {
+        refreshDebounceTimer?.invalidate()
+        
+        refreshDebounceTimer = Timer.scheduledTimer(withTimeInterval: 0.3, repeats: false) { [weak self] _ in
             self?.handleRemoteChange()
         }
     }
     
-    /// 处理远程变更
     private func handleRemoteChange() {
         print("🔄 刷新UI...")
         
         DispatchQueue.main.async { [weak self] in
-            // ⚠️ 关键：通知SwiftUI重新查询数据
             self?.lastRefreshDate = Date()
             
-            // 通知 Widget 刷新
             WidgetCenter.shared.reloadAllTimelines()
             
             print("✅ UI 刷新完成")
@@ -273,7 +276,8 @@ class DataRefreshManager: ObservableObject {
     }
     
     deinit {
-        // 清理通知监听
+        refreshDebounceTimer?.invalidate()
+        
         if let token = remoteChangeToken {
             NotificationCenter.default.removeObserver(token)
         }

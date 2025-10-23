@@ -14,6 +14,9 @@ struct ContentView: View {
     @EnvironmentObject private var dataRefreshManager: DataRefreshManager
     
     @State private var clipItems: [ClipItem] = []
+    // ⭐ 新增：搜索和筛选状态
+    @State private var searchText = ""
+    @State private var selectedFilter: FilterType = .all
     @State private var showingAddSheet = false
     @State private var newItemContent = ""
     @State private var newItemSource = "手动添加"
@@ -26,6 +29,17 @@ struct ContentView: View {
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
+                // ⭐ 新增：搜索栏和筛选器
+            if isInitialLoadComplete {
+                searchBarView
+                    .padding(.horizontal)
+                    .padding(.top, 8)
+                
+                filterSegmentedControl
+                    .padding(.horizontal)
+                    .padding(.vertical, 8)
+            }
+
                 if clipItems.isEmpty && !isInitialLoadComplete {
                     loadingView
                 } else if clipItems.isEmpty {
@@ -75,10 +89,10 @@ struct ContentView: View {
             print("🎨 检测到远程变更，重新加载数据...")
             loadDataAsync()
         }
-        .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
-            print("🔄 App返回前台，重新加载数据...")
-            loadDataAsync()
-        }
+        // .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
+        //     print("🔄 App返回前台，重新加载数据...")
+        //     loadDataAsync()
+        // }
     }
     
     // MARK: - 性能优化：Core Data 预热和异步加载
@@ -103,40 +117,72 @@ struct ContentView: View {
     }
     
     private func loadDataAsync() {
-        let startTime = CFAbsoluteTimeGetCurrent()
+    let startTime = CFAbsoluteTimeGetCurrent()
+    
+    // ⚠️ 捕获当前的搜索和筛选状态
+    let currentSearchText = searchText
+    let currentFilter = selectedFilter
+    
+    DispatchQueue.global(qos: .userInitiated).async {
+        let backgroundContext = PersistenceController.shared.container.newBackgroundContext()
         
-        DispatchQueue.global(qos: .userInitiated).async {
-            let backgroundContext = PersistenceController.shared.container.newBackgroundContext()
+        // ⭐ 使用新的查询方法（支持搜索和筛选）
+        let fetchRequest: NSFetchRequest<ClipItem> = ClipItem.fetchRequest()
+        
+        var predicates: [NSPredicate] = []
+        
+        // 筛选条件
+        switch currentFilter {
+        case .text:
+            predicates.append(NSPredicate(format: "contentType == %@", "text"))
+        case .link:
+            predicates.append(NSPredicate(format: "contentType == %@", "link"))
+        case .image:
+            predicates.append(NSPredicate(format: "contentType == %@", "image"))
+        case .starred:
+            predicates.append(NSPredicate(format: "isStarred == %@", NSNumber(value: true)))
+        case .all:
+            break
+        }
+        
+        // 搜索条件
+        if !currentSearchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            predicates.append(NSPredicate(format: "content CONTAINS[cd] %@", currentSearchText))
+        }
+        
+        // 组合条件
+        if !predicates.isEmpty {
+            fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
+        }
+        
+        fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \ClipItem.createdAt, ascending: false)]
+        
+        do {
+            let items = try backgroundContext.fetch(fetchRequest)
+            let objectIDs = items.map { $0.objectID }
             
-            let fetchRequest: NSFetchRequest<ClipItem> = ClipItem.fetchRequest()
-            fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \ClipItem.createdAt, ascending: false)]
-            
-            do {
-                let items = try backgroundContext.fetch(fetchRequest)
-                let objectIDs = items.map { $0.objectID }
-                
-                DispatchQueue.main.async {
-                    let mainContextItems = objectIDs.compactMap { objectID in
-                        try? viewContext.existingObject(with: objectID) as? ClipItem
-                    }
-                    
-                    withAnimation {
-                        clipItems = mainContextItems
-                        isInitialLoadComplete = true
-                    }
-                    
-                    let timeElapsed = (CFAbsoluteTimeGetCurrent() - startTime) * 1000
-                    print("✅ 异步加载 \(mainContextItems.count) 条数据，耗时: \(String(format: "%.2f", timeElapsed))ms")
+            DispatchQueue.main.async {
+                let mainContextItems = objectIDs.compactMap { objectID in
+                    try? viewContext.existingObject(with: objectID) as? ClipItem
                 }
-            } catch {
-                DispatchQueue.main.async {
-                    print("❌ 数据加载失败: \(error.localizedDescription)")
-                    clipItems = []
+                
+                withAnimation {
+                    clipItems = mainContextItems
                     isInitialLoadComplete = true
                 }
+                
+                let timeElapsed = (CFAbsoluteTimeGetCurrent() - startTime) * 1000
+                print("✅ 异步加载 \(mainContextItems.count) 条数据，耗时: \(String(format: "%.2f", timeElapsed))ms")
+            }
+        } catch {
+            DispatchQueue.main.async {
+                print("❌ 数据加载失败: \(error.localizedDescription)")
+                clipItems = []
+                isInitialLoadComplete = true
             }
         }
     }
+}
     
     private func loadDataSync() {
         let fetchRequest: NSFetchRequest<ClipItem> = ClipItem.fetchRequest()
@@ -171,14 +217,34 @@ struct ContentView: View {
     }
     
     private var emptyStateView: some View {
-        VStack(spacing: 20) {
-            Spacer()
-            
-            Image(systemName: "clipboard")
-                .font(.system(size: 60))
-                .foregroundColor(.secondary)
-            
-            VStack(spacing: 8) {
+    VStack(spacing: 20) {
+        Spacer()
+        
+        Image(systemName: searchText.isEmpty ? "clipboard" : "magnifyingglass")
+            .font(.system(size: 60))
+            .foregroundColor(.secondary)
+        
+        VStack(spacing: 8) {
+            // ⭐ 根据搜索和筛选状态显示不同文案
+            if !searchText.isEmpty {
+                Text("没有找到\"\(searchText)\"")
+                    .font(.title2)
+                    .fontWeight(.medium)
+                
+                Text("试试其他关键词或切换筛选类型")
+                    .font(.body)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+            } else if selectedFilter != .all {
+                Text("暂无\(selectedFilter.rawValue)内容")
+                    .font(.title2)
+                    .fontWeight(.medium)
+                
+                Text("切换到\"全部\"查看所有内容")
+                    .font(.body)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+            } else {
                 Text("还没有剪贴板历史")
                     .font(.title2)
                     .fontWeight(.medium)
@@ -188,35 +254,110 @@ struct ContentView: View {
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
             }
-            
-            Spacer()
         }
-        .padding(.horizontal, 40)
+        
+        Spacer()
     }
+    .padding(.horizontal, 40)
+}
+
+    // ⭐ 新增：搜索栏视图
+private var searchBarView: some View {
+    HStack {
+        Image(systemName: "magnifyingglass")
+            .foregroundColor(.secondary)
+        
+        TextField("搜索历史内容...", text: $searchText)
+            .textFieldStyle(.plain)
+            .autocapitalization(.none)
+            .disableAutocorrection(true)
+        
+        if !searchText.isEmpty {
+            Button(action: {
+                searchText = ""
+            }) {
+                Image(systemName: "xmark.circle.fill")
+                    .foregroundColor(.secondary)
+            }
+        }
+    }
+    .padding(8)
+    .background(Color(.systemGray6))
+    .cornerRadius(10)
+    .onChange(of: searchText) { _ in
+        // 搜索文本变化时重新加载数据
+        loadDataAsync()
+    }
+}
+
+private var filterSegmentedControl: some View {
+    Picker("筛选", selection: $selectedFilter) {
+        ForEach(FilterType.allCases, id: \.self) { filterType in  // ✅ 显式指定 id
+            Text(filterType.rawValue)
+                .tag(filterType)
+        }
+    }
+    .pickerStyle(.segmented)
+    .onChange(of: selectedFilter) { _ in
+        loadDataAsync()
+    }
+}
     
     private var clipItemsList: some View {
     List {
         ForEach(clipItems) { clipItem in
-            // ⭐ 新增：点击整行复制
-            Button(action: {
-                copyItemToClipboard(clipItem)
-            }) {
-                ClipItemRowView(
-                    clipItem: clipItem,
-                    onUpdate: {
-                        loadDataSync()
-                    },
-                    onImageTap: {
-                        // ⭐ 新增：点击图片查看大图
-                        selectedImageItem = clipItem
-                        showingImageViewer = true
-                    }
-                )
-            }
-            .buttonStyle(.plain)  // 保持原有样式
-            .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+            NavigationLink(
+    destination: ClipItemDetailView(clipItem: clipItem)
+) {
+    ClipItemRowView(
+        clipItem: clipItem,
+        onUpdate: {
+            loadDataSync()
+        },
+        onImageTap: {
+            selectedImageItem = clipItem
+            showingImageViewer = true
         }
-        .onDelete(perform: deleteItems)
+    )
+}
+.listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+.swipeActions(edge: .trailing, allowsFullSwipe: true) {
+    Button(role: .destructive) {
+        deleteItem(clipItem)
+    } label: {
+        Label("删除", systemImage: "trash")
+    }
+    
+    Button {
+        toggleStarred(clipItem)
+    } label: {
+        Label(
+            clipItem.isStarred ? "取消收藏" : "收藏",
+            systemImage: clipItem.isStarred ? "star.slash" : "star.fill"
+        )
+    }
+    .tint(.yellow)
+}
+            .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+            // ⭐ 添加滑动操作（删除和收藏）
+            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                Button(role: .destructive) {
+                    deleteItem(clipItem)
+                } label: {
+                    Label("删除", systemImage: "trash")
+                }
+                
+                Button {
+                    toggleStarred(clipItem)
+                } label: {
+                    Label(
+                        clipItem.isStarred ? "取消收藏" : "收藏",
+                        systemImage: clipItem.isStarred ? "star.slash" : "star.fill"
+                    )
+                }
+                .tint(.yellow)
+            }
+        }
     }
     .listStyle(.plain)
     .refreshable {
@@ -271,6 +412,33 @@ struct ContentView: View {
             print("❌ 删除操作保存失败: \(nsError.localizedDescription)")
         }
     }
+
+    /// 删除单个条目
+private func deleteItem(_ item: ClipItem) {
+    print("🗑️ 删除条目: \(item.previewContent)")
+    viewContext.delete(item)
+    
+    do {
+        try viewContext.save()
+        WidgetCenter.shared.reloadAllTimelines()
+        loadDataAsync()
+    } catch {
+        print("❌ 删除失败: \(error)")
+    }
+}
+
+/// 切换收藏状态
+private func toggleStarred(_ item: ClipItem) {
+    item.isStarred.toggle()
+    
+    do {
+        try viewContext.save()
+        print(item.isStarred ? "⭐ 已收藏" : "☆ 取消收藏")
+    } catch {
+        print("❌ 收藏状态保存失败: \(error)")
+        item.isStarred.toggle()
+    }
+}
 
     // MARK: - 复制功能（⭐ 新增）
 
