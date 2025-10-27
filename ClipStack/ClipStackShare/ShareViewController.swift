@@ -300,6 +300,9 @@ class ShareViewController: UIViewController {
         let context = persistenceController.container.newBackgroundContext()
         
         context.perform {
+            // ⭐ 免费版限制检查：在保存前清理旧数据
+            //PersistenceController.enforceHistoryLimit(context: context)
+            
             let newItem = ClipItem(context: context)
             newItem.id = UUID()
             newItem.content = content
@@ -330,6 +333,8 @@ class ShareViewController: UIViewController {
             do {
                 try context.save()
                 print("✅ Share Extension 保存成功！")
+
+                DarwinNotificationCenter.shared.postNotification()
                 
                 WidgetCenter.shared.reloadAllTimelines()
                 print("🔄 已触发 Widget 刷新")

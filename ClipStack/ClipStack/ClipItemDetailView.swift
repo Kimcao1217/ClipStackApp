@@ -227,32 +227,43 @@ struct ClipItemDetailView: View {
     }
     
     private func toggleStarred() {
-        // ⚠️ 立即切换状态（不等待保存完成）
-        let newState = !clipItem.isStarred
-        clipItem.isStarred = newState
-        
-        // ⚠️ 使用 perform 确保线程安全
-        viewContext.perform {
-            do {
-                try viewContext.save()
-                
-                // 触觉反馈
-                DispatchQueue.main.async {
-                    let generator = UIImpactFeedbackGenerator(style: .light)
-                    generator.impactOccurred()
-                }
-                
-                print(newState ? "⭐ 已收藏" : "☆ 取消收藏")
-            } catch {
-                print("❌ 收藏失败: \(error)")
-                
-                // 保存失败时恢复原状态
-                DispatchQueue.main.async {
-                    clipItem.isStarred = !newState
-                }
-            }
+    // ✅ 收藏前检查限制
+    if !clipItem.isStarred {
+        let (currentCount, canStar) = PersistenceController.checkStarredLimit(context: viewContext)
+        if !canStar {
+            showToast(message: "⚠️ 收藏已满（\(currentCount)/\(ProManager.freeStarredLimit)），请先取消收藏其他条目")
+            return
         }
     }
+    
+    // ✅ 添加触觉反馈
+    let generator = UIImpactFeedbackGenerator(style: .medium)
+    generator.impactOccurred()
+    
+    // ✅ 直接修改对象（SwiftUI 自动更新 UI）
+    clipItem.isStarred.toggle()
+    
+    do {
+        try viewContext.save()
+        
+        // ✅ 显示 Toast
+        let message = clipItem.isStarred ? "⭐ 已收藏" : "☆ 已取消收藏"
+        showToast(message: message)
+        print(message)
+        
+        // ✅ 取消收藏后检查历史记录限制
+        if !clipItem.isStarred {
+            PersistenceController.enforceHistoryLimit(context: viewContext)
+        }
+    } catch {
+        print("❌ 保存失败: \(error)")
+        clipItem.isStarred.toggle()  // 回滚
+        
+        // ❌ 错误震动
+        let errorGenerator = UINotificationFeedbackGenerator()
+        errorGenerator.notificationOccurred(.error)
+    }
+}
     
     private func deleteItem() {
         viewContext.delete(clipItem)

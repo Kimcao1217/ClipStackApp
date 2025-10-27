@@ -11,26 +11,64 @@ import UIKit
 
 struct ContentView: View {
     @Environment(\.managedObjectContext) private var viewContext
-    @EnvironmentObject private var dataRefreshManager: DataRefreshManager
+    @StateObject private var proManager = ProManager.shared
     
-    @State private var clipItems: [ClipItem] = []
-    // ⭐ 新增：搜索和筛选状态
+    // ✅ 改回 @FetchRequest（自动监听 Core Data 变化）
+    @FetchRequest(
+        sortDescriptors: [NSSortDescriptor(keyPath: \ClipItem.createdAt, ascending: false)],
+        animation: .default
+    )
+    private var allItems: FetchedResults<ClipItem>
+    
+    // ✅ 搜索和筛选用计算属性过滤（不重新查询数据库）
     @State private var searchText = ""
     @State private var selectedFilter: FilterType = .all
+    
+    
+    // ✅ 计算属性：根据搜索和筛选过滤数据
+    private var filteredItems: [ClipItem] {
+        var items = Array(allItems)
+        
+        // 筛选类型
+        switch selectedFilter {
+        case .text:
+            items = items.filter { $0.contentType == "text" }
+        case .link:
+            items = items.filter { $0.contentType == "link" }
+        case .image:
+            items = items.filter { $0.contentType == "image" }
+        case .starred:
+            items = items.filter { $0.isStarred }
+        case .all:
+            break
+        }
+        
+        // 搜索文本
+        if !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            items = items.filter { item in
+                (item.content ?? "").localizedCaseInsensitiveContains(searchText)
+            }
+        }
+        
+        return items
+    }
+    
     @State private var showingAddSheet = false
     @State private var newItemContent = ""
     @State private var newItemSource = "手动添加"
-    @State private var isInitialLoadComplete = false
     
-    // ⭐ 新增：图片预览相关状态
     @State private var selectedImageItem: ClipItem?
     @State private var showingImageViewer = false
     
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
-                // ⭐ 新增：搜索栏和筛选器
-            if isInitialLoadComplete {
+                if !proManager.isPro {
+                    limitBannerView
+                        .padding(.horizontal)
+                        .padding(.top, 8)
+                }
+                
                 searchBarView
                     .padding(.horizontal)
                     .padding(.top, 8)
@@ -38,11 +76,8 @@ struct ContentView: View {
                 filterSegmentedControl
                     .padding(.horizontal)
                     .padding(.vertical, 8)
-            }
-
-                if clipItems.isEmpty && !isInitialLoadComplete {
-                    loadingView
-                } else if clipItems.isEmpty {
+                
+                if filteredItems.isEmpty {
                     emptyStateView
                 } else {
                     clipItemsList
@@ -53,13 +88,16 @@ struct ContentView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
-                        let startTime = CFAbsoluteTimeGetCurrent()
                         showingAddSheet = true
-                        let timeElapsed = (CFAbsoluteTimeGetCurrent() - startTime) * 1000
-                        print("⏱️ 点击 + 按钮耗时: \(String(format: "%.2f", timeElapsed))ms")
                     } label: {
                         Image(systemName: "plus.circle.fill")
                             .foregroundColor(.blue)
+                    }
+                }
+                ToolbarItem(placement: .navigationBarLeading) {
+                    NavigationLink(destination: SettingsView()) {
+                        Image(systemName: "gearshape")
+                            .foregroundColor(.primary)
                     }
                 }
             }
@@ -77,276 +115,162 @@ struct ContentView: View {
             }
         }
         .onAppear {
-            prewarmCoreDataInBackground()
-            loadDataAsync()
-            
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                KeyboardPrewarmer.shared.prewarmInBackground()
-                SheetPrewarmer.shared.prewarmAddItemSheet()
-            }
+            setupDarwinNotificationObserver()
         }
-        .onChange(of: dataRefreshManager.lastRefreshDate) { _ in
-            print("🎨 检测到远程变更，重新加载数据...")
-            loadDataAsync()
-        }
-        // .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
-        //     print("🔄 App返回前台，重新加载数据...")
-        //     loadDataAsync()
-        // }
+        // ✅ 删除 onChange 监听（不需要手动刷新）
     }
-    
-    // MARK: - 性能优化：Core Data 预热和异步加载
-    
-    private func prewarmCoreDataInBackground() {
-        DispatchQueue.global(qos: .userInitiated).async {
-            let startTime = CFAbsoluteTimeGetCurrent()
-            
-            let backgroundContext = PersistenceController.shared.container.newBackgroundContext()
-            
-            let fetchRequest: NSFetchRequest<ClipItem> = ClipItem.fetchRequest()
-            fetchRequest.fetchLimit = 1
-            
-            do {
-                _ = try backgroundContext.fetch(fetchRequest)
-                let timeElapsed = (CFAbsoluteTimeGetCurrent() - startTime) * 1000
-                print("🔥 Core Data 预热完成，耗时: \(String(format: "%.2f", timeElapsed))ms")
-            } catch {
-                print("⚠️ Core Data 预热失败: \(error)")
-            }
-        }
+
+    // MARK: - Darwin 跨进程通知监听
+    @State private var lastHistoryToken: NSPersistentHistoryToken?
+
+private func setupDarwinNotificationObserver() {
+    DarwinNotificationCenter.shared.addObserver {
+        print("🔔 检测到 Share Extension 保存数据，启动历史变更合并")
+        mergePersistentHistoryChanges()
     }
-    
-    private func loadDataAsync() {
-    let startTime = CFAbsoluteTimeGetCurrent()
-    
-    // ⚠️ 捕获当前的搜索和筛选状态
-    let currentSearchText = searchText
-    let currentFilter = selectedFilter
-    
-    DispatchQueue.global(qos: .userInitiated).async {
-        let backgroundContext = PersistenceController.shared.container.newBackgroundContext()
-        
-        // ⭐ 使用新的查询方法（支持搜索和筛选）
-        let fetchRequest: NSFetchRequest<ClipItem> = ClipItem.fetchRequest()
-        
-        var predicates: [NSPredicate] = []
-        
-        // 筛选条件
-        switch currentFilter {
-        case .text:
-            predicates.append(NSPredicate(format: "contentType == %@", "text"))
-        case .link:
-            predicates.append(NSPredicate(format: "contentType == %@", "link"))
-        case .image:
-            predicates.append(NSPredicate(format: "contentType == %@", "image"))
-        case .starred:
-            predicates.append(NSPredicate(format: "isStarred == %@", NSNumber(value: true)))
-        case .all:
-            break
-        }
-        
-        // 搜索条件
-        if !currentSearchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            predicates.append(NSPredicate(format: "content CONTAINS[cd] %@", currentSearchText))
-        }
-        
-        // 组合条件
-        if !predicates.isEmpty {
-            fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
-        }
-        
-        fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \ClipItem.createdAt, ascending: false)]
-        
+}
+
+/// 合并历史变更（Apple 推荐的做法）
+private func mergePersistentHistoryChanges() {
+    let container = PersistenceController.shared.container
+    let viewContext = container.viewContext
+
+    // ✅ 在后台队列执行
+    container.performBackgroundTask { backgroundContext in
+        // 获取最近的历史变更
+        let fetchRequest = NSPersistentHistoryChangeRequest.fetchHistory(after: self.lastHistoryToken)
         do {
-            let items = try backgroundContext.fetch(fetchRequest)
-            let objectIDs = items.map { $0.objectID }
-            
-            DispatchQueue.main.async {
-                let mainContextItems = objectIDs.compactMap { objectID in
-                    try? viewContext.existingObject(with: objectID) as? ClipItem
+            if let result = try backgroundContext.execute(fetchRequest) as? NSPersistentHistoryResult,
+               let transactions = result.result as? [NSPersistentHistoryTransaction],
+               !transactions.isEmpty {
+
+                print("📦 合并 \(transactions.count) 个历史事务")
+
+                // 保存最后 token，防止重复合并
+                self.lastHistoryToken = transactions.last?.token
+
+                // 合并到主 context（Apple 推荐方式）
+                viewContext.perform {
+                    for transaction in transactions {
+                        viewContext.mergeChanges(fromContextDidSave: transaction.objectIDNotification())
+                    }
+                    print("✅ 主 App 已合并 Share Extension 修改")
                 }
-                
-                withAnimation {
-                    clipItems = mainContextItems
-                    isInitialLoadComplete = true
-                }
-                
-                let timeElapsed = (CFAbsoluteTimeGetCurrent() - startTime) * 1000
-                print("✅ 异步加载 \(mainContextItems.count) 条数据，耗时: \(String(format: "%.2f", timeElapsed))ms")
             }
         } catch {
-            DispatchQueue.main.async {
-                print("❌ 数据加载失败: \(error.localizedDescription)")
-                clipItems = []
-                isInitialLoadComplete = true
-            }
+            print("❌ 合并历史变更失败: \(error)")
         }
     }
 }
-    
-    private func loadDataSync() {
-        let fetchRequest: NSFetchRequest<ClipItem> = ClipItem.fetchRequest()
-        fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \ClipItem.createdAt, ascending: false)]
-        
-        do {
-            let items = try viewContext.fetch(fetchRequest)
-            
-            withAnimation {
-                clipItems = items
-            }
-            
-            print("✅ 同步加载 \(items.count) 条数据")
-        } catch {
-            print("❌ 数据加载失败: \(error.localizedDescription)")
-            clipItems = []
-        }
-    }
     
     // MARK: - 子视图
     
-    private var loadingView: some View {
+    private var emptyStateView: some View {
         VStack(spacing: 20) {
-            ProgressView()
-                .scaleEffect(1.5)
+            Spacer()
             
-            Text("加载中...")
-                .font(.body)
+            Image(systemName: searchText.isEmpty ? "clipboard" : "magnifyingglass")
+                .font(.system(size: 60))
                 .foregroundColor(.secondary)
+            
+            VStack(spacing: 8) {
+                if !searchText.isEmpty {
+                    Text("没有找到\"\(searchText)\"")
+                        .font(.title2)
+                        .fontWeight(.medium)
+                    
+                    Text("试试其他关键词或切换筛选类型")
+                        .font(.body)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                } else if selectedFilter != .all {
+                    Text("暂无\(selectedFilter.rawValue)内容")
+                        .font(.title2)
+                        .fontWeight(.medium)
+                    
+                    Text("切换到\"全部\"查看所有内容")
+                        .font(.body)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                } else {
+                    Text("还没有剪贴板历史")
+                        .font(.title2)
+                        .fontWeight(.medium)
+                    
+                    Text("点击右上角的 + 按钮添加第一个条目")
+                        .font(.body)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                }
+            }
+            
+            Spacer()
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(.horizontal, 40)
     }
     
-    private var emptyStateView: some View {
-    VStack(spacing: 20) {
-        Spacer()
-        
-        Image(systemName: searchText.isEmpty ? "clipboard" : "magnifyingglass")
-            .font(.system(size: 60))
-            .foregroundColor(.secondary)
-        
-        VStack(spacing: 8) {
-            // ⭐ 根据搜索和筛选状态显示不同文案
+    private var searchBarView: some View {
+        HStack {
+            Image(systemName: "magnifyingglass")
+                .foregroundColor(.secondary)
+            
+            TextField("搜索历史内容...", text: $searchText)
+                .textFieldStyle(.plain)
+                .autocapitalization(.none)
+                .disableAutocorrection(true)
+            
             if !searchText.isEmpty {
-                Text("没有找到\"\(searchText)\"")
-                    .font(.title2)
-                    .fontWeight(.medium)
-                
-                Text("试试其他关键词或切换筛选类型")
-                    .font(.body)
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
-            } else if selectedFilter != .all {
-                Text("暂无\(selectedFilter.rawValue)内容")
-                    .font(.title2)
-                    .fontWeight(.medium)
-                
-                Text("切换到\"全部\"查看所有内容")
-                    .font(.body)
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
-            } else {
-                Text("还没有剪贴板历史")
-                    .font(.title2)
-                    .fontWeight(.medium)
-                
-                Text("点击右上角的 + 按钮添加第一个条目")
-                    .font(.body)
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
+                Button(action: {
+                    searchText = ""
+                }) {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundColor(.secondary)
+                }
             }
         }
-        
-        Spacer()
+        .padding(8)
+        .background(Color(.systemGray6))
+        .cornerRadius(10)
+        // ✅ 删除 onChange（过滤在计算属性中自动完成）
     }
-    .padding(.horizontal, 40)
-}
-
-    // ⭐ 新增：搜索栏视图
-private var searchBarView: some View {
-    HStack {
-        Image(systemName: "magnifyingglass")
-            .foregroundColor(.secondary)
-        
-        TextField("搜索历史内容...", text: $searchText)
-            .textFieldStyle(.plain)
-            .autocapitalization(.none)
-            .disableAutocorrection(true)
-        
-        if !searchText.isEmpty {
-            Button(action: {
-                searchText = ""
-            }) {
-                Image(systemName: "xmark.circle.fill")
-                    .foregroundColor(.secondary)
+    
+    private var filterSegmentedControl: some View {
+        Picker("筛选", selection: $selectedFilter) {
+            ForEach(FilterType.allCases, id: \.self) { filterType in
+                Text(filterType.rawValue)
+                    .tag(filterType)
             }
         }
+        .pickerStyle(.segmented)
+        // ✅ 删除 onChange（过滤在计算属性中自动完成）
     }
-    .padding(8)
-    .background(Color(.systemGray6))
-    .cornerRadius(10)
-    .onChange(of: searchText) { _ in
-        // 搜索文本变化时重新加载数据
-        loadDataAsync()
-    }
-}
-
-private var filterSegmentedControl: some View {
-    Picker("筛选", selection: $selectedFilter) {
-        ForEach(FilterType.allCases, id: \.self) { filterType in  // ✅ 显式指定 id
-            Text(filterType.rawValue)
-                .tag(filterType)
-        }
-    }
-    .pickerStyle(.segmented)
-    .onChange(of: selectedFilter) { _ in
-        loadDataAsync()
-    }
-}
     
     private var clipItemsList: some View {
     List {
-        ForEach(clipItems) { clipItem in
+        ForEach(filteredItems) { clipItem in
             NavigationLink(
-    destination: ClipItemDetailView(clipItem: clipItem)
-) {
-    ClipItemRowView(
-        clipItem: clipItem,
-        onUpdate: {
-            loadDataSync()
-        },
-        onImageTap: {
-            selectedImageItem = clipItem
-            showingImageViewer = true
-        }
-    )
-}
-.listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
-.swipeActions(edge: .trailing, allowsFullSwipe: true) {
-    Button(role: .destructive) {
-        deleteItem(clipItem)
-    } label: {
-        Label("删除", systemImage: "trash")
-    }
-    
-    Button {
-        toggleStarred(clipItem)
-    } label: {
-        Label(
-            clipItem.isStarred ? "取消收藏" : "收藏",
-            systemImage: clipItem.isStarred ? "star.slash" : "star.fill"
-        )
-    }
-    .tint(.yellow)
-}
+                destination: ClipItemDetailView(clipItem: clipItem)
+            ) {
+                ClipItemRowView(
+                    clipItem: clipItem,
+                    onImageTap: {
+                        selectedImageItem = clipItem
+                        showingImageViewer = true
+                    }
+                )
+            }
             .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
-            // ⭐ 添加滑动操作（删除和收藏）
-            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                Button(role: .destructive) {
-                    deleteItem(clipItem)
+            
+            // ✅ 长按上下文菜单（快速操作）
+            .contextMenu {
+                // 1️⃣ 复制按钮（首位，最常用）
+                Button {
+                    copyItem(clipItem)
                 } label: {
-                    Label("删除", systemImage: "trash")
+                    Label("复制", systemImage: "doc.on.doc")
                 }
                 
+                // 2️⃣ 收藏按钮
                 Button {
                     toggleStarred(clipItem)
                 } label: {
@@ -355,153 +279,252 @@ private var filterSegmentedControl: some View {
                         systemImage: clipItem.isStarred ? "star.slash" : "star.fill"
                     )
                 }
+                
+                // 3️⃣ 分享按钮
+                Button {
+                    shareItem(clipItem)
+                } label: {
+                    Label("分享", systemImage: "square.and.arrow.up")
+                }
+                
+                Divider()
+                
+                // 4️⃣ 删除按钮（危险操作放最后）
+                Button(role: .destructive) {
+                    deleteItem(clipItem)
+                } label: {
+                    Label("删除", systemImage: "trash")
+                }
+            }
+            
+            // ✅ 向左滑动：只显示删除（红色）
+            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                Button(role: .destructive) {
+                    deleteItem(clipItem)
+                } label: {
+                    Label("删除", systemImage: "trash")
+                }
+            }
+            
+            // ✅ 向右滑动：只显示收藏（黄色）
+            .swipeActions(edge: .leading, allowsFullSwipe: true) {
+                Button {
+                    toggleStarred(clipItem)
+                } label: {
+                    Label(
+                        clipItem.isStarred ? "取消收藏" : "收藏",
+                        systemImage: clipItem.isStarred ? "star.slash.fill" : "star.fill"
+                    )
+                }
                 .tint(.yellow)
             }
         }
     }
     .listStyle(.plain)
     .refreshable {
-        loadDataAsync()
+        print("♻️ 下拉刷新（@FetchRequest 自动更新）")
     }
 }
     
     // MARK: - 数据操作方法
-    
-    private func addNewItem(content: String, source: String) {
-        let startTime = CFAbsoluteTimeGetCurrent()
-        
-        let trimmedContent = content.trimmingCharacters(in: .whitespacesAndNewlines)
-        
-        guard !trimmedContent.isEmpty else { return }
-        
-        let newItem = ClipItem(
-            content: trimmedContent,
-            contentType: determineContentType(content: trimmedContent),
-            sourceApp: source,
-            context: viewContext
-        )
-        
-        do {
-            try viewContext.save()
-            
-            let timeElapsed = (CFAbsoluteTimeGetCurrent() - startTime) * 1000
-            print("✅ 成功添加新条目，耗时: \(String(format: "%.2f", timeElapsed))ms - \(trimmedContent.prefix(50))...")
-            
-            WidgetCenter.shared.reloadAllTimelines()
-            
-            dismissAddSheet()
-            loadDataSync()
-        } catch {
-            let nsError = error as NSError
-            print("❌ 保存失败: \(nsError.localizedDescription)")
-        }
-    }
-
-    private func deleteItems(offsets: IndexSet) {
-        offsets.map { clipItems[$0] }.forEach { item in
-            print("🗑️ 删除条目: \(item.previewContent)")
-            viewContext.delete(item)
-        }
-        
-        do {
-            try viewContext.save()
-            WidgetCenter.shared.reloadAllTimelines()
-            loadDataSync()
-        } catch {
-            let nsError = error as NSError
-            print("❌ 删除操作保存失败: \(nsError.localizedDescription)")
-        }
-    }
-
-    /// 删除单个条目
-private func deleteItem(_ item: ClipItem) {
-    print("🗑️ 删除条目: \(item.previewContent)")
-    viewContext.delete(item)
-    
-    do {
-        try viewContext.save()
-        WidgetCenter.shared.reloadAllTimelines()
-        loadDataAsync()
-    } catch {
-        print("❌ 删除失败: \(error)")
-    }
-}
-
-/// 切换收藏状态
-private func toggleStarred(_ item: ClipItem) {
-    item.isStarred.toggle()
-    
-    do {
-        try viewContext.save()
-        print(item.isStarred ? "⭐ 已收藏" : "☆ 取消收藏")
-    } catch {
-        print("❌ 收藏状态保存失败: \(error)")
-        item.isStarred.toggle()
-    }
-}
-
-    // MARK: - 复制功能（⭐ 新增）
-
-/// 复制条目到剪贴板（支持图片）
-private func copyItemToClipboard(_ item: ClipItem) {
-    if item.contentType == "image" {
-        // 复制图片
-        if let imageData = item.imageData, let image = UIImage(data: imageData) {
+    // ✅ 新增：复制条目内容
+private func copyItem(_ item: ClipItem) {
+    if item.hasImage {
+        if let image = item.thumbnailImage {
             UIPasteboard.general.image = image
-            print("✅ 已复制图片到剪贴板（尺寸：\(item.imageWidth)×\(item.imageHeight)）")
-            
-            // 触觉反馈
-            let generator = UINotificationFeedbackGenerator()
-            generator.notificationOccurred(.success)
-            
-            // 显示提示
             showToast(message: "✅ 图片已复制")
-        } else {
-            print("❌ 图片数据无效")
-            showToast(message: "❌ 图片加载失败")
         }
     } else {
-        // 复制文本/链接
         if let content = item.content {
             UIPasteboard.general.string = content
-            print("✅ 已复制到剪贴板: \(content.prefix(50))...")
-            
-            // 触觉反馈
-            let generator = UINotificationFeedbackGenerator()
-            generator.notificationOccurred(.success)
-            
-            // 显示提示
             showToast(message: "✅ 已复制")
         }
     }
     
-    // 增加使用次数
+    // ✅ 更新使用次数
     item.usageCount += 1
     item.lastUsedAt = Date()
     
     do {
         try viewContext.save()
+        print("✅ 复制记录已保存（使用次数：\(item.usageCount)）")
     } catch {
-        print("❌ 保存使用记录失败: \(error)")
+        print("❌ 复制记录保存失败: \(error)")
     }
+    
+    // ✅ 触觉反馈
+    let generator = UINotificationFeedbackGenerator()
+    generator.notificationOccurred(.success)
 }
 
-/// 显示 Toast 提示
-private func showToast(message: String) {
-    // 简单实现：使用 Alert（你可以后续优化为自定义 Toast）
+// ✅ 新增：分享条目
+private func shareItem(_ item: ClipItem) {
+    guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+          let rootVC = windowScene.windows.first?.rootViewController else {
+        return
+    }
+    
+    var activityItems: [Any] = []
+    
+    if item.hasImage, let image = item.thumbnailImage {
+        activityItems = [image]
+    } else if let content = item.content {
+        activityItems = [content]
+    }
+    
+    guard !activityItems.isEmpty else { return }
+    
+    let activityVC = UIActivityViewController(
+        activityItems: activityItems,
+        applicationActivities: nil
+    )
+    
+    // ✅ iPad 支持（避免崩溃）
+    if let popover = activityVC.popoverPresentationController {
+        popover.sourceView = rootVC.view
+        popover.sourceRect = CGRect(x: rootVC.view.bounds.midX, y: rootVC.view.bounds.midY, width: 0, height: 0)
+        popover.permittedArrowDirections = []
+    }
+    
+    rootVC.present(activityVC, animated: true)
+}
+
+    
+    private func addNewItem(content: String, source: String) {
+    let trimmedContent = content.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !trimmedContent.isEmpty else { return }
+    
+    // ✅ 先在主上下文检查限制（同步执行）
+    PersistenceController.enforceHistoryLimit(context: viewContext)
+    
+    // ✅ 再用后台上下文保存（异步执行）
+    let backgroundContext = PersistenceController.shared.container.newBackgroundContext()
+    
+    backgroundContext.perform {
+        let newItem = ClipItem(
+            content: trimmedContent,
+            contentType: self.determineContentType(content: trimmedContent),
+            sourceApp: source,
+            context: backgroundContext
+        )
+        
+        do {
+            try backgroundContext.save()
+            
+            DispatchQueue.main.async {
+                self.dismissAddSheet()
+                print("✅ 新条目已保存，UI 将自动更新")
+            }
+        } catch {
+            print("❌ 保存失败: \(error)")
+        }
+    }
+}
+    
+    private func deleteItem(_ item: ClipItem) {
+        // ✅ 直接在主上下文删除（SwiftUI 自动更新 UI）
+        viewContext.delete(item)
+        
+        do {
+            try viewContext.save()
+            print("🗑️ 已删除条目")
+        } catch {
+            print("❌ 删除失败: \(error)")
+        }
+    }
+    
+    private func toggleStarred(_ item: ClipItem) {
+    // ✅ 收藏前检查限制
+    if !item.isStarred {
+        let (currentCount, canStar) = PersistenceController.checkStarredLimit(context: viewContext)
+        if !canStar {
+            showToast(message: "⚠️ 收藏已满（\(currentCount)/\(ProManager.freeStarredLimit)），请先取消收藏其他条目")
+            return
+        }
+    }
+    
+    // ✅ 添加触觉反馈（轻微震动）
+    let generator = UIImpactFeedbackGenerator(style: .medium)
+    generator.impactOccurred()
+    
+    // ✅ 直接修改对象（SwiftUI 自动更新 UI）
+    item.isStarred.toggle()
+    
+    do {
+        try viewContext.save()
+        
+        // ✅ 显示优雅的 Toast 提示
+        let message = item.isStarred ? "⭐ 已收藏" : "☆ 已取消收藏"
+        showToast(message: message)
+        print(message)
+        
+        // ✅ 取消收藏后检查历史记录限制
+        if !item.isStarred {
+            PersistenceController.enforceHistoryLimit(context: viewContext)
+        }
+    } catch {
+        print("❌ 保存失败: \(error)")
+        item.isStarred.toggle()  // 回滚
+        
+        // ❌ 回滚时再次震动（错误提示）
+        let errorGenerator = UINotificationFeedbackGenerator()
+        errorGenerator.notificationOccurred(.error)
+    }
+}
+    
+    private func showToast(message: String) {
     DispatchQueue.main.async {
         guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-              let window = windowScene.windows.first,
-              let rootVC = window.rootViewController else {
+              let window = windowScene.windows.first else {
             return
         }
         
-        let alert = UIAlertController(title: nil, message: message, preferredStyle: .alert)
-        rootVC.present(alert, animated: true)
+        // ✅ 创建原生风格的 Toast（类似 iOS 系统提示）
+        let hud = UIView()
+        hud.backgroundColor = UIColor.systemBackground.withAlphaComponent(0.95)
+        hud.layer.cornerRadius = 16
+        hud.layer.shadowColor = UIColor.black.cgColor
+        hud.layer.shadowOpacity = 0.15
+        hud.layer.shadowOffset = CGSize(width: 0, height: 2)
+        hud.layer.shadowRadius = 8
+        hud.translatesAutoresizingMaskIntoConstraints = false
+        hud.alpha = 0
         
-        // 1秒后自动消失
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            alert.dismiss(animated: true)
+        let label = UILabel()
+        label.text = message
+        label.textColor = .label
+        label.font = .systemFont(ofSize: 15, weight: .medium)
+        label.textAlignment = .center
+        label.translatesAutoresizingMaskIntoConstraints = false
+        
+        hud.addSubview(label)
+        window.addSubview(hud)
+        
+        NSLayoutConstraint.activate([
+            hud.centerXAnchor.constraint(equalTo: window.centerXAnchor),
+            hud.bottomAnchor.constraint(equalTo: window.safeAreaLayoutGuide.bottomAnchor, constant: -80),
+            label.leadingAnchor.constraint(equalTo: hud.leadingAnchor, constant: 20),
+            label.trailingAnchor.constraint(equalTo: hud.trailingAnchor, constant: -20),
+            label.topAnchor.constraint(equalTo: hud.topAnchor, constant: 12),
+            label.bottomAnchor.constraint(equalTo: hud.bottomAnchor, constant: -12)
+        ])
+        
+        // ✅ 优雅的淡入淡出动画
+        UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseOut, animations: {
+            hud.alpha = 1
+            hud.transform = CGAffineTransform(scaleX: 1.05, y: 1.05)
+        }) { _ in
+            UIView.animate(withDuration: 0.2, delay: 0, options: .curveEaseIn, animations: {
+                hud.transform = .identity
+            })
+        }
+        
+        // ✅ 1.5 秒后自动消失
+        UIView.animate(withDuration: 0.3, delay: 1.5, options: .curveEaseIn, animations: {
+            hud.alpha = 0
+            hud.transform = CGAffineTransform(scaleX: 0.95, y: 0.95)
+        }) { _ in
+            hud.removeFromSuperview()
         }
     }
 }
@@ -518,6 +541,46 @@ private func showToast(message: String) {
         }
         return "text"
     }
+    
+    // MARK: - 限制提示横幅
+    
+    private var limitBannerView: some View {
+    // ✅ 正确：统计所有条目，不受搜索/筛选影响
+    let historyCount = allItems.filter { !$0.isStarred }.count
+    let starredCount = allItems.filter { $0.isStarred }.count
+    
+    return HStack(spacing: 12) {
+        Image(systemName: "info.circle.fill")
+            .foregroundColor(.blue)
+            .font(.title3)
+        
+        VStack(alignment: .leading, spacing: 2) {
+            Text("免费版限制")
+                .font(.subheadline)
+                .fontWeight(.semibold)
+            
+            Text("历史 \(historyCount)/5 • 收藏 \(starredCount)/5")
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
+        
+        Spacer()
+        
+        NavigationLink(destination: SettingsView()) {
+            Text("升级")
+                .font(.subheadline)
+                .fontWeight(.semibold)
+                .foregroundColor(.white)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(Color.blue)
+                .cornerRadius(8)
+        }
+    }
+    .padding(12)
+    .background(Color.blue.opacity(0.1))
+    .cornerRadius(12)
+}
 }
 
 // MARK: - 独立的添加条目弹窗视图
@@ -573,162 +636,60 @@ struct AddItemSheetView: View {
     }
 }
 
-// MARK: - 弹窗预热管理器
-
-class SheetPrewarmer {
-    static let shared = SheetPrewarmer()
-    
-    private var prewarmedController: UIHostingController<AddItemSheetView>?
-    private var isPrewarmed = false
-    
-    private init() {}
-    
-    func prewarmAddItemSheet() {
-        guard !isPrewarmed else {
-            print("📋 弹窗已预热，跳过")
-            return
-        }
-        
-        let startTime = CFAbsoluteTimeGetCurrent()
-        print("📋 开始预热弹窗视图...")
-        
-        DispatchQueue.main.async { [weak self] in
-            let dummyContent = Binding<String>(get: { "" }, set: { _ in })
-            let dummySource = Binding<String>(get: { "手动添加" }, set: { _ in })
-            
-            let sheetView = AddItemSheetView(
-                content: dummyContent,
-                source: dummySource,
-                onSave: { _, _ in },
-                onCancel: { }
-            )
-            
-            let controller = UIHostingController(rootView: sheetView)
-            
-            controller.view.frame = CGRect(x: 0, y: 0, width: 390, height: 844)
-            controller.view.layoutIfNeeded()
-            
-            self?.prewarmedController = controller
-            self?.isPrewarmed = true
-            
-            let timeElapsed = (CFAbsoluteTimeGetCurrent() - startTime) * 1000
-            print("✅ 弹窗视图预热完成，耗时: \(String(format: "%.2f", timeElapsed))ms")
-        }
-    }
-    
-    func cleanup() {
-        prewarmedController = nil
-        isPrewarmed = false
-        print("🧹 弹窗预热资源已清理")
-    }
-}
-
-// MARK: - 键盘预热管理器
-
-class KeyboardPrewarmer {
-    static let shared = KeyboardPrewarmer()
-    
-    private var isPrewarming = false
-    private var isPrewarmed = false
-    private var hiddenTextField: UITextField?
-    
-    private init() {}
-    
-    func prewarmInBackground() {
-        guard !isPrewarming && !isPrewarmed else {
-            print("⌨️ 键盘已预热或正在预热，跳过")
-            return
-        }
-        
-        isPrewarming = true
-        let startTime = CFAbsoluteTimeGetCurrent()
-        
-        print("⌨️ 开始后台预热键盘...")
-        
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-            
-            let textField = UITextField()
-            textField.isHidden = true
-            textField.frame = CGRect(x: -100, y: -100, width: 1, height: 1)
-            textField.alpha = 0
-            
-            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-               let window = windowScene.windows.first {
-                window.addSubview(textField)
-                self.hiddenTextField = textField
-                
-                textField.becomeFirstResponder()
-                
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    textField.resignFirstResponder()
-                    
-                    let timeElapsed = (CFAbsoluteTimeGetCurrent() - startTime) * 1000
-                    print("✅ 键盘预热完成，耗时: \(String(format: "%.2f", timeElapsed))ms")
-                    
-                    self.isPrewarming = false
-                    self.isPrewarmed = true
-                }
-            } else {
-                self.isPrewarming = false
-            }
-        }
-    }
-    
-    func cleanup() {
-        hiddenTextField?.removeFromSuperview()
-        hiddenTextField = nil
-        isPrewarmed = false
-        isPrewarming = false
-        print("🧹 键盘预热资源已清理")
-    }
-}
 
 // MARK: - 剪贴板条目行视图（⭐ 更新支持图片）
 
 struct ClipItemRowView: View {
     @ObservedObject var clipItem: ClipItem
-    @Environment(\.managedObjectContext) private var viewContext
     
-    let onUpdate: () -> Void
-    let onImageTap: () -> Void  // ⭐ 新增：图片点击回调
+    let onImageTap: () -> Void
     
     var body: some View {
         HStack(spacing: 12) {
-            // ⭐ 左侧：图片缩略图或类型图标
-            if clipItem.hasImage {
-    Button {
-        presentImageViewer(for: clipItem)
-    } label: {
-        if let thumbnailImage = clipItem.thumbnailImage {
-            Image(uiImage: thumbnailImage)
-                .resizable()
-                .scaledToFill()
-                .frame(width: 60, height: 60)
-                .clipped()
-                .cornerRadius(8)
-        } else {
-            Image(systemName: "photo")
-                .font(.title)
-                .foregroundColor(.secondary)
-                .frame(width: 60, height: 60)
-                .background(Color(.systemGray5))
-                .cornerRadius(8)
-        }
-    }
-    .buttonStyle(.plain)
-} else {
-                // 显示类型图标
-                VStack {
-                    Text(clipItem.typeIcon)
-                        .font(.title2)
-                    Spacer()
+            // ✅ 左侧图标（带收藏角标）
+            ZStack(alignment: .topLeading) {
+                if clipItem.hasImage {
+                    Button {
+                        presentImageViewer(for: clipItem)
+                    } label: {
+                        if let thumbnailImage = clipItem.thumbnailImage {
+                            Image(uiImage: thumbnailImage)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 60, height: 60)
+                                .clipped()
+                                .cornerRadius(8)
+                        } else {
+                            Image(systemName: "photo")
+                                .font(.title)
+                                .foregroundColor(.secondary)
+                                .frame(width: 60, height: 60)
+                                .background(Color(.systemGray5))
+                                .cornerRadius(8)
+                        }
+                    }
+                    .buttonStyle(.plain)
+                } else {
+                    VStack {
+                        Text(clipItem.typeIcon)
+                            .font(.title2)
+                        Spacer()
+                    }
+                    .frame(width: 40, alignment: .center)
+                }
+                
+                // ✅ 收藏角标（左上角小星星）
+                if clipItem.isStarred {
+                    Image(systemName: "star.fill")
+                        .font(.system(size: 12))
+                        .foregroundColor(.yellow)
+                        .shadow(color: .black.opacity(0.3), radius: 1, x: 0, y: 0.5)
+                        .offset(x: -4, y: -4)
                 }
             }
             
-            // 主要内容区域
+            // 主要内容
             VStack(alignment: .leading, spacing: 4) {
-                // ⭐ 内容预览（图片显示详细信息）
                 if clipItem.hasImage {
                     Text(clipItem.imageFullDescription)
                         .font(.body)
@@ -740,7 +701,6 @@ struct ClipItemRowView: View {
                         .multilineTextAlignment(.leading)
                 }
                 
-                // 底部信息行
                 HStack {
                     Label(clipItem.sourceApp ?? "未知", systemImage: "app.fill")
                         .font(.caption)
@@ -753,60 +713,18 @@ struct ClipItemRowView: View {
                         .foregroundColor(.secondary)
                 }
             }
-            
-            Spacer()
-            
-            // 右侧收藏按钮
-            Button(action: {
-                toggleStarred()
-            }) {
-                Image(systemName: clipItem.isStarred ? "star.fill" : "star")
-                    .foregroundColor(clipItem.isStarred ? .yellow : .gray)
-                    .font(.title2)
-                    .frame(width: 44, height: 44)
-            }
-            .buttonStyle(.borderless)
         }
         .padding(.vertical, 4)
     }
     
-    private func toggleStarred() {
-        let generator = UIImpactFeedbackGenerator(style: .light)
-        generator.impactOccurred()
-        
-        clipItem.isStarred.toggle()
-        
-        do {
-            try viewContext.save()
-            print(clipItem.isStarred ? "⭐ 已收藏" : "☆ 取消收藏")
-        } catch {
-            print("❌ 收藏状态保存失败: \(error.localizedDescription)")
-            clipItem.isStarred.toggle()
-        }
-    }
-    
-    /// 直接通过根VC打开 UIKit 图片查看器（iOS15–18 均稳定）
     private func presentImageViewer(for item: ClipItem) {
         guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
               let rootVC = windowScene.windows.first?.rootViewController else {
             print("❌ 无法找到根视图控制器")
             return
         }
-
+        
         let viewerVC = ImageViewerViewController(clipItem: item)
         rootVC.present(viewerVC, animated: true)
-        print("🖼️ 已打开图片查看器（UIKit 弹出）")
-    }
-}
-
-// MARK: - 预览
-
-struct ContentView_Previews: PreviewProvider {
-    static var previews: some View {
-        let dataRefreshManager = DataRefreshManager()
-        
-        ContentView()
-            .environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
-            .environmentObject(dataRefreshManager)
     }
 }
