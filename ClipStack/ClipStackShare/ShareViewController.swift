@@ -79,6 +79,12 @@ class ShareViewController: UIViewController {
     
     /// 处理ItemProvider，按优先级尝试不同类型
     private func handleItemProvider(_ itemProvider: NSItemProvider) {
+        // 打印所有支持的类型标识符
+        print("📦 ItemProvider 支持的所有类型：")
+        for identifier in itemProvider.registeredTypeIdentifiers {
+            print("   - \(identifier)")
+        }
+
         // 优先级1：图片
         if itemProvider.hasItemConformingToTypeIdentifier(UTType.image.identifier) {
             handleImageContent(itemProvider)
@@ -186,6 +192,8 @@ class ShareViewController: UIViewController {
         
         itemProvider.loadItem(forTypeIdentifier: UTType.image.identifier, options: nil) { [weak self] (item, error) in
             guard let self = self else { return }
+
+            print("📥 loadItem 回调参数类型: \(type(of: item))")
             
             if let error = error {
                 print("❌ 加载图片失败: \(error.localizedDescription)")

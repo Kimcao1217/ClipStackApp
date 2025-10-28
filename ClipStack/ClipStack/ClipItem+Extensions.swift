@@ -212,20 +212,43 @@ extension ClipItem {
         return "\(imageWidth) × \(imageHeight)"
     }
     
-    /// 图片文件大小描述（如 "2.3 MB"）
-    var imageSizeText: String {
-        guard hasImage else { return "" }
-        
-        let size = originalSize > 0 ? originalSize : thumbnailSize
-        
-        if size < 1024 {
-            return "\(size) B"
-        } else if size < 1024 * 1024 {
-            return String(format: "%.1f KB", Double(size) / 1024.0)
-        } else {
-            return String(format: "%.1f MB", Double(size) / 1024.0 / 1024.0)
-        }
+    /// 图片文件大小描述（优先显示缩略图大小）
+var imageSizeText: String {
+    guard hasImage else { return "" }
+    
+    // ⭐ 修改：优先显示缩略图大小（实际存储的大小）
+    let size = thumbnailSize > 0 ? thumbnailSize : originalSize
+    
+    if size < 1024 {
+        return "\(size) B"
+    } else if size < 1024 * 1024 {
+        return String(format: "%.1f KB", Double(size) / 1024.0)
+    } else {
+        return String(format: "%.1f MB", Double(size) / 1024.0 / 1024.0)
     }
+}
+
+/// ⭐ 新增：原图大小描述（用于详情页展示）
+var originalSizeText: String {
+    guard hasImage, originalSize > 0 else { return "" }
+    
+    if originalSize < 1024 {
+        return "\(originalSize) B"
+    } else if originalSize < 1024 * 1024 {
+        return String(format: "%.1f KB", Double(originalSize) / 1024.0)
+    } else {
+        return String(format: "%.1f MB", Double(originalSize) / 1024.0 / 1024.0)
+    }
+}
+
+/// ⭐ 新增：图片压缩比例描述（如 "原图 2.3MB → 压缩后 45KB (1.9%)"）
+var compressionDescription: String {
+    guard hasImage, originalSize > 0, thumbnailSize > 0 else { return "" }
+    
+    let ratio = Double(thumbnailSize) / Double(originalSize) * 100.0
+    return String(format: "原图 %@ → 压缩后 %@ (%.1f%%)", 
+                  originalSizeText, imageSizeText, ratio)
+}
     
     /// 图片格式+尺寸+大小的完整描述（如 "JPEG • 1920×1080 • 2.3 MB"）
     var imageFullDescription: String {

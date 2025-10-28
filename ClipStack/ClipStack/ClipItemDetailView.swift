@@ -90,47 +90,61 @@ struct ClipItemDetailView: View {
     }
     
     /// 内容区域
-    @ViewBuilder
-    private var contentView: some View {
-        if clipItem.hasImage {
-            VStack(alignment: .leading, spacing: 12) {
-                if let image = clipItem.thumbnailImage {
-                    Button(action: {
-                        presentImageViewer()
-                    }) {
-                        Image(uiImage: image)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(maxWidth: .infinity)
-                            .cornerRadius(12)
-                    }
-                    .buttonStyle(.plain)
+@ViewBuilder
+private var contentView: some View {
+    if clipItem.hasImage {
+        VStack(alignment: .leading, spacing: 12) {
+            // 图片预览（点击进入全屏）
+            if let image = clipItem.thumbnailImage {
+                Button(action: {
+                    presentImageViewer()
+                }) {
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(maxWidth: .infinity)
+                        .cornerRadius(12)
                 }
-                
-                Text(clipItem.imageFullDescription)
-                    .font(.body)
-                    .foregroundColor(.secondary)
+                .buttonStyle(.plain)
             }
-        } else {
-            VStack(alignment: .leading, spacing: 8) {
-                Text(clipItem.content ?? "")
-                    .font(.body)
-                    .textSelection(.enabled)
-                
-                if clipItem.isLink, let urlString = clipItem.content, let url = URL(string: urlString) {
-                    Link(destination: url) {
-                        HStack {
-                            Image(systemName: "safari")
-                            Text("在 Safari 中打开")
-                        }
+            
+            // ⭐ 新增：压缩信息（原图 → 压缩后）
+            if clipItem.originalSize > 0 {
+                HStack(spacing: 8) {
+                    Image(systemName: "arrow.down.circle.fill")
+                        .foregroundColor(.green)
+                    Text(clipItem.compressionDescription)
                         .font(.subheadline)
-                        .foregroundColor(.blue)
-                    }
-                    .padding(.top, 4)
+                        .foregroundColor(.secondary)
                 }
+            }
+            
+            // 图片格式和尺寸信息
+            Text(clipItem.imageFullDescription)
+                .font(.body)
+                .foregroundColor(.secondary)
+        }
+    } else {
+        // 文本/链接内容（保持不变）
+        VStack(alignment: .leading, spacing: 8) {
+            Text(clipItem.content ?? "")
+                .font(.body)
+                .textSelection(.enabled)
+            
+            if clipItem.isLink, let urlString = clipItem.content, let url = URL(string: urlString) {
+                Link(destination: url) {
+                    HStack {
+                        Image(systemName: "safari")
+                        Text("在 Safari 中打开")
+                    }
+                    .font(.subheadline)
+                    .foregroundColor(.blue)
+                }
+                .padding(.top, 4)
             }
         }
     }
+}
     
     /// 元信息
     private var metadataView: some View {
