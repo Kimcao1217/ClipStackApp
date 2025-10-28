@@ -127,6 +127,11 @@ private func setupDarwinNotificationObserver() {
     DarwinNotificationCenter.shared.addObserver {
         print("🔔 检测到 Share Extension 保存数据，启动历史变更合并")
         mergePersistentHistoryChanges()
+        
+        DispatchQueue.main.async {
+            WidgetCenter.shared.reloadAllTimelines()
+            print("🔄 主 App 合并完成，通知 Widget 刷新")
+        }
     }
 }
 
@@ -400,7 +405,13 @@ private func shareItem(_ item: ClipItem) {
             try backgroundContext.save()
             print("✅ 新条目已保存")
             
-            // ✅ 3. 保存成功后，再检查限制（避免误删）
+            // ✅ 3. 刷新 Widget
+            DispatchQueue.main.async {
+                WidgetCenter.shared.reloadAllTimelines()
+                print("🔄 已通知 Widget 刷新")
+            }
+            
+            // ✅ 4. 保存成功后，再检查限制（避免误删）
             DispatchQueue.global(qos: .utility).async {
                 let cleanupContext = PersistenceController.shared.container.newBackgroundContext()
                 cleanupContext.perform {
@@ -429,6 +440,12 @@ private func shareItem(_ item: ClipItem) {
         do {
             try backgroundContext.save()
             print("🗑️ 已删除条目")
+            
+            // ✅ 刷新 Widget
+            DispatchQueue.main.async {
+                WidgetCenter.shared.reloadAllTimelines()
+                print("🔄 已通知 Widget 刷新")
+            }
         } catch {
             print("❌ 删除失败: \(error)")
         }
@@ -475,6 +492,10 @@ private func shareItem(_ item: ClipItem) {
                 let message = willBeStarred ? "⭐ 已收藏" : "☆ 已取消收藏"
                 self.showToast(message: message)
                 print(message)
+                
+                // ✅ 刷新 Widget（新增这 2 行）
+                WidgetCenter.shared.reloadAllTimelines()
+                print("🔄 已通知 Widget 刷新")
             }
             
             // ✅ 取消收藏后在后台检查限制

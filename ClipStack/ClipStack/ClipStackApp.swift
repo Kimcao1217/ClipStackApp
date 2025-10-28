@@ -13,6 +13,9 @@ import WidgetKit
 struct ClipStackApp: App {
     let persistenceController = PersistenceController.shared
     
+    // 监听 App 生命周期
+    @Environment(\.scenePhase) private var scenePhase
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
@@ -21,11 +24,18 @@ struct ClipStackApp: App {
                     handleURLScheme(url)
                 }
         }
+        // 监听场景切换（前台/后台）
+        .onChange(of: scenePhase) { newPhase in
+            if newPhase == .active {
+                print("🔄 App 进入前台，刷新 Widget")
+                WidgetCenter.shared.reloadAllTimelines()
+            }
+        }
     }
     
     // MARK: - 处理 Widget 点击跳转
     
-    /// 处理 clipstack://copy/{itemID}
+    /// 处理 URL Scheme（✅ 支持 copy 和 refresh）
     private func handleURLScheme(_ url: URL) {
         print("🔗 收到 URL Scheme: \(url)")
         print("   - scheme: \(url.scheme ?? "nil")")
@@ -37,25 +47,42 @@ struct ClipStackApp: App {
             return
         }
         
-        guard url.host == "copy" else {
-            print("❌ 无效的 host（期望 'copy'，实际 '\(url.host ?? "nil")'）")
+        guard let host = url.host else {
+            print("❌ 缺少 host")
             return
         }
         
-        let itemIDString = url.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
-        
-        guard !itemIDString.isEmpty else {
-            print("❌ UUID 为空")
-            return
+        switch host {
+        case "copy":
+            // 处理复制条目
+            let itemIDString = url.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+            
+            guard !itemIDString.isEmpty else {
+                print("❌ UUID 为空")
+                return
+            }
+            
+            guard let itemID = UUID(uuidString: itemIDString) else {
+                print("❌ 无效的 UUID: \(itemIDString)")
+                return
+            }
+            
+            print("🎯 正在复制条目: \(itemID)")
+            copyItemFromWidget(itemID: itemID)
+            
+        case "refresh":
+            // ✅ 处理手动刷新
+            print("🔄 收到手动刷新请求，立即刷新 Widget")
+            WidgetCenter.shared.reloadAllTimelines()
+            
+            // ✅ 显示刷新成功提示
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                showSuccessHUD(message: "✅ 已刷新")
+            }
+            
+        default:
+            print("❌ 无效的 host: \(host)（支持 'copy' 或 'refresh'）")
         }
-        
-        guard let itemID = UUID(uuidString: itemIDString) else {
-            print("❌ 无效的 UUID: \(itemIDString)")
-            return
-        }
-        
-        print("🎯 正在复制条目: \(itemID)")
-        copyItemFromWidget(itemID: itemID)
     }
     
     /// 从 Widget 点击后复制条目（✅ 性能优化版本）
