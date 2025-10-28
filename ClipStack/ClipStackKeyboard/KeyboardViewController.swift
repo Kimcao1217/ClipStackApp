@@ -4,6 +4,7 @@
 //
 //  自定义键盘扩展主控制器
 //  显示剪贴板历史记录（含图片）并支持快速插入/复制
+//  分段控件筛选功能
 
 import UIKit
 import CoreData
@@ -16,6 +17,42 @@ class KeyboardViewController: UIInputViewController {
     // 剪贴板条目数据
     private var clipItems: [ClipItem] = []
     
+    // 当前选中的筛选类型
+    private enum FilterType: Int {
+        case all = 0
+        case text = 1
+        case link = 2
+        case image = 3
+        case starred = 4
+        
+        var title: String {
+            switch self {
+            case .all: return "全部"
+            case .text: return "文本"
+            case .link: return "链接"
+            case .image: return "图片"
+            case .starred: return "收藏"
+            }
+        }
+        
+        var predicate: NSPredicate? {
+            switch self {
+            case .all:
+                return nil
+            case .text:
+                return NSPredicate(format: "contentType == %@", "text")
+            case .link:
+                return NSPredicate(format: "contentType == %@", "link")
+            case .image:
+                return NSPredicate(format: "contentType == %@", "image")
+            case .starred:
+                return NSPredicate(format: "isStarred == %@", NSNumber(value: true))
+            }
+        }
+    }
+    
+    private var currentFilter: FilterType = .all
+    
     // UI组件
     private let scrollView = UIScrollView()
     private let stackView = UIStackView()
@@ -23,6 +60,9 @@ class KeyboardViewController: UIInputViewController {
     private let headerLabel = UILabel()
     private let switchKeyboardButton = UIButton(type: .system)
     private let emptyStateLabel = UILabel()
+    
+    // 筛选器
+    private let filterSegmentedControl = UISegmentedControl(items: ["全部", "文本", "链接", "图片", "收藏"])
     
     // 键盘高度约束
     private var heightConstraint: NSLayoutConstraint?
@@ -69,6 +109,12 @@ class KeyboardViewController: UIInputViewController {
         switchKeyboardButton.translatesAutoresizingMaskIntoConstraints = false
         headerView.addSubview(switchKeyboardButton)
         
+        // 筛选器（分段控件）
+        filterSegmentedControl.selectedSegmentIndex = 0  // 默认选中"全部"
+        filterSegmentedControl.addTarget(self, action: #selector(handleFilterChanged), for: .valueChanged)
+        filterSegmentedControl.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(filterSegmentedControl)
+        
         // ===== 滚动视图 =====
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         scrollView.showsVerticalScrollIndicator = false
@@ -110,8 +156,14 @@ class KeyboardViewController: UIInputViewController {
             switchKeyboardButton.widthAnchor.constraint(equalToConstant: 44),
             switchKeyboardButton.heightAnchor.constraint(equalToConstant: 44),
             
-            // 滚动视图
-            scrollView.topAnchor.constraint(equalTo: headerView.bottomAnchor),
+            // 筛选器（在工具栏下方）
+            filterSegmentedControl.topAnchor.constraint(equalTo: headerView.bottomAnchor, constant: 8),
+            filterSegmentedControl.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 12),
+            filterSegmentedControl.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -12),
+            filterSegmentedControl.heightAnchor.constraint(equalToConstant: 28),
+            
+            // 滚动视图（在筛选器下方）
+            scrollView.topAnchor.constraint(equalTo: filterSegmentedControl.bottomAnchor, constant: 8),
             scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
@@ -132,7 +184,7 @@ class KeyboardViewController: UIInputViewController {
     }
     
     private func setupKeyboardHeight() {
-        // 设置键盘高度为280（根据官方文档建议）
+        // 设置键盘高度为280
         heightConstraint = NSLayoutConstraint(
             item: view!,
             attribute: .height,
@@ -150,6 +202,7 @@ class KeyboardViewController: UIInputViewController {
     
     // MARK: - 数据加载
     
+    /// 根据当前筛选器加载数据
     private func loadData() {
         let context = persistenceController.container.viewContext
         
@@ -157,9 +210,14 @@ class KeyboardViewController: UIInputViewController {
         fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \ClipItem.createdAt, ascending: false)]
         fetchRequest.fetchLimit = 20  // 只显示最近20条，避免性能问题
         
+        // 应用筛选条件
+        if let predicate = currentFilter.predicate {
+            fetchRequest.predicate = predicate
+        }
+        
         do {
             clipItems = try context.fetch(fetchRequest)
-            print("✅ 键盘扩展加载了 \(clipItems.count) 条数据")
+            print("✅ 键盘扩展加载了 \(clipItems.count) 条数据（筛选器：\(currentFilter.title)）")
             
             updateUI()
         } catch {
@@ -176,9 +234,23 @@ class KeyboardViewController: UIInputViewController {
         stackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
         
         if clipItems.isEmpty {
-            // 显示空状态
+            // 显示空状态（根据筛选器调整提示文案）
             emptyStateLabel.isHidden = false
             scrollView.isHidden = true
+            
+            // 根据筛选器显示不同的空状态提示
+            switch currentFilter {
+            case .all:
+                emptyStateLabel.text = "还没有剪贴板历史\n在主App中添加内容"
+            case .text:
+                emptyStateLabel.text = "还没有文本内容\n试试分享文字到ClipStack"
+            case .link:
+                emptyStateLabel.text = "还没有链接\n试试分享网页到ClipStack"
+            case .image:
+                emptyStateLabel.text = "还没有图片\n试试分享照片到ClipStack"
+            case .starred:
+                emptyStateLabel.text = "还没有收藏的内容\n在主App中收藏常用内容"
+            }
         } else {
             // 显示数据列表
             emptyStateLabel.isHidden = true
@@ -213,6 +285,23 @@ class KeyboardViewController: UIInputViewController {
         print("🌐 切换键盘")
     }
     
+    /// 筛选器切换处理
+    @objc private func handleFilterChanged() {
+        let selectedIndex = filterSegmentedControl.selectedSegmentIndex
+        guard let newFilter = FilterType(rawValue: selectedIndex) else { return }
+        
+        print("🔄 筛选器切换: \(currentFilter.title) → \(newFilter.title)")
+        
+        currentFilter = newFilter
+        
+        // 添加轻微的触觉反馈
+        let generator = UISelectionFeedbackGenerator()
+        generator.selectionChanged()
+        
+        // 重新加载数据
+        loadData()
+    }
+    
     private func handleItemTap(_ item: ClipItem) {
         // ⭐ 根据内容类型处理
         if item.contentType == "image" {
@@ -224,149 +313,149 @@ class KeyboardViewController: UIInputViewController {
         }
     }
     
-    /// ⭐ 新增：复制图片到剪贴板
-private func copyImageToPasteboard(_ item: ClipItem) {
-    guard let imageData = item.imageData,
-          let image = UIImage(data: imageData) else {
-        print("⚠️ 图片数据为空")
-        showToast("❌ 图片加载失败")
-        return
+    /// 复制图片到剪贴板
+    private func copyImageToPasteboard(_ item: ClipItem) {
+        guard let imageData = item.imageData,
+              let image = UIImage(data: imageData) else {
+            print("⚠️ 图片数据为空")
+            showToast("❌ 图片加载失败")
+            return
+        }
+        
+        // ⭐ 检查是否有完全访问权限
+        if !hasFullAccess() {
+            showFullAccessRequiredAlert()
+            return
+        }
+        
+        // 复制到系统剪贴板
+        UIPasteboard.general.image = image
+        
+        print("📋 图片已复制到剪贴板")
+        showToast("✅ 图片已复制")
+        
+        // 更新使用计数
+        updateUsageCount(for: item)
+        
+        // 触觉反馈
+        let generator = UIImpactFeedbackGenerator(style: .medium)
+        generator.impactOccurred()
     }
     
-    // ⭐ 检查是否有完全访问权限
-    if !hasFullAccess() {
-        showFullAccessRequiredAlert()
-        return
+    /// ⭐ 检测是否有完全访问权限
+    private func hasFullAccess() -> Bool {
+        // 方法1：尝试访问剪贴板
+        if UIPasteboard.general.hasStrings || UIPasteboard.general.hasImages {
+            return true
+        }
+        
+        // 方法2：检查是否能写入
+        let testString = "test"
+        UIPasteboard.general.string = testString
+        let canWrite = UIPasteboard.general.string == testString
+        
+        return canWrite
     }
     
-    // 复制到系统剪贴板
-    UIPasteboard.general.image = image
-    
-    print("📋 图片已复制到剪贴板")
-    showToast("✅ 图片已复制")
-    
-    // 更新使用计数
-    updateUsageCount(for: item)
-    
-    // 触觉反馈
-    let generator = UIImpactFeedbackGenerator(style: .medium)
-    generator.impactOccurred()
-}
-
-/// ⭐ 检测是否有完全访问权限
-private func hasFullAccess() -> Bool {
-    // 方法1：尝试访问剪贴板
-    if UIPasteboard.general.hasStrings || UIPasteboard.general.hasImages {
-        return true
+    /// ⭐ 显示权限请求提示
+    private func showFullAccessRequiredAlert() {
+        // 创建提示视图
+        let alertView = UIView()
+        alertView.backgroundColor = UIColor.systemBackground
+        alertView.layer.cornerRadius = 12
+        alertView.layer.shadowColor = UIColor.black.cgColor
+        alertView.layer.shadowOpacity = 0.3
+        alertView.layer.shadowOffset = CGSize(width: 0, height: 2)
+        alertView.layer.shadowRadius = 8
+        alertView.translatesAutoresizingMaskIntoConstraints = false
+        
+        // 图标
+        let iconLabel = UILabel()
+        iconLabel.text = "🔒"
+        iconLabel.font = .systemFont(ofSize: 40)
+        iconLabel.translatesAutoresizingMaskIntoConstraints = false
+        alertView.addSubview(iconLabel)
+        
+        // 标题
+        let titleLabel = UILabel()
+        titleLabel.text = "需要开启\"允许完全访问\""
+        titleLabel.font = .systemFont(ofSize: 16, weight: .semibold)
+        titleLabel.textAlignment = .center
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        alertView.addSubview(titleLabel)
+        
+        // 说明
+        let messageLabel = UILabel()
+        messageLabel.text = "复制图片到剪贴板需要此权限\n\n设置 → 通用 → 键盘 → ClipStack\n→ 开启\"允许完全访问\""
+        messageLabel.font = .systemFont(ofSize: 12)
+        messageLabel.textColor = .secondaryLabel
+        messageLabel.numberOfLines = 0
+        messageLabel.textAlignment = .center
+        messageLabel.translatesAutoresizingMaskIntoConstraints = false
+        alertView.addSubview(messageLabel)
+        
+        // 关闭按钮
+        let closeButton = UIButton(type: .system)
+        closeButton.setTitle("我知道了", for: .normal)
+        closeButton.titleLabel?.font = .systemFont(ofSize: 14, weight: .medium)
+        closeButton.backgroundColor = .systemBlue
+        closeButton.setTitleColor(.white, for: .normal)
+        closeButton.layer.cornerRadius = 8
+        closeButton.translatesAutoresizingMaskIntoConstraints = false
+        closeButton.addTarget(self, action: #selector(dismissAlert), for: .touchUpInside)
+        alertView.addSubview(closeButton)
+        
+        // 添加到视图
+        view.addSubview(alertView)
+        
+        // 保存引用（用于关闭）
+        alertView.tag = 999
+        
+        // 布局
+        NSLayoutConstraint.activate([
+            alertView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            alertView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            alertView.widthAnchor.constraint(equalToConstant: 280),
+            
+            iconLabel.topAnchor.constraint(equalTo: alertView.topAnchor, constant: 20),
+            iconLabel.centerXAnchor.constraint(equalTo: alertView.centerXAnchor),
+            
+            titleLabel.topAnchor.constraint(equalTo: iconLabel.bottomAnchor, constant: 12),
+            titleLabel.leadingAnchor.constraint(equalTo: alertView.leadingAnchor, constant: 16),
+            titleLabel.trailingAnchor.constraint(equalTo: alertView.trailingAnchor, constant: -16),
+            
+            messageLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 8),
+            messageLabel.leadingAnchor.constraint(equalTo: alertView.leadingAnchor, constant: 16),
+            messageLabel.trailingAnchor.constraint(equalTo: alertView.trailingAnchor, constant: -16),
+            
+            closeButton.topAnchor.constraint(equalTo: messageLabel.bottomAnchor, constant: 20),
+            closeButton.leadingAnchor.constraint(equalTo: alertView.leadingAnchor, constant: 16),
+            closeButton.trailingAnchor.constraint(equalTo: alertView.trailingAnchor, constant: -16),
+            closeButton.heightAnchor.constraint(equalToConstant: 44),
+            closeButton.bottomAnchor.constraint(equalTo: alertView.bottomAnchor, constant: -20)
+        ])
+        
+        // 淡入动画
+        alertView.alpha = 0
+        alertView.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
+        UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0, options: [], animations: {
+            alertView.alpha = 1
+            alertView.transform = .identity
+        })
+        
+        print("🔒 显示权限请求提示")
     }
     
-    // 方法2：检查是否能写入
-    let testString = "test"
-    UIPasteboard.general.string = testString
-    let canWrite = UIPasteboard.general.string == testString
-    
-    return canWrite
-}
-
-/// ⭐ 显示权限请求提示
-private func showFullAccessRequiredAlert() {
-    // 创建提示视图
-    let alertView = UIView()
-    alertView.backgroundColor = UIColor.systemBackground
-    alertView.layer.cornerRadius = 12
-    alertView.layer.shadowColor = UIColor.black.cgColor
-    alertView.layer.shadowOpacity = 0.3
-    alertView.layer.shadowOffset = CGSize(width: 0, height: 2)
-    alertView.layer.shadowRadius = 8
-    alertView.translatesAutoresizingMaskIntoConstraints = false
-    
-    // 图标
-    let iconLabel = UILabel()
-    iconLabel.text = "🔒"
-    iconLabel.font = .systemFont(ofSize: 40)
-    iconLabel.translatesAutoresizingMaskIntoConstraints = false
-    alertView.addSubview(iconLabel)
-    
-    // 标题
-    let titleLabel = UILabel()
-    titleLabel.text = "需要开启\"允许完全访问\""
-    titleLabel.font = .systemFont(ofSize: 16, weight: .semibold)
-    titleLabel.textAlignment = .center
-    titleLabel.translatesAutoresizingMaskIntoConstraints = false
-    alertView.addSubview(titleLabel)
-    
-    // 说明
-    let messageLabel = UILabel()
-    messageLabel.text = "复制图片到剪贴板需要此权限\n\n设置 → 通用 → 键盘 → ClipStack\n→ 开启\"允许完全访问\""
-    messageLabel.font = .systemFont(ofSize: 12)
-    messageLabel.textColor = .secondaryLabel
-    messageLabel.numberOfLines = 0
-    messageLabel.textAlignment = .center
-    messageLabel.translatesAutoresizingMaskIntoConstraints = false
-    alertView.addSubview(messageLabel)
-    
-    // 关闭按钮
-    let closeButton = UIButton(type: .system)
-    closeButton.setTitle("我知道了", for: .normal)
-    closeButton.titleLabel?.font = .systemFont(ofSize: 14, weight: .medium)
-    closeButton.backgroundColor = .systemBlue
-    closeButton.setTitleColor(.white, for: .normal)
-    closeButton.layer.cornerRadius = 8
-    closeButton.translatesAutoresizingMaskIntoConstraints = false
-    closeButton.addTarget(self, action: #selector(dismissAlert), for: .touchUpInside)
-    alertView.addSubview(closeButton)
-    
-    // 添加到视图
-    view.addSubview(alertView)
-    
-    // 保存引用（用于关闭）
-    alertView.tag = 999
-    
-    // 布局
-    NSLayoutConstraint.activate([
-        alertView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-        alertView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-        alertView.widthAnchor.constraint(equalToConstant: 280),
-        
-        iconLabel.topAnchor.constraint(equalTo: alertView.topAnchor, constant: 20),
-        iconLabel.centerXAnchor.constraint(equalTo: alertView.centerXAnchor),
-        
-        titleLabel.topAnchor.constraint(equalTo: iconLabel.bottomAnchor, constant: 12),
-        titleLabel.leadingAnchor.constraint(equalTo: alertView.leadingAnchor, constant: 16),
-        titleLabel.trailingAnchor.constraint(equalTo: alertView.trailingAnchor, constant: -16),
-        
-        messageLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 8),
-        messageLabel.leadingAnchor.constraint(equalTo: alertView.leadingAnchor, constant: 16),
-        messageLabel.trailingAnchor.constraint(equalTo: alertView.trailingAnchor, constant: -16),
-        
-        closeButton.topAnchor.constraint(equalTo: messageLabel.bottomAnchor, constant: 20),
-        closeButton.leadingAnchor.constraint(equalTo: alertView.leadingAnchor, constant: 16),
-        closeButton.trailingAnchor.constraint(equalTo: alertView.trailingAnchor, constant: -16),
-        closeButton.heightAnchor.constraint(equalToConstant: 44),
-        closeButton.bottomAnchor.constraint(equalTo: alertView.bottomAnchor, constant: -20)
-    ])
-    
-    // 淡入动画
-    alertView.alpha = 0
-    alertView.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
-    UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0, options: [], animations: {
-        alertView.alpha = 1
-        alertView.transform = .identity
-    })
-    
-    print("🔒 显示权限请求提示")
-}
-
-@objc private func dismissAlert() {
-    if let alertView = view.viewWithTag(999) {
-        UIView.animate(withDuration: 0.2, animations: {
-            alertView.alpha = 0
-            alertView.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
-        }) { _ in
-            alertView.removeFromSuperview()
+    @objc private func dismissAlert() {
+        if let alertView = view.viewWithTag(999) {
+            UIView.animate(withDuration: 0.2, animations: {
+                alertView.alpha = 0
+                alertView.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
+            }) { _ in
+                alertView.removeFromSuperview()
+            }
         }
     }
-}
     
     /// 插入文本到输入框
     private func insertTextToInputField(_ item: ClipItem) {
