@@ -334,9 +334,6 @@ class KeyboardViewController: UIInputViewController {
         print("📋 图片已复制到剪贴板")
         showToast("✅ 图片已复制")
         
-        // 更新使用计数
-        updateUsageCount(for: item)
-        
         // 触觉反馈
         let generator = UIImpactFeedbackGenerator(style: .medium)
         generator.impactOccurred()
@@ -469,32 +466,11 @@ class KeyboardViewController: UIInputViewController {
         // 使用textDocumentProxy插入文本到当前输入框
         textDocumentProxy.insertText(content)
         
-        // 更新使用计数
-        updateUsageCount(for: item)
-        
         // 触觉反馈
         let generator = UIImpactFeedbackGenerator(style: .light)
         generator.impactOccurred()
         
         print("✅ 文本插入成功")
-    }
-    
-    /// 更新使用次数
-    private func updateUsageCount(for item: ClipItem) {
-        let context = persistenceController.container.newBackgroundContext()
-        context.perform {
-            // 在后台上下文中获取对象
-            if let itemInContext = try? context.existingObject(with: item.objectID) as? ClipItem {
-                itemInContext.markAsUsed()
-                
-                do {
-                    try context.save()
-                    print("✅ 使用次数已更新")
-                } catch {
-                    print("❌ 使用次数更新失败: \(error.localizedDescription)")
-                }
-            }
-        }
     }
     
     /// ⭐ 显示提示信息（Toast）

@@ -24,7 +24,6 @@ struct PersistenceController {
             newItem.sourceApp = "预览"
             newItem.createdAt = Date()
             newItem.isStarred = (i == 0)
-            newItem.usageCount = 0
         }
         
         do {
@@ -66,11 +65,11 @@ struct PersistenceController {
                 }
             }
             
-            // ✅ 关键配置：让 CloudKit 在后台自动合并
-description.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
-description.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)  // ⭐ 新增
-description.setOption(true as NSNumber, forKey: NSMigratePersistentStoresAutomaticallyOption)
-description.setOption(true as NSNumber, forKey: NSInferMappingModelAutomaticallyOption)
+            // 让 CloudKit 在后台自动合并
+            description.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
+            description.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
+            description.setOption(true as NSNumber, forKey: NSMigratePersistentStoresAutomaticallyOption)
+            description.setOption(true as NSNumber, forKey: NSInferMappingModelAutomaticallyOption)
             
             container.persistentStoreDescriptions = [description]
         }
@@ -88,11 +87,16 @@ description.setOption(true as NSNumber, forKey: NSInferMappingModelAutomatically
     }
 }
 
-// ✅ 保留限制检查方法（不改动）
+// MARK: - 免费版限制管理
+
 extension PersistenceController {
     
+    /// 强制执行历史记录限制（自动删除最旧的非收藏条目）
+    /// - Parameter context: Core Data 上下文
+    /// - Returns: 是否成功执行清理
     @discardableResult
     static func enforceHistoryLimit(context: NSManagedObjectContext) -> Bool {
+        // Pro 版无限制
         if ProManager.shared.isPro {
             return true
         }
@@ -100,7 +104,7 @@ extension PersistenceController {
         let request: NSFetchRequest<ClipItem> = ClipItem.fetchRequest()
         request.predicate = NSPredicate(format: "isStarred == %@", NSNumber(value: false))
         request.sortDescriptors = [
-            NSSortDescriptor(keyPath: \ClipItem.createdAt, ascending: true)
+            NSSortDescriptor(keyPath: \ClipItem.createdAt, ascending: true)  // 最旧的在前
         ]
         
         do {
@@ -111,6 +115,7 @@ extension PersistenceController {
             print("📊 当前非收藏条目数：\(currentCount)/\(limit)")
             
             if currentCount >= limit {
+                // 删除超出限制的旧条目
                 let itemsToDelete = items.prefix(currentCount - limit + 1)
                 
                 for item in itemsToDelete {
@@ -129,7 +134,11 @@ extension PersistenceController {
         }
     }
     
+    /// 检查收藏限制（返回当前收藏数和是否可以继续收藏）
+    /// - Parameter context: Core Data 上下文
+    /// - Returns: (当前收藏数, 是否可以收藏)
     static func checkStarredLimit(context: NSManagedObjectContext) -> (currentCount: Int, canStar: Bool) {
+        // Pro 版无限制
         if ProManager.shared.isPro {
             return (0, true)
         }
@@ -151,8 +160,7 @@ extension PersistenceController {
     }
 }
 
-// ✅ 删除 fetchItems 方法（不需要手动查询）
-// ✅ 删除 FilterType 枚举（移到 ContentView.swift 内部）
+// MARK: - 筛选类型枚举
 
 enum FilterType: String, CaseIterable {
     case all = "全部"

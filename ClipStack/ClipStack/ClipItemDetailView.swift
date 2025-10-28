@@ -152,15 +152,6 @@ private var contentView: some View {
             MetadataRow(icon: "app.fill", label: "来源", value: clipItem.sourceApp ?? "未知")
             
             MetadataRow(icon: "calendar", label: "创建时间", value: formatFullDate(clipItem.createdAt))
-            
-            // ⭐ 实时显示使用次数
-            MetadataRow(icon: "hand.tap", label: "使用次数", value: "\(clipItem.usageCount) 次")
-                .id(clipItem.usageCount)  // ⭐ 关键：强制刷新
-            
-            if let lastUsed = clipItem.lastUsedAt {
-                MetadataRow(icon: "clock", label: "最后使用", value: formatFullDate(lastUsed))
-                    .id(lastUsed)  // ⭐ 关键：强制刷新
-            }
         }
     }
     
@@ -213,32 +204,20 @@ private var contentView: some View {
     }
     
     private func copyToClipboard() {
-        if clipItem.hasImage {
-            if let image = clipItem.thumbnailImage {
-                UIPasteboard.general.image = image
-                showToast(message: "✅ 图片已复制")
-            }
-        } else {
-            if let content = clipItem.content {
-                UIPasteboard.general.string = content
-                showToast(message: "✅ 已复制")
-            }
+    if clipItem.hasImage {
+        if let image = clipItem.thumbnailImage {
+            UIPasteboard.general.image = image
+            showToast(message: "✅ 图片已复制")
         }
-        
-        // ⚠️ 在主线程同步修改数据
-        clipItem.usageCount += 1
-        clipItem.lastUsedAt = Date()
-        
-        // ⚠️ 使用 perform 确保线程安全
-        viewContext.perform {
-            do {
-                try viewContext.save()
-                print("✅ 复制记录已保存（使用次数：\(clipItem.usageCount)）")
-            } catch {
-                print("❌ 复制记录保存失败: \(error)")
-            }
+    } else {
+        if let content = clipItem.content {
+            UIPasteboard.general.string = content
+            showToast(message: "✅ 已复制")
         }
     }
+    
+    print("✅ 内容已复制到剪贴板")
+}
     
     private func toggleStarred() {
     // ✅ 收藏前检查限制

@@ -341,17 +341,6 @@ private func copyItem(_ item: ClipItem) {
         }
     }
     
-    // ✅ 更新使用次数
-    item.usageCount += 1
-    item.lastUsedAt = Date()
-    
-    do {
-        try viewContext.save()
-        print("✅ 复制记录已保存（使用次数：\(item.usageCount)）")
-    } catch {
-        print("❌ 复制记录保存失败: \(error)")
-    }
-    
     // ✅ 触觉反馈
     let generator = UINotificationFeedbackGenerator()
     generator.notificationOccurred(.success)

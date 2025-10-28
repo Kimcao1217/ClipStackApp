@@ -35,8 +35,6 @@ extension ClipItem {
         self.sourceApp = sourceApp
         self.createdAt = Date()
         self.isStarred = false
-        self.usageCount = 0
-        self.lastUsedAt = nil
     }
     
     // MARK: - 计算属性
@@ -132,12 +130,6 @@ extension ClipItem {
     }
     
     // MARK: - 业务方法
-    
-    /// 标记条目为已使用（增加使用次数，更新最后使用时间）
-    func markAsUsed() {
-        self.usageCount += 1
-        self.lastUsedAt = Date()
-    }
     
     /// 切换收藏状态
     func toggleStarred() {

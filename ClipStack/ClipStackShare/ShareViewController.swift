@@ -318,8 +318,7 @@ class ShareViewController: UIViewController {
             newItem.sourceApp = sourceApp
             newItem.createdAt = Date()
             newItem.isStarred = false
-            newItem.usageCount = 0
-            
+
             // ⭐ 保存图片数据
             if let imageData = imageData {
                 newItem.imageData = imageData
