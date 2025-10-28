@@ -16,6 +16,11 @@ struct SettingsView: View {
     @State private var starredCount = 0
     @State private var totalSize: Int64 = 0
     
+    // ⭐ 新增：控制三个确认弹窗的显示状态
+    @State private var showClearHistoryAlert = false
+    @State private var showClearStarredAlert = false
+    @State private var showResetAllAlert = false
+    
     var body: some View {
         List {
             // MARK: - 账户信息区
@@ -66,6 +71,7 @@ struct SettingsView: View {
             // MARK: - 存储管理区
             
             Section {
+                // 统计信息（只读显示）
                 HStack {
                     Label("历史记录", systemImage: "clock")
                     Spacer()
@@ -87,19 +93,36 @@ struct SettingsView: View {
                         .foregroundColor(.secondary)
                 }
                 
+                // 危险操作按钮
                 Button {
-                    clearImageCache()
+                    showClearHistoryAlert = true
                 } label: {
-                    HStack {
-                        Label("清理图片缓存", systemImage: "trash")
-                        Spacer()
-                    }
+                    Label("清空历史记录", systemImage: "trash")
+                }
+                .foregroundColor(.orange)
+                .disabled(historyCount == 0)  // 没有历史记录时禁用
+                
+                Button {
+                    showClearStarredAlert = true
+                } label: {
+                    Label("清空收藏", systemImage: "star.slash")
+                }
+                .foregroundColor(.orange)
+                .disabled(starredCount == 0)  // 没有收藏时禁用
+                
+                Button {
+                    showResetAllAlert = true
+                } label: {
+                    Label("完全重置", systemImage: "exclamationmark.triangle")
                 }
                 .foregroundColor(.red)
+                .disabled(historyCount == 0 && starredCount == 0)  // 没有数据时禁用
+                
             } header: {
                 Text("存储管理")
             } footer: {
-                Text("清理图片缓存不会删除条目，只会释放图片占用的空间")
+                Text("• 清空历史记录：删除所有非收藏条目\n• 清空收藏：删除所有收藏条目\n• 完全重置：删除所有数据（不可恢复）")
+                    .font(.caption)
             }
             
             // MARK: - 其他设置区
@@ -168,6 +191,35 @@ struct SettingsView: View {
         .onAppear {
             loadData()
         }
+        
+        // MARK: - 确认弹窗（⭐ 新增三个 Alert）
+        
+        .alert("清空历史记录", isPresented: $showClearHistoryAlert) {
+            Button("取消", role: .cancel) { }
+            Button("清空", role: .destructive) {
+                clearHistory()
+            }
+        } message: {
+            Text("将删除所有非收藏的 \(historyCount) 条历史记录\n收藏的内容会保留\n\n此操作不可恢复")
+        }
+        
+        .alert("清空收藏", isPresented: $showClearStarredAlert) {
+            Button("取消", role: .cancel) { }
+            Button("清空", role: .destructive) {
+                clearStarred()
+            }
+        } message: {
+            Text("将删除所有 \(starredCount) 条收藏内容\n历史记录会保留\n\n此操作不可恢复")
+        }
+        
+        .alert("完全重置", isPresented: $showResetAllAlert) {
+            Button("取消", role: .cancel) { }
+            Button("全部删除", role: .destructive) {
+                resetAll()
+            }
+        } message: {
+            Text("将删除所有数据：\n• \(historyCount) 条历史记录\n• \(starredCount) 条收藏\n\n此操作不可恢复！")
+        }
     }
     
     // MARK: - 数据加载
@@ -194,6 +246,59 @@ struct SettingsView: View {
         }
     }
     
+    // MARK: - 数据清理方法（⭐ 新增三个核心方法）
+    
+    /// 清空历史记录（保留收藏）
+    private func clearHistory() {
+        let request: NSFetchRequest<ClipItem> = ClipItem.fetchRequest()
+        request.predicate = NSPredicate(format: "isStarred == %@", NSNumber(value: false))
+        
+        performDelete(request: request, successMessage: "✅ 已清空 \(historyCount) 条历史记录")
+    }
+    
+    /// 清空收藏（保留历史）
+    private func clearStarred() {
+        let request: NSFetchRequest<ClipItem> = ClipItem.fetchRequest()
+        request.predicate = NSPredicate(format: "isStarred == %@", NSNumber(value: true))
+        
+        performDelete(request: request, successMessage: "✅ 已清空 \(starredCount) 条收藏")
+    }
+    
+    /// 完全重置（删除所有数据）
+    private func resetAll() {
+        let request: NSFetchRequest<ClipItem> = ClipItem.fetchRequest()
+        
+        performDelete(request: request, successMessage: "✅ 已完全重置，所有数据已清空")
+    }
+    
+    /// 通用删除方法（避免代码重复）
+    private func performDelete(request: NSFetchRequest<ClipItem>, successMessage: String) {
+        do {
+            let items = try viewContext.fetch(request)
+            let count = items.count
+            
+            // 逐个删除条目
+            for item in items {
+                viewContext.delete(item)
+            }
+            
+            // 保存到数据库
+            try viewContext.save()
+            
+            print(successMessage)
+            
+            // 刷新统计数据
+            loadData()
+            
+            // 显示成功提示
+            showSuccessHUD(message: successMessage)
+            
+        } catch {
+            print("❌ 删除失败: \(error)")
+            showErrorAlert(message: "删除失败：\(error.localizedDescription)")
+        }
+    }
+    
     // MARK: - 工具方法
     
     private func formatBytes(_ bytes: Int64) -> String {
@@ -212,36 +317,45 @@ struct SettingsView: View {
         return "\(version) (\(build))"
     }
     
-    private func clearImageCache() {
-        let request: NSFetchRequest<ClipItem> = ClipItem.fetchRequest()
-        request.predicate = NSPredicate(format: "imageData != nil")
-        
-        do {
-            let items = try viewContext.fetch(request)
-            var clearedSize: Int64 = 0
-            
-            for item in items {
-                clearedSize += item.thumbnailSize
-                item.imageData = nil  // 清空图片数据
+    /// 显示成功提示（HUD 样式）
+    private func showSuccessHUD(message: String) {
+        DispatchQueue.main.async {
+            guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                  let window = windowScene.windows.first else {
+                return
             }
             
-            try viewContext.save()
+            let hud = UILabel()
+            hud.text = message
+            hud.textColor = .white
+            hud.backgroundColor = UIColor.black.withAlphaComponent(0.8)
+            hud.font = .systemFont(ofSize: 15, weight: .medium)
+            hud.textAlignment = .center
+            hud.layer.cornerRadius = 12
+            hud.layer.masksToBounds = true
+            hud.numberOfLines = 0
+            hud.translatesAutoresizingMaskIntoConstraints = false
             
-            print("✅ 已清理图片缓存：释放 \(formatBytes(clearedSize))")
+            window.addSubview(hud)
             
-            // 刷新数据
-            loadData()
+            NSLayoutConstraint.activate([
+                hud.centerXAnchor.constraint(equalTo: window.centerXAnchor),
+                hud.centerYAnchor.constraint(equalTo: window.centerYAnchor),
+                hud.widthAnchor.constraint(lessThanOrEqualTo: window.widthAnchor, multiplier: 0.8),
+                hud.heightAnchor.constraint(greaterThanOrEqualToConstant: 50)
+            ])
             
-            // 显示提示
-            showAlert(title: "清理完成", message: "已释放 \(formatBytes(clearedSize)) 空间")
-        } catch {
-            print("❌ 清理图片缓存失败: \(error)")
-            showAlert(title: "清理失败", message: error.localizedDescription)
+            hud.layoutIfNeeded()
+            
+            // 2 秒后自动消失
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                hud.removeFromSuperview()
+            }
         }
     }
     
-    private func showAlert(title: String, message: String) {
-        // 简单实现：使用系统 Alert
+    /// 显示错误提示（Alert 样式）
+    private func showErrorAlert(message: String) {
         DispatchQueue.main.async {
             guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
                   let window = windowScene.windows.first,
@@ -249,7 +363,7 @@ struct SettingsView: View {
                 return
             }
             
-            let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+            let alert = UIAlertController(title: "操作失败", message: message, preferredStyle: .alert)
             alert.addAction(UIAlertAction(title: "好的", style: .default))
             rootVC.present(alert, animated: true)
         }

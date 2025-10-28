@@ -197,7 +197,7 @@ private func mergePersistentHistoryChanges() {
                         .font(.title2)
                         .fontWeight(.medium)
                     
-                    Text("点击右上角的 + 按钮添加第一个条目")
+                    Text("从分享菜单或点击右上角的 + 按钮添加内容开始使用")
                         .font(.body)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
