@@ -382,13 +382,12 @@ private func shareItem(_ item: ClipItem) {
     private func addNewItem(content: String, source: String) {
     let trimmedContent = content.trimmingCharacters(in: .whitespacesAndNewlines)
     guard !trimmedContent.isEmpty else { return }
-    
-    // ✅ 先在主上下文检查限制（同步执行）
-    PersistenceController.enforceHistoryLimit(context: viewContext)
-    
-    // ✅ 再用后台上下文保存（异步执行）
+
+    // ✅ 1. 立即关闭弹窗（用户体验好）
+    dismissAddSheet()
+
+    // ✅ 2. 后台保存新条目
     let backgroundContext = PersistenceController.shared.container.newBackgroundContext()
-    
     backgroundContext.perform {
         let newItem = ClipItem(
             content: trimmedContent,
@@ -396,68 +395,105 @@ private func shareItem(_ item: ClipItem) {
             sourceApp: source,
             context: backgroundContext
         )
-        
+
         do {
             try backgroundContext.save()
+            print("✅ 新条目已保存")
             
-            DispatchQueue.main.async {
-                self.dismissAddSheet()
-                print("✅ 新条目已保存，UI 将自动更新")
+            // ✅ 3. 保存成功后，再检查限制（避免误删）
+            DispatchQueue.global(qos: .utility).async {
+                let cleanupContext = PersistenceController.shared.container.newBackgroundContext()
+                cleanupContext.perform {
+                    _ = PersistenceController.enforceHistoryLimit(context: cleanupContext)
+                }
             }
         } catch {
             print("❌ 保存失败: \(error)")
         }
     }
 }
+
     
     private func deleteItem(_ item: ClipItem) {
-        // ✅ 直接在主上下文删除（SwiftUI 自动更新 UI）
-        viewContext.delete(item)
+    // ✅ 后台执行删除（避免主线程阻塞）
+    let backgroundContext = PersistenceController.shared.container.newBackgroundContext()
+    let objectID = item.objectID
+    
+    backgroundContext.perform {
+        guard let bgItem = try? backgroundContext.existingObject(with: objectID) as? ClipItem else {
+            return
+        }
+        
+        backgroundContext.delete(bgItem)
         
         do {
-            try viewContext.save()
+            try backgroundContext.save()
             print("🗑️ 已删除条目")
         } catch {
             print("❌ 删除失败: \(error)")
         }
     }
+}
     
     private func toggleStarred(_ item: ClipItem) {
-    // ✅ 收藏前检查限制
+    // ✅ 收藏前检查限制（只查数量，不加载数据）
     if !item.isStarred {
-        let (currentCount, canStar) = PersistenceController.checkStarredLimit(context: viewContext)
-        if !canStar {
-            showToast(message: "⚠️ 收藏已满（\(currentCount)/\(ProManager.freeStarredLimit)），请先取消收藏其他条目")
+        let request: NSFetchRequest<ClipItem> = ClipItem.fetchRequest()
+        request.predicate = NSPredicate(format: "isStarred == %@", NSNumber(value: true))
+        
+        do {
+            let count = try viewContext.count(for: request)
+            if !ProManager.shared.isPro && count >= ProManager.freeStarredLimit {
+                showToast(message: "⚠️ 收藏已满（\(count)/\(ProManager.freeStarredLimit)）")
+                return
+            }
+        } catch {
             return
         }
     }
     
-    // ✅ 添加触觉反馈（轻微震动）
+    // ✅ 触觉反馈
     let generator = UIImpactFeedbackGenerator(style: .medium)
     generator.impactOccurred()
     
-    // ✅ 直接修改对象（SwiftUI 自动更新 UI）
-    item.isStarred.toggle()
+    // ✅ 后台执行收藏操作（避免主线程阻塞）
+    let backgroundContext = PersistenceController.shared.container.newBackgroundContext()
+    let objectID = item.objectID
     
-    do {
-        try viewContext.save()
-        
-        // ✅ 显示优雅的 Toast 提示
-        let message = item.isStarred ? "⭐ 已收藏" : "☆ 已取消收藏"
-        showToast(message: message)
-        print(message)
-        
-        // ✅ 取消收藏后检查历史记录限制
-        if !item.isStarred {
-            PersistenceController.enforceHistoryLimit(context: viewContext)
+    backgroundContext.perform {
+        guard let bgItem = try? backgroundContext.existingObject(with: objectID) as? ClipItem else {
+            return
         }
-    } catch {
-        print("❌ 保存失败: \(error)")
-        item.isStarred.toggle()  // 回滚
         
-        // ❌ 回滚时再次震动（错误提示）
-        let errorGenerator = UINotificationFeedbackGenerator()
-        errorGenerator.notificationOccurred(.error)
+        let willBeStarred = !bgItem.isStarred
+        bgItem.isStarred = willBeStarred
+        
+        do {
+            try backgroundContext.save()
+            
+            DispatchQueue.main.async {
+                let message = willBeStarred ? "⭐ 已收藏" : "☆ 已取消收藏"
+                self.showToast(message: message)
+                print(message)
+            }
+            
+            // ✅ 取消收藏后在后台检查限制
+            if !willBeStarred {
+                DispatchQueue.global(qos: .utility).async {
+                    let cleanupContext = PersistenceController.shared.container.newBackgroundContext()
+                    cleanupContext.perform {
+                        _ = PersistenceController.enforceHistoryLimit(context: cleanupContext)
+                    }
+                }
+            }
+        } catch {
+            print("❌ 保存失败: \(error)")
+            DispatchQueue.main.async {
+                let errorGenerator = UINotificationFeedbackGenerator()
+                errorGenerator.notificationOccurred(.error)
+                self.showToast(message: "❌ 操作失败")
+            }
+        }
     }
 }
     
