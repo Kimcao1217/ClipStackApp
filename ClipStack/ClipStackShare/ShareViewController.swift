@@ -139,7 +139,8 @@ class ShareViewController: UIViewController {
                 imageHeight: 0,
                 imageFormat: nil,
                 originalSize: 0,
-                thumbnailSize: 0
+                thumbnailSize: 0,
+                keyboardThumbnail: nil  // 文本类型不需要缩略图
             )
         }
     }
@@ -180,12 +181,13 @@ class ShareViewController: UIViewController {
                 imageHeight: 0,
                 imageFormat: nil,
                 originalSize: 0,
-                thumbnailSize: 0
+                thumbnailSize: 0,
+                keyboardThumbnail: nil  // 链接类型不需要缩略图
             )
         }
     }
     
-    // MARK: - 处理图片内容（⭐ 新增）
+    // MARK: - 处理图片内容
     
     private func handleImageContent(_ itemProvider: NSItemProvider) {
         print("🖼️ 开始处理图片...")
@@ -245,42 +247,52 @@ class ShareViewController: UIViewController {
             
             print("📐 原图尺寸: \(originalImage.size.width) × \(originalImage.size.height)")
             
-            // 压缩图片
-            guard let compressedData = self.compressImage(originalImage, targetWidth: 400) else {
+            // 生成中等缩略图（主 App 使用，200KB 左右）
+            guard let mediumThumbnail = self.compressImage(originalImage, targetWidth: 400) else {
                 self.showError("图片压缩失败")
                 return
             }
-            
-            print("✅ 图片压缩完成: \(originalSize) 字节 → \(compressedData.count) 字节")
+
+            // 生成超小缩略图（键盘扩展使用，5KB 以内）
+            guard let keyboardThumbnail = self.compressImage(originalImage, targetWidth: 60, quality: 0.3) else {
+                self.showError("生成键盘缩略图失败")
+                return
+            }
+
+            print("✅ 图片压缩完成:")
+            print("  - 原图: \(originalSize) 字节")
+            print("  - 中等缩略图: \(mediumThumbnail.count) 字节")
+            print("  - 键盘缩略图: \(keyboardThumbnail.count) 字节")
             
             // 保存到 Core Data
             self.saveClipItem(
-                content: "图片", // 占位文本
+                content: "图片",
                 contentType: "image",
                 sourceApp: self.getSourceAppName(),
-                imageData: compressedData,
+                imageData: mediumThumbnail,          // 中等缩略图（主 App 用）
                 imageWidth: Int32(originalImage.size.width),
                 imageHeight: Int32(originalImage.size.height),
                 imageFormat: imageFormat,
                 originalSize: originalSize,
-                thumbnailSize: Int64(compressedData.count)
+                thumbnailSize: Int64(mediumThumbnail.count),
+                keyboardThumbnail: keyboardThumbnail // ⭐ 键盘专用缩略图
             )
         }
     }
     
     /// 压缩图片到指定宽度（保持宽高比）
-    private func compressImage(_ image: UIImage, targetWidth: CGFloat = 400) -> Data? {
+    /// - Parameters:
+    ///   - image: 原图
+    ///   - targetWidth: 目标宽度
+    ///   - quality: JPEG 质量（0.0 - 1.0）
+    /// - Returns: 压缩后的图片数据
+    private func compressImage(_ image: UIImage, targetWidth: CGFloat = 400, quality: CGFloat = 0.7) -> Data? {
         let originalSize = image.size
         
-        // 如果原图已经很小，不需要压缩
-        if originalSize.width <= targetWidth {
-            return image.jpegData(compressionQuality: 0.7)
-        }
-        
         // 计算压缩比例
-        let scale = targetWidth / originalSize.width
+        let scale = min(targetWidth / originalSize.width, 1.0) // 永远不放大
         let newHeight = originalSize.height * scale
-        let newSize = CGSize(width: targetWidth, height: newHeight)
+        let newSize = CGSize(width: originalSize.width * scale, height: newHeight)
         
         // 使用 UIGraphicsImageRenderer 高质量缩放
         let renderer = UIGraphicsImageRenderer(size: newSize)
@@ -288,11 +300,21 @@ class ShareViewController: UIViewController {
             image.draw(in: CGRect(origin: .zero, size: newSize))
         }
         
-        // 转为 JPEG（质量 70%）
-        return resizedImage.jpegData(compressionQuality: 0.7)
+        // 转为 JPEG
+        guard let jpegData = resizedImage.jpegData(compressionQuality: quality) else {
+            return nil
+        }
+        
+        // 如果质量仍然太大，递归降低质量
+        if jpegData.count > Int(targetWidth * targetWidth * 0.5) && quality > 0.1 {
+            print("⚠️ 缩略图仍过大 (\(jpegData.count) 字节)，降低质量重试...")
+            return compressImage(image, targetWidth: targetWidth, quality: quality - 0.1)
+        }
+        
+        return jpegData
     }
     
-    // MARK: - 保存到Core Data（⭐ 更新参数）
+    // MARK: - 保存到Core Data
     
     private func saveClipItem(
         content: String,
@@ -303,14 +325,12 @@ class ShareViewController: UIViewController {
         imageHeight: Int32,
         imageFormat: String?,
         originalSize: Int64,
-        thumbnailSize: Int64
+        thumbnailSize: Int64,
+        keyboardThumbnail: Data?  // 键盘专用缩略图
     ) {
         let context = persistenceController.container.newBackgroundContext()
         
         context.perform {
-            // ⭐ 免费版限制检查：在保存前清理旧数据
-            //PersistenceController.enforceHistoryLimit(context: context)
-            
             let newItem = ClipItem(context: context)
             newItem.id = UUID()
             newItem.content = content
@@ -327,6 +347,7 @@ class ShareViewController: UIViewController {
                 newItem.imageFormat = imageFormat
                 newItem.originalSize = originalSize
                 newItem.thumbnailSize = thumbnailSize
+                newItem.keyboardThumbnail = keyboardThumbnail  // 保存键盘缩略图
             }
             
             print("💾 正在保存:")
@@ -334,7 +355,10 @@ class ShareViewController: UIViewController {
             print("  - 来源: \(sourceApp)")
             if contentType == "image" {
                 print("  - 原图: \(imageWidth) × \(imageHeight)")
-                print("  - 缩略图: \(thumbnailSize) 字节")
+                print("  - 中等缩略图: \(thumbnailSize) 字节")
+                if let kbThumb = keyboardThumbnail {
+                    print("  - 键盘缩略图: \(kbThumb.count) 字节")
+                }
             }
             
             do {

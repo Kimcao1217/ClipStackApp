@@ -16,6 +16,16 @@ class KeyboardViewController: UIInputViewController {
     
     // 剪贴板条目数据
     private var clipItems: [ClipItem] = []
+
+    // 分页加载相关
+private var currentPage = 0
+private let itemsPerPage = 10  // 每页10条
+private var isLoadingMore = false
+private var hasMoreData = true
+
+// 图片缓存池（自动管理内存）
+private var imageCache: [UUID: UIImage] = [:]
+private let maxCacheSize = 20  // 最多缓存 20 张图片
     
     // 当前选中的筛选类型
     private enum FilterType: Int {
@@ -119,6 +129,7 @@ class KeyboardViewController: UIInputViewController {
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         scrollView.showsVerticalScrollIndicator = false
         scrollView.alwaysBounceVertical = true
+        scrollView.delegate = self
         view.addSubview(scrollView)
         
         // ===== 内容栈视图 =====
@@ -202,30 +213,51 @@ class KeyboardViewController: UIInputViewController {
     
     // MARK: - 数据加载
     
-    /// 根据当前筛选器加载数据
-    private func loadData() {
-        let context = persistenceController.container.viewContext
-        
-        let fetchRequest: NSFetchRequest<ClipItem> = ClipItem.fetchRequest()
-        fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \ClipItem.createdAt, ascending: false)]
-        fetchRequest.fetchLimit = 20  // 只显示最近20条，避免性能问题
-        
-        // 应用筛选条件
-        if let predicate = currentFilter.predicate {
-            fetchRequest.predicate = predicate
-        }
-        
-        do {
-            clipItems = try context.fetch(fetchRequest)
-            print("✅ 键盘扩展加载了 \(clipItems.count) 条数据（筛选器：\(currentFilter.title)）")
-            
-            updateUI()
-        } catch {
-            print("❌ 键盘扩展数据加载失败: \(error.localizedDescription)")
-            clipItems = []
-            updateUI()
-        }
+    /// 根据当前筛选器加载数据（支持分页）
+private func loadData(isLoadingMore: Bool = false) {
+    let context = persistenceController.container.viewContext
+    
+    let fetchRequest: NSFetchRequest<ClipItem> = ClipItem.fetchRequest()
+    fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \ClipItem.createdAt, ascending: false)]
+    
+    // 应用筛选条件
+    if let predicate = currentFilter.predicate {
+        fetchRequest.predicate = predicate
     }
+    
+    // ⭐ 分页加载：只获取当前页的数据
+    if isLoadingMore {
+        currentPage += 1
+    } else {
+        currentPage = 0
+        clipItems.removeAll()
+        imageCache.removeAll()  // 清空缓存
+    }
+    
+    fetchRequest.fetchLimit = itemsPerPage
+    fetchRequest.fetchOffset = currentPage * itemsPerPage
+    
+    do {
+        let newItems = try context.fetch(fetchRequest)
+        
+        if isLoadingMore {
+            clipItems.append(contentsOf: newItems)
+        } else {
+            clipItems = newItems
+        }
+        
+        hasMoreData = newItems.count == itemsPerPage
+        
+        print("✅ 键盘扩展加载 \(newItems.count) 条数据（第 \(currentPage) 页，筛选器：\(currentFilter.title)）")
+        print("📊 当前总共 \(clipItems.count) 条，还有更多数据：\(hasMoreData)")
+        
+        updateUI()
+    } catch {
+        print("❌ 键盘扩展数据加载失败: \(error.localizedDescription)")
+        clipItems = []
+        updateUI()
+    }
+}
     
     // MARK: - UI更新
     
@@ -257,23 +289,39 @@ class KeyboardViewController: UIInputViewController {
             scrollView.isHidden = false
             
             for item in clipItems {
-                let rowView = ClipItemKeyboardRow()
-                rowView.clipItem = item
-                rowView.translatesAutoresizingMaskIntoConstraints = false
-                
-                // 设置点击回调
-                rowView.onTap = { [weak self, weak item] in
-                    guard let self = self, let item = item else { return }
-                    self.handleItemTap(item)
-                }
-                
-                stackView.addArrangedSubview(rowView)
-                
-                // 设置行高度
-                NSLayoutConstraint.activate([
-                    rowView.heightAnchor.constraint(equalToConstant: 60)
-                ])
-            }
+    let rowView = ClipItemKeyboardRow()
+    rowView.clipItem = item
+    rowView.imageCache = imageCache  // ⭐ 传递缓存池
+    rowView.translatesAutoresizingMaskIntoConstraints = false
+    
+    // 设置点击回调
+    rowView.onTap = { [weak self, weak item] in
+        guard let self = self, let item = item else { return }
+        self.handleItemTap(item)
+    }
+    
+    stackView.addArrangedSubview(rowView)
+    
+    // 设置行高度
+    NSLayoutConstraint.activate([
+        rowView.heightAnchor.constraint(equalToConstant: 60)
+    ])
+}
+
+// ⭐ 如果还有更多数据，显示加载提示
+if hasMoreData {
+    let loadingLabel = UILabel()
+    loadingLabel.text = "上滑加载更多..."
+    loadingLabel.textAlignment = .center
+    loadingLabel.font = .systemFont(ofSize: 12)
+    loadingLabel.textColor = .secondaryLabel
+    loadingLabel.translatesAutoresizingMaskIntoConstraints = false
+    stackView.addArrangedSubview(loadingLabel)
+    
+    NSLayoutConstraint.activate([
+        loadingLabel.heightAnchor.constraint(equalToConstant: 40)
+    ])
+}
         }
     }
     
@@ -511,5 +559,53 @@ class KeyboardViewController: UIInputViewController {
     
     override func textDidChange(_ textInput: UITextInput?) {
         // 当输入框内容变化时调用
+    }
+    
+}
+
+// MARK: - UIScrollViewDelegate（分页加载）
+
+extension KeyboardViewController: UIScrollViewDelegate {
+    
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        // 滚动到底部时加载更多
+        let offsetY = scrollView.contentOffset.y
+        let contentHeight = scrollView.contentSize.height
+        let scrollViewHeight = scrollView.frame.height
+        
+        // 当滚动到距离底部 50pt 时触发
+        if offsetY > contentHeight - scrollViewHeight - 50 {
+            loadMoreIfNeeded()
+        }
+        
+        // ⭐ 主动释放不可见的图片缓存
+        cleanupInvisibleImageCache()
+    }
+    
+    private func loadMoreIfNeeded() {
+        guard hasMoreData, !isLoadingMore else { return }
+        
+        print("📥 触发加载更多...")
+        isLoadingMore = true
+        
+        // 延迟 0.1 秒加载（防止重复触发）
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+            self?.loadData(isLoadingMore: true)
+            self?.isLoadingMore = false
+        }
+    }
+    
+    /// 清理不可见的图片缓存
+    private func cleanupInvisibleImageCache() {
+        guard imageCache.count > maxCacheSize else { return }
+        
+        // 获取当前可见的行
+        let visibleRows = stackView.arrangedSubviews.compactMap { $0 as? ClipItemKeyboardRow }
+        let visibleIDs = Set(visibleRows.compactMap { $0.clipItem?.id })
+        
+        // 移除不可见的缓存
+        imageCache = imageCache.filter { visibleIDs.contains($0.key) }
+        
+        print("🧹 清理图片缓存，剩余 \(imageCache.count) 张")
     }
 }

@@ -25,6 +25,9 @@ class ClipItemKeyboardRow: UIView {
     
     // 点击回调
     var onTap: (() -> Void)?
+
+    // 图片缓存池（由 KeyboardViewController 传入）
+    var imageCache: [UUID: UIImage]?
     
     // MARK: - 初始化
     
@@ -149,12 +152,45 @@ class ClipItemKeyboardRow: UIView {
             typeIconLabel.isHidden = true
             thumbnailImageView.isHidden = false
             
-            if let imageData = item.imageData, let image = UIImage(data: imageData) {
-                thumbnailImageView.image = image
-            } else {
-                thumbnailImageView.image = UIImage(systemName: "photo")
-                thumbnailImageView.contentMode = .center
+            // ⭐ 优先从缓存读取
+if let itemID = item.id, let cachedImage = imageCache?[itemID] {
+    thumbnailImageView.image = cachedImage
+    print("📦 从缓存读取图片: \(itemID)")
+} else if let thumbnailData = item.keyboardThumbnail {
+    // ⭐ 从 keyboardThumbnail 字段读取（超小缩略图）
+    if let image = UIImage(data: thumbnailData) {
+        thumbnailImageView.image = image
+        
+        // 存入缓存
+        if let itemID = item.id {
+            imageCache?[itemID] = image
+        }
+        
+        print("✅ 加载键盘缩略图: \(thumbnailData.count) 字节")
+    } else {
+        thumbnailImageView.image = UIImage(systemName: "photo")
+        thumbnailImageView.contentMode = .center
+    }
+} else {
+    // 兜底：尝试从 imageData 读取（兼容旧数据）
+    if let imageData = item.imageData, let image = UIImage(data: imageData) {
+        // 实时压缩为超小缩略图（避免内存占用）
+        if let smallThumb = compressToKeyboardSize(image) {
+            thumbnailImageView.image = smallThumb
+            
+            if let itemID = item.id {
+                imageCache?[itemID] = smallThumb
             }
+        } else {
+            thumbnailImageView.image = image
+        }
+        
+        print("⚠️ 从 imageData 读取（旧数据），建议重新保存")
+    } else {
+        thumbnailImageView.image = UIImage(systemName: "photo")
+        thumbnailImageView.contentMode = .center
+    }
+}
             
             // 显示图片信息
             contentLabel.text = item.imageFullDescription
@@ -193,6 +229,16 @@ class ClipItemKeyboardRow: UIView {
         // 收藏状态
         starIconView.isHidden = !item.isStarred
     }
+
+    /// 实时压缩为键盘尺寸（兜底方案，兼容旧数据）
+private func compressToKeyboardSize(_ image: UIImage) -> UIImage? {
+    let targetSize = CGSize(width: 60, height: 60)
+    
+    let renderer = UIGraphicsImageRenderer(size: targetSize)
+    return renderer.image { context in
+        image.draw(in: CGRect(origin: .zero, size: targetSize))
+    }
+}
 }
 
 
