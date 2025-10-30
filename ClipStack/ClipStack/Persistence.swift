@@ -114,9 +114,10 @@ extension PersistenceController {
             
             print("📊 当前非收藏条目数：\(currentCount)/\(limit)")
             
-            if currentCount >= limit {
+            if currentCount > limit {
                 // 删除超出限制的旧条目
-                let itemsToDelete = items.prefix(currentCount - limit + 1)
+                let excessCount = currentCount - limit
+                let itemsToDelete = items.prefix(excessCount)
                 
                 for item in itemsToDelete {
                     print("🗑️ 自动删除最旧的条目: \(item.previewContent)")

@@ -11,12 +11,14 @@ import CoreData
 struct SettingsView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @StateObject private var proManager = ProManager.shared
+    @StateObject private var storeHelper = StoreHelper.shared
     
     @State private var historyCount = 0
     @State private var starredCount = 0
     @State private var totalSize: Int64 = 0
+    @State private var showPaywall = false
     
-    // ⭐ 新增：控制三个确认弹窗的显示状态
+    // 确认弹窗的显示状态
     @State private var showClearHistoryAlert = false
     @State private var showClearStarredAlert = false
     @State private var showResetAllAlert = false
@@ -50,10 +52,10 @@ struct SettingsView: View {
                 }
                 .padding(.vertical, 8)
                 
+                // 升级按钮或订阅状态
                 if !proManager.isPro {
                     Button {
-                        // 后续接入付费墙
-                        print("🛒 打开付费墙")
+                        showPaywall = true
                     } label: {
                         HStack {
                             Image(systemName: "star.fill")
@@ -63,6 +65,41 @@ struct SettingsView: View {
                         }
                     }
                     .foregroundColor(.blue)
+                } else {
+                    VStack(spacing: 12) {
+                        HStack {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(.green)
+                            
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Pro 版已激活")
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                                
+                                Text(subscriptionStatusText)
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            Spacer()
+                        }
+                        
+                        // 订阅管理按钮（仅订阅用户显示）
+                        if needsSubscriptionManagement {
+                            Button {
+                                openSubscriptionManagement()
+                            } label: {
+                                HStack {
+                                    Image(systemName: "arrow.up.forward.app")
+                                    Text("管理订阅")
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                }
+                                .font(.subheadline)
+                                .foregroundColor(.blue)
+                            }
+                        }
+                    }
                 }
             } header: {
                 Text("账户")
@@ -100,7 +137,7 @@ struct SettingsView: View {
                     Label("清空历史记录", systemImage: "trash")
                 }
                 .foregroundColor(.orange)
-                .disabled(historyCount == 0)  // 没有历史记录时禁用
+                .disabled(historyCount == 0)
                 
                 Button {
                     showClearStarredAlert = true
@@ -108,7 +145,7 @@ struct SettingsView: View {
                     Label("清空收藏", systemImage: "star.slash")
                 }
                 .foregroundColor(.orange)
-                .disabled(starredCount == 0)  // 没有收藏时禁用
+                .disabled(starredCount == 0)
                 
                 Button {
                     showResetAllAlert = true
@@ -116,7 +153,7 @@ struct SettingsView: View {
                     Label("完全重置", systemImage: "exclamationmark.triangle")
                 }
                 .foregroundColor(.red)
-                .disabled(historyCount == 0 && starredCount == 0)  // 没有数据时禁用
+                .disabled(historyCount == 0 && starredCount == 0)
                 
             } header: {
                 Text("存储管理")
@@ -140,7 +177,7 @@ struct SettingsView: View {
                 
                 Button {
                     // 后续实现反馈功能
-                    print("📧 打开反馈页面")
+                    sendFeedback()
                 } label: {
                     Label("意见反馈", systemImage: "envelope")
                 }
@@ -172,7 +209,7 @@ struct SettingsView: View {
                 #if DEBUG
                 Button {
                     proManager.setProStatus(!proManager.isPro)
-                    loadData()  // 刷新数据
+                    loadData()
                 } label: {
                     HStack {
                         Label("测试：切换 Pro 状态", systemImage: "ant")
@@ -192,7 +229,7 @@ struct SettingsView: View {
             loadData()
         }
         
-        // MARK: - 确认弹窗（⭐ 新增三个 Alert）
+        // MARK: - 确认弹窗
         
         .alert("清空历史记录", isPresented: $showClearHistoryAlert) {
             Button("取消", role: .cancel) { }
@@ -220,6 +257,11 @@ struct SettingsView: View {
         } message: {
             Text("将删除所有数据：\n• \(historyCount) 条历史记录\n• \(starredCount) 条收藏\n\n此操作不可恢复！")
         }
+        
+        // 付费墙弹窗
+        .sheet(isPresented: $showPaywall) {
+            PaywallView()
+        }
     }
     
     // MARK: - 数据加载
@@ -246,7 +288,7 @@ struct SettingsView: View {
         }
     }
     
-    // MARK: - 数据清理方法（⭐ 新增三个核心方法）
+    // MARK: - 数据清理方法
     
     /// 清空历史记录（保留收藏）
     private func clearHistory() {
@@ -367,6 +409,59 @@ struct SettingsView: View {
             alert.addAction(UIAlertAction(title: "好的", style: .default))
             rootVC.present(alert, animated: true)
         }
+    }
+    
+    /// 发送反馈（打开邮件客户端）
+    private func sendFeedback() {
+        let email = "your-email@example.com"
+        let subject = "ClipStack 反馈"
+        let body = """
+        
+        
+        ---
+        版本: \(getAppVersion())
+        系统: \(UIDevice.current.systemVersion)
+        设备: \(UIDevice.current.model)
+        """
+        
+        let urlString = "mailto:\(email)?subject=\(subject.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")&body=\(body.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")"
+        
+        if let url = URL(string: urlString) {
+            UIApplication.shared.open(url)
+            print("📧 已打开邮件客户端")
+        }
+    }
+    
+    // MARK: - 订阅状态描述
+    
+    private var subscriptionStatusText: String {
+        switch storeHelper.subscriptionStatus {
+        case .lifetime:
+            return "终身买断"
+        case .yearly:
+            return "年付订阅"
+        case .monthly:
+            return "月付订阅"
+        case .notSubscribed:
+            return "未订阅"
+        }
+    }
+    
+    // MARK: - 订阅管理
+    
+    /// 是否需要显示订阅管理按钮（终身买断不需要）
+    private var needsSubscriptionManagement: Bool {
+        return storeHelper.subscriptionStatus == .monthly || storeHelper.subscriptionStatus == .yearly
+    }
+    
+    /// 打开 App Store 订阅管理页面
+    private func openSubscriptionManagement() {
+        guard let url = URL(string: "https://apps.apple.com/account/subscriptions") else {
+            return
+        }
+        
+        UIApplication.shared.open(url)
+        print("📱 已打开订阅管理页面")
     }
 }
 

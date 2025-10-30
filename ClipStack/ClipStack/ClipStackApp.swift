@@ -12,6 +12,15 @@ import WidgetKit
 @main
 struct ClipStackApp: App {
     let persistenceController = PersistenceController.shared
+
+    init() {
+        // 主 App 启动时初始化 StoreHelper
+        Task { @MainActor in
+            await StoreHelper.shared.loadProducts()
+        }
+        
+        print("🚀 ClipStack 启动完成")
+    }
     
     // 监听 App 生命周期
     @Environment(\.scenePhase) private var scenePhase

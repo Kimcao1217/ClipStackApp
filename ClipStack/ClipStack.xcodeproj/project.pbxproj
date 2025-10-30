@@ -32,6 +32,9 @@
 		26E2701C2EAB621500884641 /* ProManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26E270172EAB5C2200884641 /* ProManager.swift */; };
 		26E2701E2EAF5E0800884641 /* DarwinNotificationCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26E2701D2EAF5E0800884641 /* DarwinNotificationCenter.swift */; };
 		26E2701F2EAF5E0800884641 /* DarwinNotificationCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26E2701D2EAF5E0800884641 /* DarwinNotificationCenter.swift */; };
+		26E270252EB31FD200884641 /* StoreHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26E270242EB31FD200884641 /* StoreHelper.swift */; };
+		26E270272EB331B300884641 /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26E270262EB331B300884641 /* PaywallView.swift */; };
+		26E270282EB3377800884641 /* Configuration.storekit in Resources */ = {isa = PBXBuildFile; fileRef = 26E270222EB31C5700884641 /* Configuration.storekit */; };
 		26E2F44A2EA0840300FD77EE /* KeyboardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26E2F4492EA0840300FD77EE /* KeyboardViewController.swift */; };
 		26E2F44E2EA0840300FD77EE /* ClipStackKeyboard.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 26E2F4472EA0840300FD77EE /* ClipStackKeyboard.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		26E2F4532EA0850F00FD77EE /* ClipStack.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 26ADDD432E9CC9E100D3B9E6 /* ClipStack.xcdatamodeld */; };
@@ -127,6 +130,9 @@
 		26E270172EAB5C2200884641 /* ProManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProManager.swift; sourceTree = "<group>"; };
 		26E270192EAB611A00884641 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		26E2701D2EAF5E0800884641 /* DarwinNotificationCenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DarwinNotificationCenter.swift; sourceTree = "<group>"; };
+		26E270222EB31C5700884641 /* Configuration.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Configuration.storekit; sourceTree = "<group>"; };
+		26E270242EB31FD200884641 /* StoreHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreHelper.swift; sourceTree = "<group>"; };
+		26E270262EB331B300884641 /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
 		26E2F4472EA0840300FD77EE /* ClipStackKeyboard.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ClipStackKeyboard.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		26E2F4492EA0840300FD77EE /* KeyboardViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardViewController.swift; sourceTree = "<group>"; };
 		26E2F44B2EA0840300FD77EE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -248,6 +254,9 @@
 				26E270172EAB5C2200884641 /* ProManager.swift */,
 				26E270192EAB611A00884641 /* SettingsView.swift */,
 				26E2701D2EAF5E0800884641 /* DarwinNotificationCenter.swift */,
+				26E270222EB31C5700884641 /* Configuration.storekit */,
+				26E270242EB31FD200884641 /* StoreHelper.swift */,
+				26E270262EB331B300884641 /* PaywallView.swift */,
 			);
 			path = ClipStack;
 			sourceTree = "<group>";
@@ -489,6 +498,7 @@
 			files = (
 				26ADDD402E9CC9E100D3B9E6 /* Preview Assets.xcassets in Resources */,
 				26ADDD3D2E9CC9E100D3B9E6 /* Assets.xcassets in Resources */,
+				26E270282EB3377800884641 /* Configuration.storekit in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -541,6 +551,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				26E270272EB331B300884641 /* PaywallView.swift in Sources */,
 				26E2701E2EAF5E0800884641 /* DarwinNotificationCenter.swift in Sources */,
 				26E270162EA9D9C500884641 /* ClipItemDetailView.swift in Sources */,
 				26A5A12C2EA6029F00DE1816 /* AppDelegate.swift in Sources */,
@@ -550,6 +561,7 @@
 				26E2701A2EAB611A00884641 /* SettingsView.swift in Sources */,
 				262ED03E2E9DEF1A00D8BBDB /* ClipItem+Extensions.swift in Sources */,
 				26E270182EAB5C2200884641 /* ProManager.swift in Sources */,
+				26E270252EB31FD200884641 /* StoreHelper.swift in Sources */,
 				26ADDD392E9CC9DF00D3B9E6 /* ClipStackApp.swift in Sources */,
 				26E270142EA8D68800884641 /* ImageViewer.swift in Sources */,
 			);
@@ -968,6 +980,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				"OTHER_SWIFT_FLAGS[arch=*]" = "-DKEYBOARD_EXTENSION";
 				PRODUCT_BUNDLE_IDENTIFIER = com.kimcao.clipstack.ClipStack.ClipStackKeyboard;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -995,6 +1008,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				"OTHER_SWIFT_FLAGS[arch=*]" = "-DKEYBOARD_EXTENSION";
 				PRODUCT_BUNDLE_IDENTIFIER = com.kimcao.clipstack.ClipStack.ClipStackKeyboard;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
