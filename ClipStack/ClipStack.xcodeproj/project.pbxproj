@@ -24,6 +24,9 @@
 		26ADDD4F2E9CC9E100D3B9E6 /* ClipStackTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26ADDD4E2E9CC9E100D3B9E6 /* ClipStackTests.swift */; };
 		26ADDD592E9CC9E100D3B9E6 /* ClipStackUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26ADDD582E9CC9E100D3B9E6 /* ClipStackUITests.swift */; };
 		26ADDD5B2E9CC9E100D3B9E6 /* ClipStackUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26ADDD5A2E9CC9E100D3B9E6 /* ClipStackUITestsLaunchTests.swift */; };
+		26DE74B62EB459EF00AAE4BC /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26DE74B52EB459EF00AAE4BC /* OnboardingView.swift */; };
+		26DE74B82EB45A1700AAE4BC /* OnboardingPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26DE74B72EB45A1700AAE4BC /* OnboardingPageView.swift */; };
+		26DE74BA2EB45A2F00AAE4BC /* ToastModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26DE74B92EB45A2F00AAE4BC /* ToastModifier.swift */; };
 		26E270142EA8D68800884641 /* ImageViewer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26E270132EA8D68800884641 /* ImageViewer.swift */; };
 		26E270162EA9D9C500884641 /* ClipItemDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26E270152EA9D9C500884641 /* ClipItemDetailView.swift */; };
 		26E270182EAB5C2200884641 /* ProManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26E270172EAB5C2200884641 /* ProManager.swift */; };
@@ -125,6 +128,9 @@
 		26ADDD542E9CC9E100D3B9E6 /* ClipStackUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ClipStackUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		26ADDD582E9CC9E100D3B9E6 /* ClipStackUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipStackUITests.swift; sourceTree = "<group>"; };
 		26ADDD5A2E9CC9E100D3B9E6 /* ClipStackUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipStackUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		26DE74B52EB459EF00AAE4BC /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		26DE74B72EB45A1700AAE4BC /* OnboardingPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingPageView.swift; sourceTree = "<group>"; };
+		26DE74B92EB45A2F00AAE4BC /* ToastModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastModifier.swift; sourceTree = "<group>"; };
 		26E270132EA8D68800884641 /* ImageViewer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageViewer.swift; sourceTree = "<group>"; };
 		26E270152EA9D9C500884641 /* ClipItemDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipItemDetailView.swift; sourceTree = "<group>"; };
 		26E270172EAB5C2200884641 /* ProManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProManager.swift; sourceTree = "<group>"; };
@@ -257,6 +263,9 @@
 				26E270222EB31C5700884641 /* Configuration.storekit */,
 				26E270242EB31FD200884641 /* StoreHelper.swift */,
 				26E270262EB331B300884641 /* PaywallView.swift */,
+				26DE74B52EB459EF00AAE4BC /* OnboardingView.swift */,
+				26DE74B72EB45A1700AAE4BC /* OnboardingPageView.swift */,
+				26DE74B92EB45A2F00AAE4BC /* ToastModifier.swift */,
 			);
 			path = ClipStack;
 			sourceTree = "<group>";
@@ -551,6 +560,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				26DE74B82EB45A1700AAE4BC /* OnboardingPageView.swift in Sources */,
 				26E270272EB331B300884641 /* PaywallView.swift in Sources */,
 				26E2701E2EAF5E0800884641 /* DarwinNotificationCenter.swift in Sources */,
 				26E270162EA9D9C500884641 /* ClipItemDetailView.swift in Sources */,
@@ -558,12 +568,14 @@
 				26ADDD452E9CC9E100D3B9E6 /* ClipStack.xcdatamodeld in Sources */,
 				26ADDD422E9CC9E100D3B9E6 /* Persistence.swift in Sources */,
 				26ADDD3B2E9CC9DF00D3B9E6 /* ContentView.swift in Sources */,
+				26DE74BA2EB45A2F00AAE4BC /* ToastModifier.swift in Sources */,
 				26E2701A2EAB611A00884641 /* SettingsView.swift in Sources */,
 				262ED03E2E9DEF1A00D8BBDB /* ClipItem+Extensions.swift in Sources */,
 				26E270182EAB5C2200884641 /* ProManager.swift in Sources */,
 				26E270252EB31FD200884641 /* StoreHelper.swift in Sources */,
 				26ADDD392E9CC9DF00D3B9E6 /* ClipStackApp.swift in Sources */,
 				26E270142EA8D68800884641 /* ImageViewer.swift in Sources */,
+				26DE74B62EB459EF00AAE4BC /* OnboardingView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

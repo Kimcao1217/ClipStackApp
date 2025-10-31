@@ -165,6 +165,12 @@ struct SettingsView: View {
             // MARK: - 其他设置区
             
             Section {
+                Button {
+        resetOnboarding()
+    } label: {
+        Label("重新显示引导", systemImage: "arrow.counterclockwise")
+    }
+
                 Link(destination: URL(string: "https://github.com/yourusername/clipstack")!) {
                     HStack {
                         Label("使用帮助", systemImage: "questionmark.circle")
@@ -463,6 +469,20 @@ struct SettingsView: View {
         UIApplication.shared.open(url)
         print("📱 已打开订阅管理页面")
     }
+
+    // MARK: - 重置引导流程
+
+/// 重置引导流程（用于测试或用户手动重新查看）
+private func resetOnboarding() {
+    UserDefaults.standard.set(false, forKey: "hasCompletedOnboarding")
+    print("🔄 已重置引导流程，下次启动将重新显示")
+    
+    showSuccessHUD(message: "✅ 下次启动将显示引导")
+    
+    // 触觉反馈
+    let generator = UINotificationFeedbackGenerator()
+    generator.notificationOccurred(.success)
+}
 }
 
 // MARK: - 预览

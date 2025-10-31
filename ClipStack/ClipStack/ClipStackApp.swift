@@ -12,6 +12,9 @@ import WidgetKit
 @main
 struct ClipStackApp: App {
     let persistenceController = PersistenceController.shared
+    
+    // 用 @State 管理引导页面显示状态（不是根视图切换）
+    @State private var showOnboarding = !UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
 
     init() {
         // 主 App 启动时初始化 StoreHelper
@@ -20,6 +23,10 @@ struct ClipStackApp: App {
         }
         
         print("🚀 ClipStack 启动完成")
+        
+        // 打印引导状态
+        let hasCompleted = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
+        print("📖 引导流程状态: \(hasCompleted ? "已完成" : "未完成")")
     }
     
     // 监听 App 生命周期
@@ -27,10 +34,18 @@ struct ClipStackApp: App {
     
     var body: some Scene {
         WindowGroup {
+            // 始终显示 ContentView，用 fullScreenCover 管理引导页面
             ContentView()
                 .environment(\.managedObjectContext, persistenceController.container.viewContext)
                 .onOpenURL { url in
                     handleURLScheme(url)
+                }
+                .fullScreenCover(isPresented: $showOnboarding) {
+                    // 引导页面关闭时的回调
+                    print("🎉 引导页面已关闭")
+                } content: {
+                    OnboardingView()
+                        .environment(\.managedObjectContext, persistenceController.container.viewContext)
                 }
         }
         // 监听场景切换（前台/后台）
@@ -38,6 +53,13 @@ struct ClipStackApp: App {
             if newPhase == .active {
                 print("🔄 App 进入前台，刷新 Widget")
                 WidgetCenter.shared.reloadAllTimelines()
+                
+                // 检查引导状态是否变化（用于"重新显示引导"功能）
+                let shouldShow = !UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
+                if showOnboarding != shouldShow {
+                    showOnboarding = shouldShow
+                    print("🔄 检测到引导状态变化：\(shouldShow ? "显示" : "隐藏")")
+                }
             }
         }
     }
