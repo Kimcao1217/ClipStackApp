@@ -108,7 +108,7 @@ struct ClipStackApp: App {
             
             // ✅ 显示刷新成功提示
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                showSuccessHUD(message: "✅ 已刷新")
+                showSuccessHUD(message: L10n.success)
             }
             
         default:

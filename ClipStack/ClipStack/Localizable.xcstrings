@@ -1,0 +1,527 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "%lld 条" : {
+
+    },
+    "•" : {
+
+    },
+    "• 清空历史记录：删除所有非收藏条目\n• 清空收藏：删除所有收藏条目\n• 完全重置：删除所有数据（不可恢复）" : {
+
+    },
+    "📋 ClipStack" : {
+
+    },
+    "🔥 最受欢迎" : {
+
+    },
+    "App Store 评分" : {
+
+    },
+    "common.cancel" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "取消"
+          }
+        }
+      }
+    },
+    "common.close" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关闭"
+          }
+        }
+      }
+    },
+    "common.confirm" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Confirm"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "确认"
+          }
+        }
+      }
+    },
+    "common.copy" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "复制"
+          }
+        }
+      }
+    },
+    "common.delete" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "删除"
+          }
+        }
+      }
+    },
+    "common.done" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Done"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "完成"
+          }
+        }
+      }
+    },
+    "common.empty" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No Content"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暂无内容"
+          }
+        }
+      }
+    },
+    "common.error" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Error"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "错误"
+          }
+        }
+      }
+    },
+    "common.loading" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Loading..."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "加载中..."
+          }
+        }
+      }
+    },
+    "common.save" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保存"
+          }
+        }
+      }
+    },
+    "common.settings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "设置"
+          }
+        }
+      }
+    },
+    "common.share" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分享"
+          }
+        }
+      }
+    },
+    "common.success" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Success"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "成功"
+          }
+        }
+      }
+    },
+    "OFF" : {
+
+    },
+    "ON" : {
+
+    },
+    "Pro 版已激活" : {
+
+    },
+    "Pro 版本" : {
+
+    },
+    "time.daysAgo" : {
+      "comment" : "X天前"
+    },
+    "time.hoursAgo" : {
+      "comment" : "X小时前"
+    },
+    "time.justNow" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Just now"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "刚刚"
+          }
+        }
+      }
+    },
+    "time.minutesAgo" : {
+      "comment" : "X分钟前"
+    },
+    "time.yesterday" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yesterday"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "昨天"
+          }
+        }
+      }
+    },
+    "下一步" : {
+
+    },
+    "从分享菜单或点击右上角的 + 按钮添加内容开始使用" : {
+
+    },
+    "使用帮助" : {
+
+    },
+    "保存" : {
+
+    },
+    "免费版本" : {
+
+    },
+    "免费版限制" : {
+
+    },
+    "全部删除" : {
+
+    },
+    "关于" : {
+
+    },
+    "关闭" : {
+
+    },
+    "其他" : {
+
+    },
+    "内容" : {
+
+    },
+    "分享" : {
+
+    },
+    "切换到\"全部\"查看所有内容" : {
+
+    },
+    "删除" : {
+
+    },
+    "删除后无法恢复" : {
+
+    },
+    "加载套餐中..." : {
+
+    },
+    "升级" : {
+
+    },
+    "升级到 Pro 版" : {
+
+    },
+    "占用空间" : {
+
+    },
+    "历史 %lld/5 • 收藏 %lld/5" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "历史 %1$lld/5 • 收藏 %2$lld/5"
+          }
+        }
+      }
+    },
+    "历史记录" : {
+
+    },
+    "取消" : {
+
+    },
+    "取消收藏" : {
+
+    },
+    "图片" : {
+
+    },
+    "在 Safari 中打开" : {
+
+    },
+    "复制" : {
+
+    },
+    "复制内容" : {
+
+    },
+    "好的" : {
+
+    },
+    "存储管理" : {
+
+    },
+    "完全重置" : {
+
+    },
+    "将删除所有 %lld 条收藏内容\n历史记录会保留\n\n此操作不可恢复" : {
+
+    },
+    "将删除所有数据：\n• %lld 条历史记录\n• %lld 条收藏\n\n此操作不可恢复！" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "将删除所有数据：\n• %1$lld 条历史记录\n• %2$lld 条收藏\n\n此操作不可恢复！"
+          }
+        }
+      }
+    },
+    "将删除所有非收藏的 %lld 条历史记录\n收藏的内容会保留\n\n此操作不可恢复" : {
+
+    },
+    "开始使用" : {
+
+    },
+    "恢复购买" : {
+
+    },
+    "意见反馈" : {
+
+    },
+    "搜索历史内容..." : {
+
+    },
+    "收藏" : {
+
+    },
+    "文本" : {
+
+    },
+    "无法加载套餐" : {
+
+    },
+    "无限制，感谢支持！" : {
+
+    },
+    "无限制使用 ClipStack" : {
+
+    },
+    "暂无%@内容" : {
+
+    },
+    "服务条款" : {
+
+    },
+    "来源应用" : {
+
+    },
+    "没有找到\"%@\"" : {
+
+    },
+    "测试：切换 Pro 状态" : {
+
+    },
+    "添加新条目" : {
+
+    },
+    "清空" : {
+
+    },
+    "清空历史记录" : {
+
+    },
+    "清空收藏" : {
+
+    },
+    "版本" : {
+
+    },
+    "确认删除" : {
+
+    },
+    "立即购买" : {
+
+    },
+    "筛选" : {
+
+    },
+    "管理订阅" : {
+
+    },
+    "解锁全部功能" : {
+
+    },
+    "设置" : {
+
+    },
+    "试试其他关键词或切换筛选类型" : {
+
+    },
+    "详情" : {
+
+    },
+    "请检查网络连接后重试" : {
+
+    },
+    "账户" : {
+
+    },
+    "购买结果" : {
+
+    },
+    "跳过" : {
+
+    },
+    "输入来源应用名称" : {
+
+    },
+    "还没有剪贴板历史" : {
+
+    },
+    "重新加载" : {
+
+    },
+    "重新显示引导" : {
+
+    },
+    "链接" : {
+
+    },
+    "隐私政策" : {
+
+    },
+    "验证中..." : {
+
+    }
+  },
+  "version" : "1.0"
+}

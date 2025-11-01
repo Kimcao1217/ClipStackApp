@@ -1,0 +1,128 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "common.cancel" : {
+      "comment" : "取消按钮"
+    },
+    "common.close" : {
+      "comment" : "关闭按钮"
+    },
+    "common.confirm" : {
+      "comment" : "确认按钮"
+    },
+    "common.copy" : {
+      "comment" : "复制按钮"
+    },
+    "common.delete" : {
+      "comment" : "删除按钮"
+    },
+    "common.done" : {
+      "comment" : "完成按钮"
+    },
+    "common.empty" : {
+      "comment" : "空状态"
+    },
+    "common.error" : {
+      "comment" : "错误提示"
+    },
+    "common.loading" : {
+      "comment" : "加载中状态"
+    },
+    "common.save" : {
+      "comment" : "保存按钮"
+    },
+    "common.settings" : {
+      "comment" : "设置按钮"
+    },
+    "common.share" : {
+      "comment" : "分享按钮"
+    },
+    "common.success" : {
+      "comment" : "成功提示"
+    },
+    "keyboard.all" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "全部"
+          }
+        }
+      }
+    },
+    "keyboard.noPermission" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Full Access Required"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "需要开启\"完全访问\""
+          }
+        }
+      }
+    },
+    "keyboard.returnToSystem" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Back to Keyboard"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "返回系统键盘"
+          }
+        }
+      }
+    },
+    "keyboard.text" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Text"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文本"
+          }
+        }
+      }
+    },
+    "time.daysAgo" : {
+      "comment" : "X天前"
+    },
+    "time.hoursAgo" : {
+      "comment" : "X小时前"
+    },
+    "time.justNow" : {
+      "comment" : "刚刚"
+    },
+    "time.minutesAgo" : {
+      "comment" : "X分钟前"
+    },
+    "time.yesterday" : {
+      "comment" : "昨天"
+    }
+  },
+  "version" : "1.0"
+}

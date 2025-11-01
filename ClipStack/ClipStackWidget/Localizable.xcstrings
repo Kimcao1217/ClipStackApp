@@ -1,0 +1,138 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "•" : {
+
+    },
+    "⭐" : {
+
+    },
+    "📋" : {
+
+    },
+    "📋 ClipStack" : {
+
+    },
+    "ClipStack" : {
+
+    },
+    "common.cancel" : {
+      "comment" : "取消按钮"
+    },
+    "common.close" : {
+      "comment" : "关闭按钮"
+    },
+    "common.confirm" : {
+      "comment" : "确认按钮"
+    },
+    "common.copy" : {
+      "comment" : "复制按钮"
+    },
+    "common.delete" : {
+      "comment" : "删除按钮"
+    },
+    "common.done" : {
+      "comment" : "完成按钮"
+    },
+    "common.empty" : {
+      "comment" : "空状态"
+    },
+    "common.error" : {
+      "comment" : "错误提示"
+    },
+    "common.loading" : {
+      "comment" : "加载中状态"
+    },
+    "common.save" : {
+      "comment" : "保存按钮"
+    },
+    "common.settings" : {
+      "comment" : "设置按钮"
+    },
+    "common.share" : {
+      "comment" : "分享按钮"
+    },
+    "common.success" : {
+      "comment" : "成功提示"
+    },
+    "time.daysAgo" : {
+      "comment" : "X天前"
+    },
+    "time.hoursAgo" : {
+      "comment" : "X小时前"
+    },
+    "time.justNow" : {
+      "comment" : "刚刚"
+    },
+    "time.minutesAgo" : {
+      "comment" : "X分钟前"
+    },
+    "time.yesterday" : {
+      "comment" : "昨天"
+    },
+    "widget.empty" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No History"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暂无历史记录"
+          }
+        }
+      }
+    },
+    "widget.refresh" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Refresh"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "刷新"
+          }
+        }
+      }
+    },
+    "widget.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ClipStack"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ClipStack"
+          }
+        }
+      }
+    },
+    "刷新" : {
+
+    },
+    "在应用中添加内容" : {
+
+    },
+    "快速访问最近的剪贴板历史" : {
+
+    },
+    "还没有剪贴板历史" : {
+
+    }
+  },
+  "version" : "1.0"
+}

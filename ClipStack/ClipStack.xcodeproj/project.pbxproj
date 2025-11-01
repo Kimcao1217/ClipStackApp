@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2605A7A32EB4B63C0060DC83 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 26DE74C22EB4A34A00AAE4BC /* Localizable.xcstrings */; };
 		262ED03E2E9DEF1A00D8BBDB /* ClipItem+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 262ED03D2E9DEF1A00D8BBDB /* ClipItem+Extensions.swift */; };
 		262ED0472E9F862A00D8BBDB /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 262ED0462E9F862A00D8BBDB /* ShareViewController.swift */; };
 		262ED04A2E9F862A00D8BBDB /* MainInterface.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 262ED0482E9F862A00D8BBDB /* MainInterface.storyboard */; };
@@ -27,6 +28,13 @@
 		26DE74B62EB459EF00AAE4BC /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26DE74B52EB459EF00AAE4BC /* OnboardingView.swift */; };
 		26DE74B82EB45A1700AAE4BC /* OnboardingPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26DE74B72EB45A1700AAE4BC /* OnboardingPageView.swift */; };
 		26DE74BA2EB45A2F00AAE4BC /* ToastModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26DE74B92EB45A2F00AAE4BC /* ToastModifier.swift */; };
+		26DE74BD2EB4A2E200AAE4BC /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 26DE74BC2EB4A2E200AAE4BC /* Localizable.xcstrings */; };
+		26DE74BF2EB4A32500AAE4BC /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 26DE74BE2EB4A32500AAE4BC /* Localizable.xcstrings */; };
+		26DE74C12EB4A33700AAE4BC /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 26DE74C02EB4A33700AAE4BC /* Localizable.xcstrings */; };
+		26DE74C52EB4A43800AAE4BC /* LocalizedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26DE74C42EB4A43800AAE4BC /* LocalizedString.swift */; };
+		26DE74C62EB4A43800AAE4BC /* LocalizedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26DE74C42EB4A43800AAE4BC /* LocalizedString.swift */; };
+		26DE74C72EB4A43800AAE4BC /* LocalizedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26DE74C42EB4A43800AAE4BC /* LocalizedString.swift */; };
+		26DE74C82EB4A43800AAE4BC /* LocalizedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26DE74C42EB4A43800AAE4BC /* LocalizedString.swift */; };
 		26E270142EA8D68800884641 /* ImageViewer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26E270132EA8D68800884641 /* ImageViewer.swift */; };
 		26E270162EA9D9C500884641 /* ClipItemDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26E270152EA9D9C500884641 /* ClipItemDetailView.swift */; };
 		26E270182EAB5C2200884641 /* ProManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26E270172EAB5C2200884641 /* ProManager.swift */; };
@@ -131,6 +139,11 @@
 		26DE74B52EB459EF00AAE4BC /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		26DE74B72EB45A1700AAE4BC /* OnboardingPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingPageView.swift; sourceTree = "<group>"; };
 		26DE74B92EB45A2F00AAE4BC /* ToastModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastModifier.swift; sourceTree = "<group>"; };
+		26DE74BC2EB4A2E200AAE4BC /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		26DE74BE2EB4A32500AAE4BC /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		26DE74C02EB4A33700AAE4BC /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		26DE74C22EB4A34A00AAE4BC /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		26DE74C42EB4A43800AAE4BC /* LocalizedString.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizedString.swift; sourceTree = "<group>"; };
 		26E270132EA8D68800884641 /* ImageViewer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageViewer.swift; sourceTree = "<group>"; };
 		26E270152EA9D9C500884641 /* ClipItemDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipItemDetailView.swift; sourceTree = "<group>"; };
 		26E270172EAB5C2200884641 /* ProManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProManager.swift; sourceTree = "<group>"; };
@@ -210,6 +223,7 @@
 				262ED0462E9F862A00D8BBDB /* ShareViewController.swift */,
 				262ED0482E9F862A00D8BBDB /* MainInterface.storyboard */,
 				262ED04B2E9F862A00D8BBDB /* Info.plist */,
+				26DE74C02EB4A33700AAE4BC /* Localizable.xcstrings */,
 			);
 			path = ClipStackShare;
 			sourceTree = "<group>";
@@ -266,6 +280,8 @@
 				26DE74B52EB459EF00AAE4BC /* OnboardingView.swift */,
 				26DE74B72EB45A1700AAE4BC /* OnboardingPageView.swift */,
 				26DE74B92EB45A2F00AAE4BC /* ToastModifier.swift */,
+				26DE74BC2EB4A2E200AAE4BC /* Localizable.xcstrings */,
+				26DE74C42EB4A43800AAE4BC /* LocalizedString.swift */,
 			);
 			path = ClipStack;
 			sourceTree = "<group>";
@@ -302,6 +318,7 @@
 				26E2F4492EA0840300FD77EE /* KeyboardViewController.swift */,
 				26E2F44B2EA0840300FD77EE /* Info.plist */,
 				26E2F4562EA085AA00FD77EE /* ClipItemKeyboardRow.swift */,
+				26DE74BE2EB4A32500AAE4BC /* Localizable.xcstrings */,
 			);
 			path = ClipStackKeyboard;
 			sourceTree = "<group>";
@@ -322,6 +339,7 @@
 				26E2F4692EA21C1C00FD77EE /* Assets.xcassets */,
 				26E2F46B2EA21C1C00FD77EE /* Info.plist */,
 				26E2F4732EA21D0700FD77EE /* WidgetDataProvider.swift */,
+				26DE74C22EB4A34A00AAE4BC /* Localizable.xcstrings */,
 			);
 			path = ClipStackWidget;
 			sourceTree = "<group>";
@@ -476,6 +494,7 @@
 			knownRegions = (
 				en,
 				Base,
+				"zh-Hans",
 			);
 			mainGroup = 26ADDD2C2E9CC9DF00D3B9E6;
 			productRefGroup = 26ADDD362E9CC9DF00D3B9E6 /* Products */;
@@ -497,6 +516,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				26DE74C12EB4A33700AAE4BC /* Localizable.xcstrings in Resources */,
 				262ED04A2E9F862A00D8BBDB /* MainInterface.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -507,6 +527,7 @@
 			files = (
 				26ADDD402E9CC9E100D3B9E6 /* Preview Assets.xcassets in Resources */,
 				26ADDD3D2E9CC9E100D3B9E6 /* Assets.xcassets in Resources */,
+				26DE74BD2EB4A2E200AAE4BC /* Localizable.xcstrings in Resources */,
 				26E270282EB3377800884641 /* Configuration.storekit in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -529,6 +550,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				26DE74BF2EB4A32500AAE4BC /* Localizable.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -536,6 +558,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2605A7A32EB4B63C0060DC83 /* Localizable.xcstrings in Resources */,
 				26E2F46A2EA21C1C00FD77EE /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -550,6 +573,7 @@
 				262ED0552E9F8A5600D8BBDB /* Persistence.swift in Sources */,
 				262ED0542E9F8A4200D8BBDB /* ClipStack.xcdatamodeld in Sources */,
 				26E2701B2EAB621300884641 /* ProManager.swift in Sources */,
+				26DE74C62EB4A43800AAE4BC /* LocalizedString.swift in Sources */,
 				262ED0562E9F8A6300D8BBDB /* ClipItem+Extensions.swift in Sources */,
 				26E2701F2EAF5E0800884641 /* DarwinNotificationCenter.swift in Sources */,
 				262ED0472E9F862A00D8BBDB /* ShareViewController.swift in Sources */,
@@ -576,6 +600,7 @@
 				26ADDD392E9CC9DF00D3B9E6 /* ClipStackApp.swift in Sources */,
 				26E270142EA8D68800884641 /* ImageViewer.swift in Sources */,
 				26DE74B62EB459EF00AAE4BC /* OnboardingView.swift in Sources */,
+				26DE74C52EB4A43800AAE4BC /* LocalizedString.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -603,6 +628,7 @@
 				26E2F4542EA0851800FD77EE /* Persistence.swift in Sources */,
 				26E2F4532EA0850F00FD77EE /* ClipStack.xcdatamodeld in Sources */,
 				26E2F4572EA085AA00FD77EE /* ClipItemKeyboardRow.swift in Sources */,
+				26DE74C72EB4A43800AAE4BC /* LocalizedString.swift in Sources */,
 				26E2701C2EAB621500884641 /* ProManager.swift in Sources */,
 				26E2F4552EA0858100FD77EE /* ClipItem+Extensions.swift in Sources */,
 				26E2F44A2EA0840300FD77EE /* KeyboardViewController.swift in Sources */,
@@ -615,6 +641,7 @@
 			files = (
 				26E2F4742EA21D0700FD77EE /* WidgetDataProvider.swift in Sources */,
 				26E2F4682EA21C1900FD77EE /* ClipStackWidget.swift in Sources */,
+				26DE74C82EB4A43800AAE4BC /* LocalizedString.swift in Sources */,
 				26E2F4762EA2267900FD77EE /* ClipStack.xcdatamodeld in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -1,0 +1,128 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "common.cancel" : {
+      "comment" : "取消按钮"
+    },
+    "common.close" : {
+      "comment" : "关闭按钮"
+    },
+    "common.confirm" : {
+      "comment" : "确认按钮"
+    },
+    "common.copy" : {
+      "comment" : "复制按钮"
+    },
+    "common.delete" : {
+      "comment" : "删除按钮"
+    },
+    "common.done" : {
+      "comment" : "完成按钮"
+    },
+    "common.empty" : {
+      "comment" : "空状态"
+    },
+    "common.error" : {
+      "comment" : "错误提示"
+    },
+    "common.loading" : {
+      "comment" : "加载中状态"
+    },
+    "common.save" : {
+      "comment" : "保存按钮"
+    },
+    "common.settings" : {
+      "comment" : "设置按钮"
+    },
+    "common.share" : {
+      "comment" : "分享按钮"
+    },
+    "common.success" : {
+      "comment" : "成功提示"
+    },
+    "share.error" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save Failed"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保存失败"
+          }
+        }
+      }
+    },
+    "share.saving" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saving..."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在保存..."
+          }
+        }
+      }
+    },
+    "share.success" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saved"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已保存"
+          }
+        }
+      }
+    },
+    "share.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save to ClipStack"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保存到 ClipStack"
+          }
+        }
+      }
+    },
+    "time.daysAgo" : {
+      "comment" : "X天前"
+    },
+    "time.hoursAgo" : {
+      "comment" : "X小时前"
+    },
+    "time.justNow" : {
+      "comment" : "刚刚"
+    },
+    "time.minutesAgo" : {
+      "comment" : "X分钟前"
+    },
+    "time.yesterday" : {
+      "comment" : "昨天"
+    }
+  },
+  "version" : "1.0"
+}
