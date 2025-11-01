@@ -32,7 +32,7 @@ class ProManager: ObservableObject {
     private init() {
         // 从 UserDefaults 读取 Pro 状态（作为缓存）
         self.isPro = UserDefaults.standard.bool(forKey: "isPro")
-        print("🔐 ProManager 初始化，当前状态：\(isPro ? "Pro版" : "免费版")")
+        print("🔐 \(L10n.logProManagerInit), \(L10n.logCurrentStatus): \(isPro ? L10n.settingsProVersion : L10n.settingsFreeVersion)")  // ✅ 本地化
         
         // ✅ 只在主 App 中验证 StoreKit 状态（键盘扩展跳过）
         #if !KEYBOARD_EXTENSION
@@ -62,7 +62,7 @@ class ProManager: ObservableObject {
             self.isPro = status
         }
         UserDefaults.standard.set(status, forKey: "isPro")
-        print("🔓 Pro 状态已更新：\(status ? "Pro版" : "免费版")")
+        print("🔓 \(L10n.logProStatusUpdated): \(status ? L10n.settingsProVersion : L10n.settingsFreeVersion)")  // ✅ 本地化
     }
     
     /// 检查是否可以添加新的历史记录（不含收藏）
@@ -91,14 +91,14 @@ class ProManager: ObservableObject {
     private func verifyStoreKitStatus() async {
         // 动态检查 StoreHelper 是否存在（避免键盘扩展编译错误）
         guard let storeHelperClass = NSClassFromString("ClipStack.StoreHelper") else {
-            print("⚠️ StoreHelper 不可用（当前环境：键盘扩展）")
+            print("⚠️ \(L10n.logStoreHelperUnavailable)")  // ✅ 本地化
             return
         }
         
         // 使用反射调用 StoreHelper.shared.loadProducts()
         if let sharedMethod = class_getClassMethod(storeHelperClass, NSSelectorFromString("shared")),
            let loadProductsMethod = class_getInstanceMethod(storeHelperClass, NSSelectorFromString("loadProducts")) {
-            print("✅ StoreHelper 可用，开始加载产品...")
+            print("✅ \(L10n.logStoreHelperAvailable)")  // ✅ 本地化
             // 直接在 ClipStackApp 启动时调用 StoreHelper
         }
     }

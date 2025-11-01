@@ -57,13 +57,13 @@ extension ClipItem {
     var sourceIcon: String {
         // 使用nil合并运算符(??)提供默认值，然后安全地调用lowercased()
         switch (sourceApp ?? "").lowercased() {
-        case "微信":
+        case "wechat", "微信":  // ✅ 支持中英文
             return "💬"
         case "safari":
             return "🌐"
-        case "备忘录":
+        case "notes", "备忘录":  // ✅ 支持中英文
             return "📝"
-        case "邮件":
+        case "mail", "邮件":  // ✅ 支持中英文
             return "✉️"
         default:
             return "📱"
@@ -72,7 +72,7 @@ extension ClipItem {
     
     /// 获取相对时间显示文本（如"刚刚"、"5分钟前"、"1小时前"）
     var relativeTimeString: String {
-        guard let createdAt = createdAt else { return "未知时间" }
+        guard let createdAt = createdAt else { return L10n.timeUnknown }  // ✅ 本地化
         
         let now = Date()
         let interval = now.timeIntervalSince(createdAt)
@@ -80,26 +80,26 @@ extension ClipItem {
         // 根据iOS用户习惯优化时间显示
         if interval < 60 {
             // 0-60秒显示"刚刚"
-            return "刚刚"
+            return L10n.justNow
         } else if interval < 3600 {
             // 1-59分钟显示分钟数
             let minutes = Int(interval / 60)
-            return "\(minutes)分钟前"
+            return String(format: L10n.minutesAgo, minutes)
         } else if interval < 86400 {
             // 1-23小时显示小时数
             let hours = Int(interval / 3600)
-            return "\(hours)小时前"
+            return String(format: L10n.hoursAgo, hours)
         } else if interval < 172800 {
             // 24-48小时显示"昨天"
-            return "昨天"
+            return L10n.yesterday
         } else if interval < 604800 {
             // 2-6天显示天数
             let days = Int(interval / 86400)
-            return "\(days)天前"
+            return String(format: L10n.daysAgo, days)
         } else {
             // 7天以上显示具体日期
             let formatter = DateFormatter()
-            formatter.locale = Locale(identifier: "zh_CN")
+            formatter.locale = Locale.current  // ✅ 自动适应当前语言
             
             let calendar = Calendar.current
             let currentYear = calendar.component(.year, from: now)
@@ -107,9 +107,9 @@ extension ClipItem {
             
             // 如果是今年，只显示月/日；如果是往年，显示年/月/日
             if currentYear == createdYear {
-                formatter.dateFormat = "M月d日"  // 例如：10月14日
+                formatter.setLocalizedDateFormatFromTemplate("MMMMd")  // ✅ 自动适配语言格式
             } else {
-                formatter.dateFormat = "yyyy年M月d日"  // 例如：2024年10月14日
+                formatter.setLocalizedDateFormatFromTemplate("yMMMMd")
             }
             
             return formatter.string(from: createdAt)
@@ -205,42 +205,42 @@ extension ClipItem {
     }
     
     /// 图片文件大小描述（优先显示缩略图大小）
-var imageSizeText: String {
-    guard hasImage else { return "" }
-    
-    // ⭐ 修改：优先显示缩略图大小（实际存储的大小）
-    let size = thumbnailSize > 0 ? thumbnailSize : originalSize
-    
-    if size < 1024 {
-        return "\(size) B"
-    } else if size < 1024 * 1024 {
-        return String(format: "%.1f KB", Double(size) / 1024.0)
-    } else {
-        return String(format: "%.1f MB", Double(size) / 1024.0 / 1024.0)
+    var imageSizeText: String {
+        guard hasImage else { return "" }
+        
+        // ⭐ 修改：优先显示缩略图大小（实际存储的大小）
+        let size = thumbnailSize > 0 ? thumbnailSize : originalSize
+        
+        if size < 1024 {
+            return "\(size) B"
+        } else if size < 1024 * 1024 {
+            return String(format: "%.1f KB", Double(size) / 1024.0)
+        } else {
+            return String(format: "%.1f MB", Double(size) / 1024.0 / 1024.0)
+        }
     }
-}
 
-/// ⭐ 新增：原图大小描述（用于详情页展示）
-var originalSizeText: String {
-    guard hasImage, originalSize > 0 else { return "" }
-    
-    if originalSize < 1024 {
-        return "\(originalSize) B"
-    } else if originalSize < 1024 * 1024 {
-        return String(format: "%.1f KB", Double(originalSize) / 1024.0)
-    } else {
-        return String(format: "%.1f MB", Double(originalSize) / 1024.0 / 1024.0)
+    /// ⭐ 新增：原图大小描述（用于详情页展示）
+    var originalSizeText: String {
+        guard hasImage, originalSize > 0 else { return "" }
+        
+        if originalSize < 1024 {
+            return "\(originalSize) B"
+        } else if originalSize < 1024 * 1024 {
+            return String(format: "%.1f KB", Double(originalSize) / 1024.0)
+        } else {
+            return String(format: "%.1f MB", Double(originalSize) / 1024.0 / 1024.0)
+        }
     }
-}
 
-/// ⭐ 新增：图片压缩比例描述（如 "原图 2.3MB → 压缩后 45KB (1.9%)"）
-var compressionDescription: String {
-    guard hasImage, originalSize > 0, thumbnailSize > 0 else { return "" }
-    
-    let ratio = Double(thumbnailSize) / Double(originalSize) * 100.0
-    return String(format: "原图 %@ → 压缩后 %@ (%.1f%%)", 
-                  originalSizeText, imageSizeText, ratio)
-}
+    /// ⭐ 新增：图片压缩比例描述（如 "Original 2.3MB → Compressed 45KB (1.9%)"）
+    var compressionDescription: String {
+        guard hasImage, originalSize > 0, thumbnailSize > 0 else { return "" }
+        
+        let ratio = Double(thumbnailSize) / Double(originalSize) * 100.0
+        return String(format: L10n.imageCompressionDescription,  // ✅ 本地化
+                      originalSizeText, imageSizeText, ratio)
+    }
     
     /// 图片格式+尺寸+大小的完整描述（如 "JPEG • 1920×1080 • 2.3 MB"）
     var imageFullDescription: String {

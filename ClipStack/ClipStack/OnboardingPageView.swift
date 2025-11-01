@@ -102,13 +102,13 @@ struct OnboardingPageView_Previews: PreviewProvider {
             page: OnboardingPage(
                 icon: "clipboard.fill",
                 iconColor: .blue,
-                title: "欢迎使用 ClipStack",
-                subtitle: "强大的剪贴板历史管理工具",
+                title: L10n.onboardingPage1Title,  
+                subtitle: L10n.onboardingPage1Subtitle,
                 features: [
-                    "📝 自动保存剪贴板历史",
-                    "🔗 支持文本、链接和图片",
-                    "⭐ 收藏常用内容",
-                    "☁️ iCloud 跨设备同步"
+                    L10n.onboardingPage1Feature1,
+                    L10n.onboardingPage1Feature2,
+                    L10n.onboardingPage1Feature3,
+                    L10n.onboardingPage1Feature4
                 ]
             )
         )

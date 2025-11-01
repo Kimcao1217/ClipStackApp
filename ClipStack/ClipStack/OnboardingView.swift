@@ -15,40 +15,40 @@ struct OnboardingView: View {
         OnboardingPage(
             icon: "clipboard.fill",
             iconColor: .blue,
-            title: "欢迎使用 ClipStack",
-            subtitle: "强大的剪贴板历史管理工具",
+            title: L10n.onboardingPage1Title,  // ✅ 本地化
+            subtitle: L10n.onboardingPage1Subtitle,  // ✅ 本地化
             features: [
-                "📝 自动保存剪贴板历史",
-                "🔗 支持文本、链接和图片",
-                "⭐ 收藏常用内容",
-                "☁️ iCloud 跨设备同步（即将推出）"
+                L10n.onboardingPage1Feature1,  // ✅ 本地化
+                L10n.onboardingPage1Feature2,  // ✅ 本地化
+                L10n.onboardingPage1Feature3,  // ✅ 本地化
+                L10n.onboardingPage1Feature4   // ✅ 本地化
             ]
         ),
         OnboardingPage(
             icon: "keyboard.fill",
             iconColor: .green,
-            title: "添加自定义键盘",
-            subtitle: "在任何 App 中快速插入历史内容",
+            title: L10n.onboardingPage2Title,  // ✅ 本地化
+            subtitle: L10n.onboardingPage2Subtitle,  // ✅ 本地化
             steps: [
-                ("1", "打开系统设置 → 通用 → 键盘"),
-                ("2", "点击\"键盘\"→\"添加新键盘\""),
-                ("3", "选择\"ClipStack\"并开启"),
-                ("4", "⚠️ 开启\"允许完全访问\"（需要此权限才能复制图片）")
+                ("1", L10n.onboardingPage2Step1),  // ✅ 本地化
+                ("2", L10n.onboardingPage2Step2),  // ✅ 本地化
+                ("3", L10n.onboardingPage2Step3),  // ✅ 本地化
+                ("4", L10n.onboardingPage2Step4)   // ✅ 本地化
             ],
-            footnote: "我们不会收集你的键入内容，所有数据仅保存在本地"
+            footnote: L10n.onboardingPage2Footnote  // ✅ 本地化
         ),
         OnboardingPage(
             icon: "square.grid.2x2.fill",
             iconColor: .orange,
-            title: "添加桌面小组件",
-            subtitle: "一键查看和复制常用内容",
+            title: L10n.onboardingPage3Title,  // ✅ 本地化
+            subtitle: L10n.onboardingPage3Subtitle,  // ✅ 本地化
             steps: [
-                ("1", "长按主屏幕空白处进入编辑模式"),
-                ("2", "点击左上角的 ＋ 按钮"),
-                ("3", "搜索\"ClipStack\"并选择"),
-                ("4", "拖动到桌面并完成添加")
+                ("1", L10n.onboardingPage3Step1),  // ✅ 本地化
+                ("2", L10n.onboardingPage3Step2),  // ✅ 本地化
+                ("3", L10n.onboardingPage3Step3),  // ✅ 本地化
+                ("4", L10n.onboardingPage3Step4)   // ✅ 本地化
             ],
-            footnote: "支持小、中、大三种尺寸"
+            footnote: L10n.onboardingPage3Footnote  // ✅ 本地化
         )
     ]
     
@@ -71,7 +71,7 @@ struct OnboardingView: View {
                 HStack {
                     Spacer()
                     if currentPage < pages.count - 1 {
-                        Button("跳过") {
+                        Button(L10n.onboardingSkip) {  // ✅ 本地化
                             completeOnboarding()
                         }
                         .font(.subheadline)
@@ -116,7 +116,7 @@ struct OnboardingView: View {
             }
         } label: {
             HStack {
-                Text(currentPage < pages.count - 1 ? "下一步" : "开始使用")
+                Text(currentPage < pages.count - 1 ? L10n.onboardingNext : L10n.onboardingStart)  // ✅ 本地化
                     .fontWeight(.semibold)
                 
                 Image(systemName: currentPage < pages.count - 1 ? "arrow.right" : "checkmark")
@@ -134,17 +134,17 @@ struct OnboardingView: View {
     // MARK: - 完成引导
     
     private func completeOnboarding() {
-    // ⭐ 标记已完成引导
-    UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
-    print("✅ 引导流程已完成，下次启动不再显示")
-    
-    // 触觉反馈
-    let generator = UINotificationFeedbackGenerator()
-    generator.notificationOccurred(.success)
-    
-    // ⭐ 关键：关闭引导页（现在会正常工作了）
-    dismiss()
-}
+        // ⭐ 标记已完成引导
+        UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
+        print("✅ \(L10n.logOnboardingCompleted)")  // ✅ 本地化
+        
+        // 触觉反馈
+        let generator = UINotificationFeedbackGenerator()
+        generator.notificationOccurred(.success)
+        
+        // ⭐ 关键：关闭引导页（现在会正常工作了）
+        dismiss()
+    }
 }
 
 // MARK: - 数据模型

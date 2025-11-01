@@ -92,10 +92,10 @@ class ImageViewerViewController: UIViewController {
         infoLabel.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(infoLabel)
         
-        // 设置信息文本
+        // ✅ 设置信息文本（本地化）
         var infoText = clipItem.imageFullDescription
         if let sourceApp = clipItem.sourceApp {
-            infoText += "\n来源：\(sourceApp) • \(clipItem.relativeTimeString)"
+            infoText += "\n" + String(format: L10n.imageViewerSource, sourceApp, clipItem.relativeTimeString)
         }
         infoLabel.text = infoText
         

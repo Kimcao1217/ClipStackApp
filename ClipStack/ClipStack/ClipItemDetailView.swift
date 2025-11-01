@@ -41,7 +41,7 @@ struct ClipItemDetailView: View {
             }
             .padding()
         }
-        .navigationTitle("详情")
+        .navigationTitle(L10n.detailTitle)  // ✅ 本地化
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
@@ -55,13 +55,13 @@ struct ClipItemDetailView: View {
         .sheet(isPresented: $showingShareSheet) {
             ShareSheet(items: shareItems)
         }
-        .alert("确认删除", isPresented: $showingDeleteAlert) {
-            Button("取消", role: .cancel) {}
-            Button("删除", role: .destructive) {
+        .alert(L10n.alertDeleteTitle, isPresented: $showingDeleteAlert) {  // ✅ 本地化
+            Button(L10n.cancel, role: .cancel) {}
+            Button(L10n.delete, role: .destructive) {
                 deleteItem()
             }
         } message: {
-            Text("删除后无法恢复")
+            Text(L10n.alertDeleteMessage)  // ✅ 本地化
         }
     }
     
@@ -73,8 +73,8 @@ struct ClipItemDetailView: View {
             Text(clipItem.typeIcon)
                 .font(.title2)
             
-            Text(clipItem.contentType == "text" ? "文本" :
-                 clipItem.contentType == "link" ? "链接" : "图片")
+            Text(clipItem.contentType == "text" ? L10n.filterText :
+                 clipItem.contentType == "link" ? L10n.filterLink : L10n.filterImage)  // ✅ 本地化
                 .font(.headline)
                 .foregroundColor(.secondary)
             
@@ -90,68 +90,76 @@ struct ClipItemDetailView: View {
     }
     
     /// 内容区域
-@ViewBuilder
-private var contentView: some View {
-    if clipItem.hasImage {
-        VStack(alignment: .leading, spacing: 12) {
-            // 图片预览（点击进入全屏）
-            if let image = clipItem.thumbnailImage {
-                Button(action: {
-                    presentImageViewer()
-                }) {
-                    Image(uiImage: image)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(maxWidth: .infinity)
-                        .cornerRadius(12)
-                }
-                .buttonStyle(.plain)
-            }
-            
-            // ⭐ 新增：压缩信息（原图 → 压缩后）
-            if clipItem.originalSize > 0 {
-                HStack(spacing: 8) {
-                    Image(systemName: "arrow.down.circle.fill")
-                        .foregroundColor(.green)
-                    Text(clipItem.compressionDescription)
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                }
-            }
-            
-            // 图片格式和尺寸信息
-            Text(clipItem.imageFullDescription)
-                .font(.body)
-                .foregroundColor(.secondary)
-        }
-    } else {
-        // 文本/链接内容（保持不变）
-        VStack(alignment: .leading, spacing: 8) {
-            Text(clipItem.content ?? "")
-                .font(.body)
-                .textSelection(.enabled)
-            
-            if clipItem.isLink, let urlString = clipItem.content, let url = URL(string: urlString) {
-                Link(destination: url) {
-                    HStack {
-                        Image(systemName: "safari")
-                        Text("在 Safari 中打开")
+    @ViewBuilder
+    private var contentView: some View {
+        if clipItem.hasImage {
+            VStack(alignment: .leading, spacing: 12) {
+                // 图片预览（点击进入全屏）
+                if let image = clipItem.thumbnailImage {
+                    Button(action: {
+                        presentImageViewer()
+                    }) {
+                        Image(uiImage: image)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(maxWidth: .infinity)
+                            .cornerRadius(12)
                     }
-                    .font(.subheadline)
-                    .foregroundColor(.blue)
+                    .buttonStyle(.plain)
                 }
-                .padding(.top, 4)
+                
+                // ⭐ 新增：压缩信息（原图 → 压缩后）
+                if clipItem.originalSize > 0 {
+                    HStack(spacing: 8) {
+                        Image(systemName: "arrow.down.circle.fill")
+                            .foregroundColor(.green)
+                        Text(clipItem.compressionDescription)  // ✅ 已在 ClipItem+Extensions.swift 中本地化
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                
+                // 图片格式和尺寸信息
+                Text(clipItem.imageFullDescription)
+                    .font(.body)
+                    .foregroundColor(.secondary)
+            }
+        } else {
+            // 文本/链接内容（保持不变）
+            VStack(alignment: .leading, spacing: 8) {
+                Text(clipItem.content ?? "")
+                    .font(.body)
+                    .textSelection(.enabled)
+                
+                if clipItem.isLink, let urlString = clipItem.content, let url = URL(string: urlString) {
+                    Link(destination: url) {
+                        HStack {
+                            Image(systemName: "safari")
+                            Text(L10n.detailOpenInSafari)  // ✅ 本地化
+                        }
+                        .font(.subheadline)
+                        .foregroundColor(.blue)
+                    }
+                    .padding(.top, 4)
+                }
             }
         }
     }
-}
     
     /// 元信息
     private var metadataView: some View {
         VStack(alignment: .leading, spacing: 12) {
-            MetadataRow(icon: "app.fill", label: "来源", value: clipItem.sourceApp ?? "未知")
+            MetadataRow(
+                icon: "app.fill",
+                label: L10n.detailSource,  // ✅ 本地化
+                value: clipItem.sourceApp ?? L10n.sourceUnknown
+            )
             
-            MetadataRow(icon: "calendar", label: "创建时间", value: formatFullDate(clipItem.createdAt))
+            MetadataRow(
+                icon: "calendar",
+                label: L10n.detailCreatedAt,  // ✅ 本地化
+                value: formatFullDate(clipItem.createdAt)
+            )
         }
     }
     
@@ -161,7 +169,7 @@ private var contentView: some View {
             Button(action: {
                 copyToClipboard()
             }) {
-                Label("复制内容", systemImage: "doc.on.doc")
+                Label(L10n.detailCopyContent, systemImage: "doc.on.doc")  // ✅ 本地化
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.bordered)
@@ -172,7 +180,7 @@ private var contentView: some View {
                 toggleStarred()
             }) {
                 Label(
-                    clipItem.isStarred ? "取消收藏" : "收藏",
+                    clipItem.isStarred ? L10n.unstar : L10n.star,  // ✅ 本地化
                     systemImage: clipItem.isStarred ? "star.slash" : "star.fill"
                 )
                 .frame(maxWidth: .infinity)
@@ -184,7 +192,7 @@ private var contentView: some View {
             Button(action: {
                 showingDeleteAlert = true
             }) {
-                Label("删除", systemImage: "trash")
+                Label(L10n.delete, systemImage: "trash")  // ✅ 本地化
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.bordered)
@@ -195,68 +203,68 @@ private var contentView: some View {
     // MARK: - 辅助方法
     
     private func formatFullDate(_ date: Date?) -> String {
-        guard let date = date else { return "未知" }
+        guard let date = date else { return L10n.timeUnknown }  // ✅ 本地化
         
         let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "zh_CN")
-        formatter.dateFormat = "yyyy年M月d日 HH:mm"
+        formatter.locale = Locale.current  // ✅ 自动适配当前语言
+        formatter.setLocalizedDateFormatFromTemplate("yyyyMMMMdHHmm")  // ✅ 本地化日期格式
         return formatter.string(from: date)
     }
     
     private func copyToClipboard() {
-    if clipItem.hasImage {
-        if let image = clipItem.thumbnailImage {
-            UIPasteboard.general.image = image
-            showToast(message: "✅ 图片已复制")
+        if clipItem.hasImage {
+            if let image = clipItem.thumbnailImage {
+                UIPasteboard.general.image = image
+                showToast(message: L10n.toastImageCopied)  // ✅ 本地化
+            }
+        } else {
+            if let content = clipItem.content {
+                UIPasteboard.general.string = content
+                showToast(message: L10n.toastCopied)  // ✅ 本地化
+            }
         }
-    } else {
-        if let content = clipItem.content {
-            UIPasteboard.general.string = content
-            showToast(message: "✅ 已复制")
-        }
+        
+        print("✅ \(L10n.logContentCopied)")  // ✅ 本地化
     }
-    
-    print("✅ 内容已复制到剪贴板")
-}
     
     private func toggleStarred() {
-    // ✅ 收藏前检查限制
-    if !clipItem.isStarred {
-        let (currentCount, canStar) = PersistenceController.checkStarredLimit(context: viewContext)
-        if !canStar {
-            showToast(message: "⚠️ 收藏已满（\(currentCount)/\(ProManager.freeStarredLimit)），请先取消收藏其他条目")
-            return
-        }
-    }
-    
-    // ✅ 添加触觉反馈
-    let generator = UIImpactFeedbackGenerator(style: .medium)
-    generator.impactOccurred()
-    
-    // ✅ 直接修改对象（SwiftUI 自动更新 UI）
-    clipItem.isStarred.toggle()
-    
-    do {
-        try viewContext.save()
-        
-        // ✅ 显示 Toast
-        let message = clipItem.isStarred ? "⭐ 已收藏" : "☆ 已取消收藏"
-        showToast(message: message)
-        print(message)
-        
-        // ✅ 取消收藏后检查历史记录限制
+        // ✅ 收藏前检查限制
         if !clipItem.isStarred {
-            PersistenceController.enforceHistoryLimit(context: viewContext)
+            let (currentCount, canStar) = PersistenceController.checkStarredLimit(context: viewContext)
+            if !canStar {
+                showToast(message: String(format: L10n.toastStarredFull, currentCount, ProManager.freeStarredLimit))  // ✅ 本地化
+                return
+            }
         }
-    } catch {
-        print("❌ 保存失败: \(error)")
-        clipItem.isStarred.toggle()  // 回滚
         
-        // ❌ 错误震动
-        let errorGenerator = UINotificationFeedbackGenerator()
-        errorGenerator.notificationOccurred(.error)
+        // ✅ 添加触觉反馈
+        let generator = UIImpactFeedbackGenerator(style: .medium)
+        generator.impactOccurred()
+        
+        // ✅ 直接修改对象（SwiftUI 自动更新 UI）
+        clipItem.isStarred.toggle()
+        
+        do {
+            try viewContext.save()
+            
+            // ✅ 显示 Toast
+            let message = clipItem.isStarred ? L10n.toastStarred : L10n.toastUnstarred  // ✅ 本地化
+            showToast(message: message)
+            print(message)
+            
+            // ✅ 取消收藏后检查历史记录限制
+            if !clipItem.isStarred {
+                PersistenceController.enforceHistoryLimit(context: viewContext)
+            }
+        } catch {
+            print("❌ \(L10n.errorSaveFailed): \(error)")  // ✅ 本地化
+            clipItem.isStarred.toggle()  // 回滚
+            
+            // ❌ 错误震动
+            let errorGenerator = UINotificationFeedbackGenerator()
+            errorGenerator.notificationOccurred(.error)
+        }
     }
-}
     
     private func deleteItem() {
         viewContext.delete(clipItem)
@@ -265,7 +273,7 @@ private var contentView: some View {
             try viewContext.save()
             dismiss()
         } catch {
-            print("❌ 删除失败: \(error)")
+            print("❌ \(L10n.errorDeleteFailed): \(error)")  // ✅ 本地化
         }
     }
     

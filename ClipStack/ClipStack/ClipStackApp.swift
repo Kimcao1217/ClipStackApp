@@ -106,7 +106,7 @@ struct ClipStackApp: App {
             print("🔄 收到手动刷新请求，立即刷新 Widget")
             WidgetCenter.shared.reloadAllTimelines()
             
-            // ✅ 显示刷新成功提示
+            // ✅ 显示刷新成功提示（本地化）
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                 showSuccessHUD(message: L10n.success)
             }
@@ -132,7 +132,7 @@ struct ClipStackApp: App {
                 guard let clipItem = results.first else {
                     print("❌ 未找到 ID 为 \(itemID) 的条目")
                     DispatchQueue.main.async {
-                        showErrorHUD(message: "❌ 条目不存在")
+                        showErrorHUD(message: L10n.appItemNotFound)  // ✅ 本地化
                     }
                     return
                 }
@@ -148,20 +148,20 @@ struct ClipStackApp: App {
                         // 复制图片
                         if let imageData = imageData, let image = UIImage(data: imageData) {
                             UIPasteboard.general.image = image
-                            showSuccessHUD(message: "✅ 图片已复制")
+                            showSuccessHUD(message: L10n.appImageCopied)  // ✅ 本地化
                             print("✅ 图片已复制到剪贴板")
                         } else {
-                            showErrorHUD(message: "❌ 图片加载失败")
+                            showErrorHUD(message: L10n.appImageLoadFailed)  // ✅ 本地化
                             print("❌ 图片数据损坏")
                         }
                     } else {
                         // 复制文本/链接
                         if let content = content, !content.isEmpty {
                             UIPasteboard.general.string = content
-                            showSuccessHUD(message: "✅ 已复制")
+                            showSuccessHUD(message: L10n.appCopied)  // ✅ 本地化
                             print("✅ 文本已复制到剪贴板: \(content.prefix(50))")
                         } else {
-                            showErrorHUD(message: "❌ 内容为空")
+                            showErrorHUD(message: L10n.appContentEmpty)  // ✅ 本地化
                             print("❌ 条目内容为空")
                         }
                     }
@@ -173,7 +173,7 @@ struct ClipStackApp: App {
             } catch {
                 print("❌ 查询失败: \(error)")
                 DispatchQueue.main.async {
-                    showErrorHUD(message: "❌ 加载失败")
+                    showErrorHUD(message: L10n.appLoadFailed)  // ✅ 本地化
                 }
             }
         }

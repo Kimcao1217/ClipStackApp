@@ -13,6 +13,42 @@
     "addItem.title" : {
       "comment" : "添加条目标题"
     },
+    "alert.clearHistoryMessage" : {
+      "comment" : "清空历史记录确认消息"
+    },
+    "alert.clearStarredMessage" : {
+      "comment" : "清空收藏确认消息"
+    },
+    "alert.deleteMessage" : {
+      "comment" : "删除确认消息"
+    },
+    "alert.deleteTitle" : {
+      "comment" : "删除确认标题"
+    },
+    "alert.ok" : {
+      "comment" : "好的按钮"
+    },
+    "alert.resetAllMessage" : {
+      "comment" : "完全重置确认消息"
+    },
+    "app.contentEmpty" : {
+      "comment" : "内容为空"
+    },
+    "app.copied" : {
+      "comment" : "已复制"
+    },
+    "app.imageCopied" : {
+      "comment" : "图片已复制"
+    },
+    "app.imageLoadFailed" : {
+      "comment" : "图片加载失败"
+    },
+    "app.itemNotFound" : {
+      "comment" : "条目不存在"
+    },
+    "app.loadFailed" : {
+      "comment" : "加载失败"
+    },
     "app.title" : {
       "comment" : "应用标题"
     },
@@ -55,11 +91,62 @@
     "common.success" : {
       "comment" : "成功提示"
     },
+    "detail.copyContent" : {
+      "comment" : "复制内容按钮"
+    },
+    "detail.createdAt" : {
+      "comment" : "创建时间标签"
+    },
+    "detail.openInSafari" : {
+      "comment" : "在Safari中打开"
+    },
+    "detail.source" : {
+      "comment" : "来源标签"
+    },
+    "detail.title" : {
+      "comment" : "详情页标题"
+    },
     "empty.history.message" : {
       "comment" : "空历史提示"
     },
     "empty.history.title" : {
       "comment" : "空历史标题"
+    },
+    "error.alertTitle" : {
+      "comment" : "错误弹窗标题"
+    },
+    "error.appGroupPathFailed" : {
+      "comment" : "无法获取App Group路径"
+    },
+    "error.cleanupFailed" : {
+      "comment" : "清理历史记录失败"
+    },
+    "error.coreDataLoadFailed" : {
+      "comment" : "Core Data加载失败"
+    },
+    "error.deleteFailed" : {
+      "comment" : "删除失败"
+    },
+    "error.deleteFailedDetail" : {
+      "comment" : "删除失败详情"
+    },
+    "error.loadSettingsFailed" : {
+      "comment" : "加载设置失败"
+    },
+    "error.previewDataFailed" : {
+      "comment" : "预览数据创建失败"
+    },
+    "error.queryStarredFailed" : {
+      "comment" : "查询收藏数失败"
+    },
+    "error.saveFailed" : {
+      "comment" : "保存失败"
+    },
+    "feedback.body" : {
+      "comment" : "反馈邮件正文"
+    },
+    "feedback.subject" : {
+      "comment" : "反馈邮件主题"
     },
     "filter.all" : {
       "comment" : "全部筛选"
@@ -90,6 +177,12 @@
     },
     "freeLimit.title" : {
       "comment" : "免费版限制标题"
+    },
+    "image.compressionDescription" : {
+      "comment" : "图片压缩描述"
+    },
+    "imageViewer.source" : {
+      "comment" : "来源信息格式"
     },
     "keyboard.all" : {
       "extractionState" : "manual",
@@ -159,6 +252,315 @@
         }
       }
     },
+    "log.autoDeleteOldItem" : {
+      "comment" : "自动删除旧条目"
+    },
+    "log.checkingSubscription" : {
+      "comment" : "检查订阅状态"
+    },
+    "log.cleanupCompleted" : {
+
+    },
+    "log.contentCopied" : {
+      "comment" : "内容已复制日志"
+    },
+    "log.currentHistoryCount" : {
+
+    },
+    "log.currentStarredCount" : {
+
+    },
+    "log.currentStatus" : {
+      "comment" : "当前状态"
+    },
+    "log.currentStatusLifetime" : {
+      "comment" : "当前状态：终身买断"
+    },
+    "log.currentStatusMonthly" : {
+      "comment" : "当前状态：月付订阅"
+    },
+    "log.currentStatusNone" : {
+      "comment" : "当前状态：未订阅"
+    },
+    "log.currentStatusYearly" : {
+      "comment" : "当前状态：年付订阅"
+    },
+    "log.emailOpened" : {
+      "comment" : "已打开邮件客户端"
+    },
+    "log.expiration" : {
+      "comment" : "到期"
+    },
+    "log.listeningTransactions" : {
+      "comment" : "开始监听事务更新"
+    },
+    "log.loadingProducts" : {
+      "comment" : "开始加载产品列表"
+    },
+    "log.loadProductsFailed" : {
+      "comment" : "加载产品失败"
+    },
+    "log.onboardingCompleted" : {
+      "comment" : "引导流程已完成日志"
+    },
+    "log.onboardingReset" : {
+      "comment" : "引导已重置日志"
+    },
+    "log.preparingPurchase" : {
+      "comment" : "准备购买"
+    },
+    "log.productNotFound" : {
+      "comment" : "未找到选中的产品"
+    },
+    "log.productsAlreadyLoaded" : {
+      "comment" : "产品已加载"
+    },
+    "log.productsCount" : {
+      "comment" : "产品数量"
+    },
+    "log.productsLoadedSuccess" : {
+      "comment" : "加载成功"
+    },
+    "log.proManagerInit" : {
+      "comment" : "ProManager初始化"
+    },
+    "log.proStatusUpdated" : {
+      "comment" : "Pro状态已更新"
+    },
+    "log.purchaseCancelled" : {
+      "comment" : "用户取消购买"
+    },
+    "log.purchaseFailed" : {
+      "comment" : "购买失败"
+    },
+    "log.purchasePending" : {
+      "comment" : "购买等待确认"
+    },
+    "log.purchaseSuccess" : {
+      "comment" : "购买成功"
+    },
+    "log.purchaseUnknown" : {
+      "comment" : "未知购买结果"
+    },
+    "log.receivedTransaction" : {
+      "comment" : "收到新事务"
+    },
+    "log.restoreFailed" : {
+      "comment" : "恢复失败格式"
+    },
+    "log.restoreNoRecords" : {
+      "comment" : "未找到有效购买记录"
+    },
+    "log.restoreStart" : {
+      "comment" : "开始恢复购买"
+    },
+    "log.restoreSuccess" : {
+      "comment" : "恢复购买成功"
+    },
+    "log.settingsDataLoaded" : {
+
+    },
+    "log.startPurchase" : {
+      "comment" : "开始购买"
+    },
+    "log.storeHelperAvailable" : {
+      "comment" : "StoreHelper可用"
+    },
+    "log.storeHelperInit" : {
+      "comment" : "StoreHelper初始化"
+    },
+    "log.storeHelperUnavailable" : {
+      "comment" : "StoreHelper不可用"
+    },
+    "log.subscriptionExpired" : {
+      "comment" : "订阅已过期"
+    },
+    "log.subscriptionPageOpened" : {
+      "comment" : "已打开订阅页面"
+    },
+    "log.transactionRevoked" : {
+      "comment" : "交易已撤销"
+    },
+    "log.transactionVerifyFailed" : {
+      "comment" : "事务验证失败"
+    },
+    "log.unlockPro" : {
+      "comment" : "解锁Pro"
+    },
+    "log.unlockProSilent" : {
+      "comment" : "静默解锁Pro"
+    },
+    "log.verifyingPurchase" : {
+      "comment" : "开始验证购买"
+    },
+    "onboarding.next" : {
+      "comment" : "下一步按钮"
+    },
+    "onboarding.page1.feature1" : {
+      "comment" : "功能1：自动保存"
+    },
+    "onboarding.page1.feature2" : {
+      "comment" : "功能2：支持多种格式"
+    },
+    "onboarding.page1.feature3" : {
+      "comment" : "功能3：收藏功能"
+    },
+    "onboarding.page1.feature4" : {
+      "comment" : "功能4：iCloud同步"
+    },
+    "onboarding.page1.subtitle" : {
+      "comment" : "强大的剪贴板历史管理工具"
+    },
+    "onboarding.page1.title" : {
+      "comment" : "欢迎使用 ClipStack"
+    },
+    "onboarding.page2.footnote" : {
+      "comment" : "隐私说明"
+    },
+    "onboarding.page2.step1" : {
+      "comment" : "步骤1：打开设置"
+    },
+    "onboarding.page2.step2" : {
+      "comment" : "步骤2：添加新键盘"
+    },
+    "onboarding.page2.step3" : {
+      "comment" : "步骤3：选择ClipStack"
+    },
+    "onboarding.page2.step4" : {
+      "comment" : "步骤4：开启完全访问"
+    },
+    "onboarding.page2.subtitle" : {
+      "comment" : "在任何 App 中快速插入历史内容"
+    },
+    "onboarding.page2.title" : {
+      "comment" : "添加自定义键盘"
+    },
+    "onboarding.page3.footnote" : {
+      "comment" : "支持三种尺寸"
+    },
+    "onboarding.page3.step1" : {
+      "comment" : "步骤1：长按主屏幕"
+    },
+    "onboarding.page3.step2" : {
+      "comment" : "步骤2：点击+按钮"
+    },
+    "onboarding.page3.step3" : {
+      "comment" : "步骤3：搜索ClipStack"
+    },
+    "onboarding.page3.step4" : {
+      "comment" : "步骤4：拖动到桌面"
+    },
+    "onboarding.page3.subtitle" : {
+      "comment" : "一键查看和复制常用内容"
+    },
+    "onboarding.page3.title" : {
+      "comment" : "添加桌面小组件"
+    },
+    "onboarding.skip" : {
+      "comment" : "跳过按钮"
+    },
+    "onboarding.start" : {
+      "comment" : "开始使用按钮"
+    },
+    "paywall.alertTitle" : {
+      "comment" : "购买结果弹窗标题"
+    },
+    "paywall.desc.lifetime" : {
+      "comment" : "一次购买，永久使用"
+    },
+    "paywall.desc.monthly" : {
+      "comment" : "按月支付，随时取消"
+    },
+    "paywall.desc.yearly" : {
+      "comment" : "相当于每月XX元"
+    },
+    "paywall.discount.lifetime" : {
+      "comment" : "最划算"
+    },
+    "paywall.discount.yearly" : {
+      "comment" : "省33%"
+    },
+    "paywall.errorMessage" : {
+      "comment" : "请检查网络连接后重试"
+    },
+    "paywall.errorTitle" : {
+      "comment" : "无法加载套餐"
+    },
+    "paywall.failedMessage" : {
+      "comment" : "购买失败消息格式"
+    },
+    "paywall.feature1.desc" : {
+      "comment" : "保存任意数量"
+    },
+    "paywall.feature1.title" : {
+      "comment" : "无限历史记录"
+    },
+    "paywall.feature2.desc" : {
+      "comment" : "收藏不受限制"
+    },
+    "paywall.feature2.title" : {
+      "comment" : "无限收藏"
+    },
+    "paywall.feature3.desc" : {
+      "comment" : "多设备自动同步"
+    },
+    "paywall.feature3.title" : {
+      "comment" : "iCloud 同步"
+    },
+    "paywall.feature4.desc" : {
+      "comment" : "新功能优先体验"
+    },
+    "paywall.feature4.title" : {
+      "comment" : "优先支持"
+    },
+    "paywall.headerSubtitle" : {
+      "comment" : "无限制使用"
+    },
+    "paywall.headerTitle" : {
+      "comment" : "解锁全部功能"
+    },
+    "paywall.loadingProducts" : {
+      "comment" : "加载套餐中..."
+    },
+    "paywall.privacy" : {
+      "comment" : "隐私政策"
+    },
+    "paywall.product.lifetime" : {
+      "comment" : "终身买断"
+    },
+    "paywall.product.monthly" : {
+      "comment" : "月付订阅"
+    },
+    "paywall.product.yearly" : {
+      "comment" : "年付订阅"
+    },
+    "paywall.purchaseNow" : {
+      "comment" : "立即购买"
+    },
+    "paywall.recommended" : {
+      "comment" : "🔥 最受欢迎"
+    },
+    "paywall.reload" : {
+      "comment" : "重新加载"
+    },
+    "paywall.restore" : {
+      "comment" : "恢复购买"
+    },
+    "paywall.restoredMessage" : {
+      "comment" : "恢复购买成功消息"
+    },
+    "paywall.successMessage" : {
+      "comment" : "购买成功消息"
+    },
+    "paywall.terms" : {
+      "comment" : "服务条款"
+    },
+    "paywall.title" : {
+      "comment" : "付费墙标题"
+    },
+    "paywall.verifying" : {
+      "comment" : "验证中..."
+    },
     "search.noResults" : {
       "comment" : "搜索无结果"
     },
@@ -168,11 +570,122 @@
     "search.tryOtherKeywords" : {
       "comment" : "搜索建议"
     },
+    "settings.aboutHeader" : {
+      "comment" : "关于section标题"
+    },
+    "settings.accountHeader" : {
+      "comment" : "账户section标题"
+    },
+    "settings.clearAction" : {
+      "comment" : "清空操作按钮"
+    },
+    "settings.clearHistory" : {
+      "comment" : "清空历史记录按钮"
+    },
+    "settings.clearStarred" : {
+      "comment" : "清空收藏按钮"
+    },
+    "settings.deleteAll" : {
+      "comment" : "全部删除按钮"
+    },
+    "settings.feedback" : {
+      "comment" : "意见反馈"
+    },
+    "settings.freeVersion" : {
+      "comment" : "免费版本"
+    },
+    "settings.help" : {
+      "comment" : "使用帮助"
+    },
+    "settings.historyLabel" : {
+      "comment" : "历史记录标签"
+    },
+    "settings.itemCount" : {
+      "comment" : "条目数量格式"
+    },
+    "settings.manageSubscription" : {
+      "comment" : "管理订阅"
+    },
+    "settings.otherHeader" : {
+      "comment" : "其他section标题"
+    },
+    "settings.proActivated" : {
+      "comment" : "Pro已激活"
+    },
+    "settings.proVersion" : {
+      "comment" : "Pro版本"
+    },
+    "settings.rateApp" : {
+      "comment" : "App Store评分"
+    },
+    "settings.resetAll" : {
+      "comment" : "完全重置按钮"
+    },
+    "settings.resetOnboarding" : {
+      "comment" : "重新显示引导"
+    },
+    "settings.starredLabel" : {
+      "comment" : "收藏标签"
+    },
+    "settings.storageFooter" : {
+      "comment" : "存储管理footer说明"
+    },
+    "settings.storageHeader" : {
+      "comment" : "存储管理section标题"
+    },
+    "settings.storageLabel" : {
+      "comment" : "占用空间标签"
+    },
+    "settings.testOff" : {
+      "comment" : "OFF"
+    },
+    "settings.testOn" : {
+      "comment" : "ON"
+    },
+    "settings.testTogglePro" : {
+      "comment" : "测试切换Pro"
+    },
+    "settings.unlimitedThanks" : {
+      "comment" : "无限制感谢"
+    },
+    "settings.upgradeToPro" : {
+      "comment" : "升级到Pro"
+    },
+    "settings.version" : {
+      "comment" : "版本标签"
+    },
     "source.manual" : {
       "comment" : "手动添加"
     },
     "source.unknown" : {
       "comment" : "未知来源"
+    },
+    "subscription.lifetime" : {
+      "comment" : "终身买断"
+    },
+    "subscription.monthly" : {
+      "comment" : "月付订阅"
+    },
+    "subscription.none" : {
+      "comment" : "未订阅"
+    },
+    "subscription.yearly" : {
+      "comment" : "年付订阅"
+    },
+    "success.clearHistory" : {
+      "comment" : "清空历史成功"
+    },
+    "success.clearStarred" : {
+      "comment" : "清空收藏成功"
+    },
+    "success.coreDataLoaded" : {
+      "comment" : "Core Data加载成功"
+    },
+    "success.onboardingReset" : {
+      "comment" : "引导已重置"
+    },
+    "success.resetAll" : {
+      "comment" : "完全重置成功"
     },
     "time.daysAgo" : {
       "comment" : "X天前"
@@ -185,6 +698,9 @@
     },
     "time.minutesAgo" : {
       "comment" : "X分钟前"
+    },
+    "time.unknown" : {
+      "comment" : "未知时间"
     },
     "time.yesterday" : {
       "comment" : "昨天"

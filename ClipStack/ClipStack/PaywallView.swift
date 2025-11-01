@@ -41,7 +41,7 @@ struct PaywallView: View {
                         
                         // 3 个套餐卡片
                         if storeHelper.isLoading {
-                            ProgressView("加载套餐中...")
+                            ProgressView(L10n.paywallLoadingProducts)  // ✅ 本地化
                                 .padding(.vertical, 60)
                         } else if storeHelper.products.isEmpty {
                             errorView
@@ -61,17 +61,17 @@ struct PaywallView: View {
                     .padding()
                 }
             }
-            .navigationTitle("升级到 Pro 版")
+            .navigationTitle(L10n.paywallTitle)  // ✅ 本地化
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("关闭") {
+                    Button(L10n.close) {  // ✅ 本地化
                         dismiss()
                     }
                 }
             }
-            .alert("购买结果", isPresented: $showResultAlert) {
-                Button("好的") {
+            .alert(L10n.paywallAlertTitle, isPresented: $showResultAlert) {  // ✅ 本地化
+                Button(L10n.alertOk) {  // ✅ 复用已有key
                     if shouldDismissAfterAlert {
                         dismiss()
                     }
@@ -101,11 +101,11 @@ struct PaywallView: View {
                 )
                 .shadow(color: .yellow.opacity(0.3), radius: 10, x: 0, y: 5)
             
-            Text("解锁全部功能")
+            Text(L10n.paywallHeaderTitle)  // ✅ 本地化
                 .font(.title)
                 .fontWeight(.bold)
             
-            Text("无限制使用 ClipStack")
+            Text(L10n.paywallHeaderSubtitle)  // ✅ 本地化
                 .font(.subheadline)
                 .foregroundColor(.secondary)
         }
@@ -115,10 +115,26 @@ struct PaywallView: View {
     /// 功能特性列表
     private var featuresView: some View {
         VStack(alignment: .leading, spacing: 16) {
-            FeatureRow(icon: "infinity", title: "无限历史记录", description: "保存任意数量的剪贴板内容")
-            FeatureRow(icon: "star.fill", title: "无限收藏", description: "收藏重要内容不受限制")
-            FeatureRow(icon: "icloud.fill", title: "iCloud 同步", description: "多设备自动同步（即将推出）")
-            FeatureRow(icon: "sparkles", title: "优先支持", description: "新功能优先体验")
+            FeatureRow(
+                icon: "infinity",
+                title: L10n.paywallFeature1Title,  // ✅ 本地化
+                description: L10n.paywallFeature1Desc  // ✅ 本地化
+            )
+            FeatureRow(
+                icon: "star.fill",
+                title: L10n.paywallFeature2Title,  // ✅ 本地化
+                description: L10n.paywallFeature2Desc  // ✅ 本地化
+            )
+            FeatureRow(
+                icon: "icloud.fill",
+                title: L10n.paywallFeature3Title,  // ✅ 本地化
+                description: L10n.paywallFeature3Desc  // ✅ 本地化
+            )
+            FeatureRow(
+                icon: "sparkles",
+                title: L10n.paywallFeature4Title,  // ✅ 本地化
+                description: L10n.paywallFeature4Desc  // ✅ 本地化
+            )
         }
         .padding()
         .background(Color(.systemBackground))
@@ -163,9 +179,9 @@ struct PaywallView: View {
                 } else if case .verifying = storeHelper.purchaseState {
                     ProgressView()
                         .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                    Text("验证中...")
+                    Text(L10n.paywallVerifying)  // ✅ 本地化
                 } else {
-                    Text("立即购买")
+                    Text(L10n.paywallPurchaseNow)  // ✅ 本地化
                         .fontWeight(.semibold)
                 }
             }
@@ -192,7 +208,7 @@ struct PaywallView: View {
                 await storeHelper.restorePurchases()
             }
         } label: {
-            Text("恢复购买")
+            Text(L10n.paywallRestore)  // ✅ 本地化
                 .font(.subheadline)
                 .foregroundColor(.secondary)
         }
@@ -202,14 +218,14 @@ struct PaywallView: View {
     /// 法律条款链接
     private var legalLinksView: some View {
         HStack(spacing: 20) {
-            Link("隐私政策", destination: URL(string: "https://github.com/yourusername/clipstack/privacy")!)
+            Link(L10n.paywallPrivacy, destination: URL(string: "https://github.com/yourusername/clipstack/privacy")!)  // ✅ 本地化
                 .font(.caption)
                 .foregroundColor(.secondary)
             
             Text("•")
                 .foregroundColor(.secondary)
             
-            Link("服务条款", destination: URL(string: "https://github.com/yourusername/clipstack/terms")!)
+            Link(L10n.paywallTerms, destination: URL(string: "https://github.com/yourusername/clipstack/terms")!)  // ✅ 本地化
                 .font(.caption)
                 .foregroundColor(.secondary)
         }
@@ -223,14 +239,14 @@ struct PaywallView: View {
                 .font(.system(size: 50))
                 .foregroundColor(.orange)
             
-            Text("无法加载套餐")
+            Text(L10n.paywallErrorTitle)  // ✅ 本地化
                 .font(.headline)
             
-            Text("请检查网络连接后重试")
+            Text(L10n.paywallErrorMessage)  // ✅ 本地化
                 .font(.subheadline)
                 .foregroundColor(.secondary)
             
-            Button("重新加载") {
+            Button(L10n.paywallReload) {  // ✅ 本地化
                 Task {
                     await storeHelper.loadProducts()
                 }
@@ -245,11 +261,11 @@ struct PaywallView: View {
     /// 购买选中的产品（✅ 修复：用产品 ID 查找）
     private func purchaseSelectedProduct() async {
         guard let selectedProduct = storeHelper.products.first(where: { $0.id == selectedProductID }) else {
-            print("❌ 未找到选中的产品: \(selectedProductID)")
+            print("❌ \(L10n.logProductNotFound): \(selectedProductID)")  // ✅ 本地化
             return
         }
         
-        print("🛒 准备购买: \(selectedProduct.displayName) (ID: \(selectedProduct.id))")
+        print("🛒 \(L10n.logPreparingPurchase): \(selectedProduct.displayName) (ID: \(selectedProduct.id))")  // ✅ 本地化
         await storeHelper.purchase(selectedProduct)
     }
     
@@ -257,7 +273,7 @@ struct PaywallView: View {
     private func handlePurchaseStateChange(_ state: StoreHelper.PurchaseState) {
         switch state {
         case .success:
-            resultMessage = "🎉 购买成功！\n已解锁 Pro 版全部功能"
+            resultMessage = L10n.paywallSuccessMessage  // ✅ 本地化
             shouldDismissAfterAlert = true
             showResultAlert = true
             
@@ -265,7 +281,7 @@ struct PaywallView: View {
             generator.notificationOccurred(.success)
             
         case .restored:
-            resultMessage = "✅ 恢复购买成功！\nPro 版权限已激活"
+            resultMessage = L10n.paywallRestoredMessage  // ✅ 本地化
             shouldDismissAfterAlert = true
             showResultAlert = true
             
@@ -273,7 +289,7 @@ struct PaywallView: View {
             generator.notificationOccurred(.success)
             
         case .failed(let error):
-            resultMessage = "购买失败\n\(error)"
+            resultMessage = String(format: L10n.paywallFailedMessage, error)  // ✅ 本地化
             shouldDismissAfterAlert = false
             showResultAlert = true
             
@@ -330,32 +346,32 @@ struct ProductCard: View {
     
     private var discountInfo: String? {
         if product.id.contains("yearly") {
-            return "省 33%"
+            return L10n.paywallDiscountYearly  // ✅ 本地化
         } else if product.id.contains("lifetime") {
-            return "最划算"
+            return L10n.paywallDiscountLifetime  // ✅ 本地化
         }
         return nil
     }
     
     private var productTitle: String {
         if product.id.contains("monthly") {
-            return "月付订阅"
+            return L10n.paywallProductMonthly  // ✅ 本地化
         } else if product.id.contains("yearly") {
-            return "年付订阅"
+            return L10n.paywallProductYearly  // ✅ 本地化
         } else if product.id.contains("lifetime") {
-            return "终身买断"
+            return L10n.paywallProductLifetime  // ✅ 本地化
         }
         return product.displayName
     }
     
     private var productDescription: String {
         if product.id.contains("monthly") {
-            return "按月支付，随时取消"
+            return L10n.paywallDescMonthly  // ✅ 本地化
         } else if product.id.contains("yearly") {
             let monthlyPrice = (product.price as NSDecimalNumber).doubleValue / 12.0
-            return String(format: "相当于每月 $%.2f", monthlyPrice)
+            return String(format: L10n.paywallDescYearly, monthlyPrice)  // ✅ 本地化（带格式化）
         } else if product.id.contains("lifetime") {
-            return "一次购买，永久使用"
+            return L10n.paywallDescLifetime  // ✅ 本地化
         }
         return ""
     }
@@ -366,7 +382,7 @@ struct ProductCard: View {
                 if isRecommended {
                     HStack {
                         Spacer()
-                        Text("🔥 最受欢迎")
+                        Text(L10n.paywallRecommended)  // ✅ 本地化
                             .font(.caption)
                             .fontWeight(.semibold)
                             .foregroundColor(.white)

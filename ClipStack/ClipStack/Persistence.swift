@@ -19,9 +19,9 @@ struct PersistenceController {
         for i in 0..<5 {
             let newItem = ClipItem(context: viewContext)
             newItem.id = UUID()
-            newItem.content = "示例条目 \(i + 1)"
+            newItem.content = "Sample item \(i + 1)"  // ✅ 改为英文
             newItem.contentType = "text"
-            newItem.sourceApp = "预览"
+            newItem.sourceApp = "Preview"  // ✅ 改为英文
             newItem.createdAt = Date()
             newItem.isStarred = (i == 0)
         }
@@ -29,7 +29,7 @@ struct PersistenceController {
         do {
             try viewContext.save()
         } catch {
-            print("❌ 预览数据创建失败: \(error)")
+            print("❌ \(L10n.errorPreviewDataFailed): \(error)")  // ✅ 本地化
         }
         
         return controller
@@ -52,7 +52,7 @@ struct PersistenceController {
             guard let storeURL = FileManager.default
                 .containerURL(forSecurityApplicationGroupIdentifier: "group.com.kimcao.clipstack")?
                 .appendingPathComponent("ClipStack.sqlite") else {
-                fatalError("❌ 无法获取App Group共享容器路径")
+                fatalError("❌ \(L10n.errorAppGroupPathFailed)")  // ✅ 本地化
             }
             
             let description = NSPersistentStoreDescription(url: storeURL)
@@ -76,9 +76,9 @@ struct PersistenceController {
         
         container.loadPersistentStores { storeDescription, error in
             if let error = error as NSError? {
-                fatalError("❌ Core Data加载失败: \(error)")
+                fatalError("❌ \(L10n.errorCoreDataLoadFailed): \(error)")  // ✅ 本地化
             }
-            print("✅ Core Data加载成功")
+            print("✅ \(L10n.successCoreDataLoaded)")  // ✅ 本地化
         }
         
         // ✅ 关键配置：自动合并变化
@@ -112,7 +112,7 @@ extension PersistenceController {
             let currentCount = items.count
             let limit = ProManager.freeHistoryLimit
             
-            print("📊 当前非收藏条目数：\(currentCount)/\(limit)")
+            print("📊 \(L10n.logCurrentHistoryCount(currentCount, limit))")  // ✅ 本地化
             
             if currentCount > limit {
                 // 删除超出限制的旧条目
@@ -120,17 +120,17 @@ extension PersistenceController {
                 let itemsToDelete = items.prefix(excessCount)
                 
                 for item in itemsToDelete {
-                    print("🗑️ 自动删除最旧的条目: \(item.previewContent)")
+                    print("🗑️ \(L10n.logAutoDeleteOldItem): \(item.previewContent)")  // ✅ 本地化
                     context.delete(item)
                 }
                 
                 try context.save()
-                print("✅ 已清理 \(itemsToDelete.count) 条旧记录")
+                print("✅ \(L10n.logCleanupCompleted(itemsToDelete.count))")  // ✅ 本地化
             }
             
             return true
         } catch {
-            print("❌ 清理历史记录失败: \(error)")
+            print("❌ \(L10n.errorCleanupFailed): \(error)")  // ✅ 本地化
             return false
         }
     }
@@ -151,11 +151,11 @@ extension PersistenceController {
             let count = try context.count(for: request)
             let canStar = ProManager.shared.canStarItem(currentStarredCount: count)
             
-            print("⭐ 当前收藏数：\(count)/\(ProManager.shared.getStarredLimit())")
+            print("⭐ \(L10n.logCurrentStarredCount(count, ProManager.shared.getStarredLimit()))")  // ✅ 本地化
             
             return (count, canStar)
         } catch {
-            print("❌ 查询收藏数失败: \(error)")
+            print("❌ \(L10n.errorQueryStarredFailed): \(error)")  // ✅ 本地化
             return (0, false)
         }
     }

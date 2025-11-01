@@ -34,15 +34,15 @@ struct SettingsView: View {
                         .foregroundColor(proManager.isPro ? .yellow : .blue)
                     
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(proManager.isPro ? "Pro 版本" : "免费版本")
+                        Text(proManager.isPro ? L10n.settingsProVersion : L10n.settingsFreeVersion)  // ✅ 本地化
                             .font(.headline)
                         
                         if proManager.isPro {
-                            Text("无限制，感谢支持！")
+                            Text(L10n.settingsUnlimitedThanks)  // ✅ 本地化
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         } else {
-                            Text("历史 \(historyCount)/5 • 收藏 \(starredCount)/5")
+                            Text(String(format: L10n.freeLimitCount, historyCount, starredCount))  // ✅ 本地化
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
@@ -59,7 +59,7 @@ struct SettingsView: View {
                     } label: {
                         HStack {
                             Image(systemName: "star.fill")
-                            Text("升级到 Pro 版")
+                            Text(L10n.settingsUpgradeToPro)  // ✅ 本地化
                             Spacer()
                             Image(systemName: "chevron.right")
                         }
@@ -72,7 +72,7 @@ struct SettingsView: View {
                                 .foregroundColor(.green)
                             
                             VStack(alignment: .leading, spacing: 2) {
-                                Text("Pro 版已激活")
+                                Text(L10n.settingsProActivated)  // ✅ 本地化
                                     .font(.subheadline)
                                     .fontWeight(.semibold)
                                 
@@ -91,7 +91,7 @@ struct SettingsView: View {
                             } label: {
                                 HStack {
                                     Image(systemName: "arrow.up.forward.app")
-                                    Text("管理订阅")
+                                    Text(L10n.settingsManageSubscription)  // ✅ 本地化
                                     Spacer()
                                     Image(systemName: "chevron.right")
                                 }
@@ -102,7 +102,7 @@ struct SettingsView: View {
                     }
                 }
             } header: {
-                Text("账户")
+                Text(L10n.settingsAccountHeader)  // ✅ 本地化
             }
             
             // MARK: - 存储管理区
@@ -110,21 +110,21 @@ struct SettingsView: View {
             Section {
                 // 统计信息（只读显示）
                 HStack {
-                    Label("历史记录", systemImage: "clock")
+                    Label(L10n.settingsHistoryLabel, systemImage: "clock")  // ✅ 本地化
                     Spacer()
-                    Text("\(historyCount) 条")
+                    Text(String(format: L10n.settingsItemCount, historyCount))  // ✅ 本地化
                         .foregroundColor(.secondary)
                 }
                 
                 HStack {
-                    Label("收藏", systemImage: "star.fill")
+                    Label(L10n.settingsStarredLabel, systemImage: "star.fill")  // ✅ 本地化
                     Spacer()
-                    Text("\(starredCount) 条")
+                    Text(String(format: L10n.settingsItemCount, starredCount))  // ✅ 本地化
                         .foregroundColor(.secondary)
                 }
                 
                 HStack {
-                    Label("占用空间", systemImage: "externaldrive")
+                    Label(L10n.settingsStorageLabel, systemImage: "externaldrive")  // ✅ 本地化
                     Spacer()
                     Text(formatBytes(totalSize))
                         .foregroundColor(.secondary)
@@ -134,7 +134,7 @@ struct SettingsView: View {
                 Button {
                     showClearHistoryAlert = true
                 } label: {
-                    Label("清空历史记录", systemImage: "trash")
+                    Label(L10n.settingsClearHistory, systemImage: "trash")  // ✅ 本地化
                 }
                 .foregroundColor(.orange)
                 .disabled(historyCount == 0)
@@ -142,7 +142,7 @@ struct SettingsView: View {
                 Button {
                     showClearStarredAlert = true
                 } label: {
-                    Label("清空收藏", systemImage: "star.slash")
+                    Label(L10n.settingsClearStarred, systemImage: "star.slash")  // ✅ 本地化
                 }
                 .foregroundColor(.orange)
                 .disabled(starredCount == 0)
@@ -150,15 +150,15 @@ struct SettingsView: View {
                 Button {
                     showResetAllAlert = true
                 } label: {
-                    Label("完全重置", systemImage: "exclamationmark.triangle")
+                    Label(L10n.settingsResetAll, systemImage: "exclamationmark.triangle")  // ✅ 本地化
                 }
                 .foregroundColor(.red)
                 .disabled(historyCount == 0 && starredCount == 0)
                 
             } header: {
-                Text("存储管理")
+                Text(L10n.settingsStorageHeader)  // ✅ 本地化
             } footer: {
-                Text("• 清空历史记录：删除所有非收藏条目\n• 清空收藏：删除所有收藏条目\n• 完全重置：删除所有数据（不可恢复）")
+                Text(L10n.settingsStorageFooter)  // ✅ 本地化
                     .font(.caption)
             }
             
@@ -166,14 +166,14 @@ struct SettingsView: View {
             
             Section {
                 Button {
-        resetOnboarding()
-    } label: {
-        Label("重新显示引导", systemImage: "arrow.counterclockwise")
-    }
+                    resetOnboarding()
+                } label: {
+                    Label(L10n.settingsResetOnboarding, systemImage: "arrow.counterclockwise")  // ✅ 本地化
+                }
 
                 Link(destination: URL(string: "https://github.com/yourusername/clipstack")!) {
                     HStack {
-                        Label("使用帮助", systemImage: "questionmark.circle")
+                        Label(L10n.settingsHelp, systemImage: "questionmark.circle")  // ✅ 本地化
                         Spacer()
                         Image(systemName: "arrow.up.forward")
                             .font(.caption)
@@ -182,15 +182,14 @@ struct SettingsView: View {
                 }
                 
                 Button {
-                    // 后续实现反馈功能
                     sendFeedback()
                 } label: {
-                    Label("意见反馈", systemImage: "envelope")
+                    Label(L10n.settingsFeedback, systemImage: "envelope")  // ✅ 本地化
                 }
                 
                 Link(destination: URL(string: "https://apps.apple.com/app/idXXXXXXXXXX?action=write-review")!) {
                     HStack {
-                        Label("App Store 评分", systemImage: "star")
+                        Label(L10n.settingsRateApp, systemImage: "star")  // ✅ 本地化
                         Spacer()
                         Image(systemName: "arrow.up.forward")
                             .font(.caption)
@@ -198,14 +197,14 @@ struct SettingsView: View {
                     }
                 }
             } header: {
-                Text("其他")
+                Text(L10n.settingsOtherHeader)  // ✅ 本地化
             }
             
             // MARK: - 关于区
             
             Section {
                 HStack {
-                    Text("版本")
+                    Text(L10n.settingsVersion)  // ✅ 本地化
                     Spacer()
                     Text(getAppVersion())
                         .foregroundColor(.secondary)
@@ -218,18 +217,18 @@ struct SettingsView: View {
                     loadData()
                 } label: {
                     HStack {
-                        Label("测试：切换 Pro 状态", systemImage: "ant")
+                        Label(L10n.settingsTestTogglePro, systemImage: "ant")  // ✅ 本地化
                         Spacer()
-                        Text(proManager.isPro ? "ON" : "OFF")
+                        Text(proManager.isPro ? L10n.settingsTestOn : L10n.settingsTestOff)  // ✅ 本地化
                             .foregroundColor(proManager.isPro ? .green : .red)
                     }
                 }
                 #endif
             } header: {
-                Text("关于")
+                Text(L10n.settingsAboutHeader)  // ✅ 本地化
             }
         }
-        .navigationTitle("设置")
+        .navigationTitle(L10n.settings)  // ✅ 本地化（复用已有 key）
         .navigationBarTitleDisplayMode(.large)
         .onAppear {
             loadData()
@@ -237,31 +236,31 @@ struct SettingsView: View {
         
         // MARK: - 确认弹窗
         
-        .alert("清空历史记录", isPresented: $showClearHistoryAlert) {
-            Button("取消", role: .cancel) { }
-            Button("清空", role: .destructive) {
+        .alert(L10n.settingsClearHistory, isPresented: $showClearHistoryAlert) {  // ✅ 本地化
+            Button(L10n.cancel, role: .cancel) { }
+            Button(L10n.settingsClearAction, role: .destructive) {  // ✅ 本地化
                 clearHistory()
             }
         } message: {
-            Text("将删除所有非收藏的 \(historyCount) 条历史记录\n收藏的内容会保留\n\n此操作不可恢复")
+            Text(String(format: L10n.alertClearHistoryMessage, historyCount))  // ✅ 本地化
         }
         
-        .alert("清空收藏", isPresented: $showClearStarredAlert) {
-            Button("取消", role: .cancel) { }
-            Button("清空", role: .destructive) {
+        .alert(L10n.settingsClearStarred, isPresented: $showClearStarredAlert) {  // ✅ 本地化
+            Button(L10n.cancel, role: .cancel) { }
+            Button(L10n.settingsClearAction, role: .destructive) {  // ✅ 本地化
                 clearStarred()
             }
         } message: {
-            Text("将删除所有 \(starredCount) 条收藏内容\n历史记录会保留\n\n此操作不可恢复")
+            Text(String(format: L10n.alertClearStarredMessage, starredCount))  // ✅ 本地化
         }
         
-        .alert("完全重置", isPresented: $showResetAllAlert) {
-            Button("取消", role: .cancel) { }
-            Button("全部删除", role: .destructive) {
+        .alert(L10n.settingsResetAll, isPresented: $showResetAllAlert) {  // ✅ 本地化
+            Button(L10n.cancel, role: .cancel) { }
+            Button(L10n.settingsDeleteAll, role: .destructive) {  // ✅ 本地化
                 resetAll()
             }
         } message: {
-            Text("将删除所有数据：\n• \(historyCount) 条历史记录\n• \(starredCount) 条收藏\n\n此操作不可恢复！")
+            Text(String(format: L10n.alertResetAllMessage, historyCount, starredCount))  // ✅ 本地化
         }
         
         // 付费墙弹窗
@@ -288,9 +287,9 @@ struct SettingsView: View {
             let allItems = try viewContext.fetch(allRequest)
             totalSize = allItems.reduce(0) { $0 + ($1.thumbnailSize > 0 ? $1.thumbnailSize : 0) }
             
-            print("📊 设置页面数据：历史 \(historyCount)，收藏 \(starredCount)，占用 \(formatBytes(totalSize))")
+            print("📊 \(L10n.logSettingsDataLoaded(historyCount, starredCount, formatBytes(totalSize)))")  // ✅ 本地化
         } catch {
-            print("❌ 加载设置数据失败: \(error)")
+            print("❌ \(L10n.errorLoadSettingsFailed): \(error)")  // ✅ 本地化
         }
     }
     
@@ -301,7 +300,10 @@ struct SettingsView: View {
         let request: NSFetchRequest<ClipItem> = ClipItem.fetchRequest()
         request.predicate = NSPredicate(format: "isStarred == %@", NSNumber(value: false))
         
-        performDelete(request: request, successMessage: "✅ 已清空 \(historyCount) 条历史记录")
+        performDelete(
+            request: request,
+            successMessage: String(format: L10n.successClearHistory, historyCount)  // ✅ 本地化
+        )
     }
     
     /// 清空收藏（保留历史）
@@ -309,14 +311,20 @@ struct SettingsView: View {
         let request: NSFetchRequest<ClipItem> = ClipItem.fetchRequest()
         request.predicate = NSPredicate(format: "isStarred == %@", NSNumber(value: true))
         
-        performDelete(request: request, successMessage: "✅ 已清空 \(starredCount) 条收藏")
+        performDelete(
+            request: request,
+            successMessage: String(format: L10n.successClearStarred, starredCount)  // ✅ 本地化
+        )
     }
     
     /// 完全重置（删除所有数据）
     private func resetAll() {
         let request: NSFetchRequest<ClipItem> = ClipItem.fetchRequest()
         
-        performDelete(request: request, successMessage: "✅ 已完全重置，所有数据已清空")
+        performDelete(
+            request: request,
+            successMessage: L10n.successResetAll  // ✅ 本地化
+        )
     }
     
     /// 通用删除方法（避免代码重复）
@@ -342,8 +350,8 @@ struct SettingsView: View {
             showSuccessHUD(message: successMessage)
             
         } catch {
-            print("❌ 删除失败: \(error)")
-            showErrorAlert(message: "删除失败：\(error.localizedDescription)")
+            print("❌ \(L10n.errorDeleteFailed): \(error)")  // ✅ 本地化
+            showErrorAlert(message: String(format: L10n.errorDeleteFailedDetail, error.localizedDescription))  // ✅ 本地化
         }
     }
     
@@ -411,8 +419,12 @@ struct SettingsView: View {
                 return
             }
             
-            let alert = UIAlertController(title: "操作失败", message: message, preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "好的", style: .default))
+            let alert = UIAlertController(
+                title: L10n.errorAlertTitle,  // ✅ 本地化
+                message: message,
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: L10n.alertOk, style: .default))  // ✅ 本地化
             rootVC.present(alert, animated: true)
         }
     }
@@ -420,21 +432,19 @@ struct SettingsView: View {
     /// 发送反馈（打开邮件客户端）
     private func sendFeedback() {
         let email = "your-email@example.com"
-        let subject = "ClipStack 反馈"
-        let body = """
-        
-        
-        ---
-        版本: \(getAppVersion())
-        系统: \(UIDevice.current.systemVersion)
-        设备: \(UIDevice.current.model)
-        """
+        let subject = L10n.feedbackSubject  // ✅ 本地化
+        let body = String(
+            format: L10n.feedbackBody,  // ✅ 本地化
+            getAppVersion(),
+            UIDevice.current.systemVersion,
+            UIDevice.current.model
+        )
         
         let urlString = "mailto:\(email)?subject=\(subject.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")&body=\(body.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")"
         
         if let url = URL(string: urlString) {
             UIApplication.shared.open(url)
-            print("📧 已打开邮件客户端")
+            print("📧 \(L10n.logEmailOpened)")  // ✅ 本地化
         }
     }
     
@@ -443,13 +453,13 @@ struct SettingsView: View {
     private var subscriptionStatusText: String {
         switch storeHelper.subscriptionStatus {
         case .lifetime:
-            return "终身买断"
+            return L10n.subscriptionLifetime  // ✅ 本地化
         case .yearly:
-            return "年付订阅"
+            return L10n.subscriptionYearly  // ✅ 本地化
         case .monthly:
-            return "月付订阅"
+            return L10n.subscriptionMonthly  // ✅ 本地化
         case .notSubscribed:
-            return "未订阅"
+            return L10n.subscriptionNone  // ✅ 本地化
         }
     }
     
@@ -467,22 +477,22 @@ struct SettingsView: View {
         }
         
         UIApplication.shared.open(url)
-        print("📱 已打开订阅管理页面")
+        print("📱 \(L10n.logSubscriptionPageOpened)")  // ✅ 本地化
     }
 
     // MARK: - 重置引导流程
 
-/// 重置引导流程（用于测试或用户手动重新查看）
-private func resetOnboarding() {
-    UserDefaults.standard.set(false, forKey: "hasCompletedOnboarding")
-    print("🔄 已重置引导流程，下次启动将重新显示")
-    
-    showSuccessHUD(message: "✅ 下次启动将显示引导")
-    
-    // 触觉反馈
-    let generator = UINotificationFeedbackGenerator()
-    generator.notificationOccurred(.success)
-}
+    /// 重置引导流程（用于测试或用户手动重新查看）
+    private func resetOnboarding() {
+        UserDefaults.standard.set(false, forKey: "hasCompletedOnboarding")
+        print("🔄 \(L10n.logOnboardingReset)")  // ✅ 本地化
+        
+        showSuccessHUD(message: L10n.successOnboardingReset)  // ✅ 本地化
+        
+        // 触觉反馈
+        let generator = UINotificationFeedbackGenerator()
+        generator.notificationOccurred(.success)
+    }
 }
 
 // MARK: - 预览
