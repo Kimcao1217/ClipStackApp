@@ -35,7 +35,7 @@ class ShareViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        print("🚀 Share Extension viewDidLoad 开始")
+        print("🚀 Share Extension viewDidLoad started")
         
         setupUI()
         handleSharedContent()
@@ -60,7 +60,7 @@ class ShareViewController: UIViewController {
             activityIndicator.bottomAnchor.constraint(equalTo: statusLabel.topAnchor, constant: -20)
         ])
         
-        statusLabel.text = "正在保存..."
+        statusLabel.text = L10n.shareSaving
         activityIndicator.startAnimating()
     }
     
@@ -69,18 +69,18 @@ class ShareViewController: UIViewController {
     private func handleSharedContent() {
         guard let extensionItem = extensionContext?.inputItems.first as? NSExtensionItem,
               let itemProvider = extensionItem.attachments?.first else {
-            showError("无法获取分享内容")
+            showError(L10n.shareErrorNoContent)
             return
         }
         
-        print("📦 收到分享请求，开始处理...")
+        print("📦 Received share request, processing...")
         handleItemProvider(itemProvider)
     }
     
     /// 处理ItemProvider，按优先级尝试不同类型
     private func handleItemProvider(_ itemProvider: NSItemProvider) {
         // 打印所有支持的类型标识符
-        print("📦 ItemProvider 支持的所有类型：")
+        print("📦 ItemProvider supported types:")
         for identifier in itemProvider.registeredTypeIdentifiers {
             print("   - \(identifier)")
         }
@@ -99,7 +99,7 @@ class ShareViewController: UIViewController {
         }
         // 不支持的类型
         else {
-            showError("不支持的内容类型")
+            showError(L10n.shareErrorUnsupportedType)
         }
     }
     
@@ -110,8 +110,8 @@ class ShareViewController: UIViewController {
             guard let self = self else { return }
             
             if let error = error {
-                print("❌ 加载文本失败: \(error.localizedDescription)")
-                self.showError("读取文本失败")
+                print("❌ Failed to load text: \(error.localizedDescription)")
+                self.showError(L10n.shareErrorReadTextFailed)
                 return
             }
             
@@ -124,11 +124,11 @@ class ShareViewController: UIViewController {
             }
             
             guard let content = textContent, !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-                self.showError("文本内容为空")
+                self.showError(L10n.shareErrorEmptyText)
                 return
             }
             
-            print("📝 成功提取文本内容: \(content.prefix(50))...")
+            print("📝 Successfully extracted text: \(content.prefix(50))...")
             
             self.saveClipItem(
                 content: content,
@@ -140,7 +140,7 @@ class ShareViewController: UIViewController {
                 imageFormat: nil,
                 originalSize: 0,
                 thumbnailSize: 0,
-                keyboardThumbnail: nil  // 文本类型不需要缩略图
+                keyboardThumbnail: nil
             )
         }
     }
@@ -152,8 +152,8 @@ class ShareViewController: UIViewController {
             guard let self = self else { return }
             
             if let error = error {
-                print("❌ 加载URL失败: \(error.localizedDescription)")
-                self.showError("读取链接失败")
+                print("❌ Failed to load URL: \(error.localizedDescription)")
+                self.showError(L10n.shareErrorReadLinkFailed)
                 return
             }
             
@@ -166,11 +166,11 @@ class ShareViewController: UIViewController {
             }
             
             guard let content = urlString, !content.isEmpty else {
-                self.showError("链接为空")
+                self.showError(L10n.shareErrorEmptyLink)
                 return
             }
             
-            print("🔗 成功提取URL: \(content)")
+            print("🔗 Successfully extracted URL: \(content)")
             
             self.saveClipItem(
                 content: content,
@@ -182,7 +182,7 @@ class ShareViewController: UIViewController {
                 imageFormat: nil,
                 originalSize: 0,
                 thumbnailSize: 0,
-                keyboardThumbnail: nil  // 链接类型不需要缩略图
+                keyboardThumbnail: nil
             )
         }
     }
@@ -190,16 +190,16 @@ class ShareViewController: UIViewController {
     // MARK: - 处理图片内容
     
     private func handleImageContent(_ itemProvider: NSItemProvider) {
-        print("🖼️ 开始处理图片...")
+        print("🖼️ Processing image...")
         
         itemProvider.loadItem(forTypeIdentifier: UTType.image.identifier, options: nil) { [weak self] (item, error) in
             guard let self = self else { return }
 
-            print("📥 loadItem 回调参数类型: \(type(of: item))")
+            print("📥 loadItem callback type: \(type(of: item))")
             
             if let error = error {
-                print("❌ 加载图片失败: \(error.localizedDescription)")
-                self.showError("读取图片失败")
+                print("❌ Failed to load image: \(error.localizedDescription)")
+                self.showError(L10n.shareErrorReadImageFailed)
                 return
             }
             
@@ -209,15 +209,12 @@ class ShareViewController: UIViewController {
             var imageFormat: String = "JPEG"
             
             if let img = item as? UIImage {
-                // 直接是 UIImage
                 image = img
-                print("✅ 直接获取到 UIImage")
+                print("✅ Got UIImage directly")
             } else if let data = item as? Data {
-                // 是 Data，转为 UIImage
                 image = UIImage(data: data)
                 originalSize = Int64(data.count)
                 
-                // 检测图片格式
                 if data.count > 0 {
                     let byte = data[0]
                     if byte == 0xFF {
@@ -229,85 +226,74 @@ class ShareViewController: UIViewController {
                     }
                 }
                 
-                print("✅ 从 Data 转换为 UIImage（\(data.count) 字节）")
+                print("✅ Converted Data to UIImage (\(data.count) bytes)")
             } else if let url = item as? URL {
-                // 是文件 URL
                 if let data = try? Data(contentsOf: url) {
                     image = UIImage(data: data)
                     originalSize = Int64(data.count)
                     imageFormat = url.pathExtension.uppercased()
-                    print("✅ 从文件 URL 加载图片（\(data.count) 字节）")
+                    print("✅ Loaded image from URL (\(data.count) bytes)")
                 }
             }
             
             guard let originalImage = image else {
-                self.showError("无法读取图片")
+                self.showError(L10n.shareErrorReadImageFailed)
                 return
             }
             
-            print("📐 原图尺寸: \(originalImage.size.width) × \(originalImage.size.height)")
+            print("📐 Original size: \(originalImage.size.width) × \(originalImage.size.height)")
             
-            // 生成中等缩略图（主 App 使用，200KB 左右）
+            // 生成中等缩略图（主 App 使用）
             guard let mediumThumbnail = self.compressImage(originalImage, targetWidth: 400) else {
-                self.showError("图片压缩失败")
+                self.showError(L10n.shareErrorCompressFailed)
                 return
             }
 
-            // 生成超小缩略图（键盘扩展使用，5KB 以内）
+            // 生成超小缩略图（键盘扩展使用）
             guard let keyboardThumbnail = self.compressImage(originalImage, targetWidth: 60, quality: 0.3) else {
-                self.showError("生成键盘缩略图失败")
+                self.showError(L10n.shareErrorThumbnailFailed)
                 return
             }
 
-            print("✅ 图片压缩完成:")
-            print("  - 原图: \(originalSize) 字节")
-            print("  - 中等缩略图: \(mediumThumbnail.count) 字节")
-            print("  - 键盘缩略图: \(keyboardThumbnail.count) 字节")
+            print("✅ Image compression completed:")
+            print("  - Original: \(originalSize) bytes")
+            print("  - Medium thumbnail: \(mediumThumbnail.count) bytes")
+            print("  - Keyboard thumbnail: \(keyboardThumbnail.count) bytes")
             
-            // 保存到 Core Data
             self.saveClipItem(
-                content: "图片",
+                content: L10n.shareImageLabel,
                 contentType: "image",
                 sourceApp: self.getSourceAppName(),
-                imageData: mediumThumbnail,          // 中等缩略图（主 App 用）
+                imageData: mediumThumbnail,
                 imageWidth: Int32(originalImage.size.width),
                 imageHeight: Int32(originalImage.size.height),
                 imageFormat: imageFormat,
                 originalSize: originalSize,
                 thumbnailSize: Int64(mediumThumbnail.count),
-                keyboardThumbnail: keyboardThumbnail // ⭐ 键盘专用缩略图
+                keyboardThumbnail: keyboardThumbnail
             )
         }
     }
     
     /// 压缩图片到指定宽度（保持宽高比）
-    /// - Parameters:
-    ///   - image: 原图
-    ///   - targetWidth: 目标宽度
-    ///   - quality: JPEG 质量（0.0 - 1.0）
-    /// - Returns: 压缩后的图片数据
     private func compressImage(_ image: UIImage, targetWidth: CGFloat = 400, quality: CGFloat = 0.7) -> Data? {
         let originalSize = image.size
         
-        // 计算压缩比例
-        let scale = min(targetWidth / originalSize.width, 1.0) // 永远不放大
+        let scale = min(targetWidth / originalSize.width, 1.0)
         let newHeight = originalSize.height * scale
         let newSize = CGSize(width: originalSize.width * scale, height: newHeight)
         
-        // 使用 UIGraphicsImageRenderer 高质量缩放
         let renderer = UIGraphicsImageRenderer(size: newSize)
         let resizedImage = renderer.image { context in
             image.draw(in: CGRect(origin: .zero, size: newSize))
         }
         
-        // 转为 JPEG
         guard let jpegData = resizedImage.jpegData(compressionQuality: quality) else {
             return nil
         }
         
-        // 如果质量仍然太大，递归降低质量
         if jpegData.count > Int(targetWidth * targetWidth * 0.5) && quality > 0.1 {
-            print("⚠️ 缩略图仍过大 (\(jpegData.count) 字节)，降低质量重试...")
+            print("⚠️ Thumbnail still too large (\(jpegData.count) bytes), retrying...")
             return compressImage(image, targetWidth: targetWidth, quality: quality - 0.1)
         }
         
@@ -326,7 +312,7 @@ class ShareViewController: UIViewController {
         imageFormat: String?,
         originalSize: Int64,
         thumbnailSize: Int64,
-        keyboardThumbnail: Data?  // 键盘专用缩略图
+        keyboardThumbnail: Data?
     ) {
         let context = persistenceController.container.newBackgroundContext()
         
@@ -339,7 +325,6 @@ class ShareViewController: UIViewController {
             newItem.createdAt = Date()
             newItem.isStarred = false
 
-            // ⭐ 保存图片数据
             if let imageData = imageData {
                 newItem.imageData = imageData
                 newItem.imageWidth = imageWidth
@@ -347,37 +332,36 @@ class ShareViewController: UIViewController {
                 newItem.imageFormat = imageFormat
                 newItem.originalSize = originalSize
                 newItem.thumbnailSize = thumbnailSize
-                newItem.keyboardThumbnail = keyboardThumbnail  // 保存键盘缩略图
+                newItem.keyboardThumbnail = keyboardThumbnail
             }
             
-            print("💾 正在保存:")
-            print("  - 类型: \(contentType)")
-            print("  - 来源: \(sourceApp)")
+            print("💾 Saving:")
+            print("  - Type: \(contentType)")
+            print("  - Source: \(sourceApp)")
             if contentType == "image" {
-                print("  - 原图: \(imageWidth) × \(imageHeight)")
-                print("  - 中等缩略图: \(thumbnailSize) 字节")
+                print("  - Original: \(imageWidth) × \(imageHeight)")
+                print("  - Medium thumbnail: \(thumbnailSize) bytes")
                 if let kbThumb = keyboardThumbnail {
-                    print("  - 键盘缩略图: \(kbThumb.count) 字节")
+                    print("  - Keyboard thumbnail: \(kbThumb.count) bytes")
                 }
             }
             
             do {
                 try context.save()
-                print("✅ Share Extension 保存成功！")
+                print("✅ Share Extension saved successfully")
 
                 DarwinNotificationCenter.shared.postNotification()
-                
                 WidgetCenter.shared.reloadAllTimelines()
-                print("🔄 已触发 Widget 刷新")
+                print("🔄 Widget refresh triggered")
                 
                 DispatchQueue.main.async {
                     self.showSuccess()
                 }
             } catch {
-                print("❌ Share Extension 保存失败: \(error.localizedDescription)")
+                print("❌ Share Extension save failed: \(error.localizedDescription)")
                 
                 DispatchQueue.main.async {
-                    self.showError("保存失败: \(error.localizedDescription)")
+                    self.showError(String(format: L10n.shareErrorSaveFailed, error.localizedDescription))
                 }
             }
         }
@@ -386,25 +370,25 @@ class ShareViewController: UIViewController {
     // MARK: - UI反馈方法
     
     private func showSuccess() {
-        print("🎉 显示成功提示")
+        print("🎉 Showing success message")
         
         activityIndicator.stopAnimating()
         activityIndicator.isHidden = true
         
-        statusLabel.text = "✅ 已保存到 ClipStack"
+        statusLabel.text = L10n.shareSuccess
         statusLabel.textColor = .systemGreen
         
         let generator = UINotificationFeedbackGenerator()
         generator.notificationOccurred(.success)
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
-            print("🚪 关闭 Share Extension")
+            print("🚪 Closing Share Extension")
             self?.extensionContext?.completeRequest(returningItems: nil, completionHandler: nil)
         }
     }
     
     private func showError(_ message: String) {
-        print("❌ 显示错误提示: \(message)")
+        print("❌ Showing error: \(message)")
         
         DispatchQueue.main.async {
             self.activityIndicator.stopAnimating()
@@ -417,7 +401,7 @@ class ShareViewController: UIViewController {
             generator.notificationOccurred(.error)
             
             DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
-                print("🚪 关闭 Share Extension（错误）")
+                print("🚪 Closing Share Extension (error)")
                 self?.extensionContext?.cancelRequest(withError: NSError(domain: "ClipStack", code: -1))
             }
         }
@@ -437,6 +421,6 @@ class ShareViewController: UIViewController {
            let sourceApplication = extensionItem.userInfo?["NSExtensionItemSourceApplicationKey"] as? String {
             return sourceApplication
         }
-        return "分享"
+        return L10n.shareDefaultSource
     }
 }

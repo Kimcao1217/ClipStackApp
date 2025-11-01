@@ -392,6 +392,29 @@ static let keyboardPermissionTitle = NSLocalizedString("keyboard.permission.titl
 static let keyboardPermissionMessage = NSLocalizedString("keyboard.permission.message", comment: "键盘-权限提示内容")
 static let keyboardPermissionGotIt = NSLocalizedString("keyboard.permission.gotIt", comment: "键盘-权限提示确认按钮")
     // 🔹 阶段 3 会添加分享扩展专用 key
+    // MARK: - 分享扩展（ShareViewController.swift）
+
+// 状态提示
+static let shareSaving = NSLocalizedString("share.saving", comment: "Saving indicator")
+static let shareSuccess = NSLocalizedString("share.success", comment: "Success message")
+
+// 错误提示
+static let shareErrorNoContent = NSLocalizedString("share.error.noContent", comment: "Failed to get shared content")
+static let shareErrorUnsupportedType = NSLocalizedString("share.error.unsupportedType", comment: "Unsupported content type")
+static let shareErrorReadTextFailed = NSLocalizedString("share.error.readTextFailed", comment: "Failed to read text")
+static let shareErrorEmptyText = NSLocalizedString("share.error.emptyText", comment: "Text is empty")
+static let shareErrorReadLinkFailed = NSLocalizedString("share.error.readLinkFailed", comment: "Failed to read link")
+static let shareErrorEmptyLink = NSLocalizedString("share.error.emptyLink", comment: "Link is empty")
+static let shareErrorReadImageFailed = NSLocalizedString("share.error.readImageFailed", comment: "Failed to read image")
+static let shareErrorCompressFailed = NSLocalizedString("share.error.compressFailed", comment: "Image compression failed")
+static let shareErrorThumbnailFailed = NSLocalizedString("share.error.thumbnailFailed", comment: "Thumbnail generation failed")
+static let shareErrorSaveFailed = NSLocalizedString("share.error.saveFailed", comment: "Save failed: %@")
+
+// 图片标签
+static let shareImageLabel = NSLocalizedString("share.imageLabel", comment: "Image content label")
+
+// 默认来源
+static let shareDefaultSource = NSLocalizedString("share.defaultSource", comment: "Default share source name")
     // 🔹 阶段 4 会添加 Widget 专用 key
 }
 
