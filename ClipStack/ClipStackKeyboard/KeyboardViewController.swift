@@ -18,14 +18,14 @@ class KeyboardViewController: UIInputViewController {
     private var clipItems: [ClipItem] = []
 
     // 分页加载相关
-private var currentPage = 0
-private let itemsPerPage = 10  // 每页10条
-private var isLoadingMore = false
-private var hasMoreData = true
+    private var currentPage = 0
+    private let itemsPerPage = 10  // 每页10条
+    private var isLoadingMore = false
+    private var hasMoreData = true
 
-// 图片缓存池（自动管理内存）
-private var imageCache: [UUID: UIImage] = [:]
-private let maxCacheSize = 20  // 最多缓存 20 张图片
+    // 图片缓存池（自动管理内存）
+    private var imageCache: [UUID: UIImage] = [:]
+    private let maxCacheSize = 20  // 最多缓存 20 张图片
     
     // 当前选中的筛选类型
     private enum FilterType: Int {
@@ -37,11 +37,11 @@ private let maxCacheSize = 20  // 最多缓存 20 张图片
         
         var title: String {
             switch self {
-            case .all: return "全部"
-            case .text: return "文本"
-            case .link: return "链接"
-            case .image: return "图片"
-            case .starred: return "收藏"
+            case .all: return L10n.keyboardFilterAll
+            case .text: return L10n.keyboardFilterText
+            case .link: return L10n.keyboardFilterLink
+            case .image: return L10n.keyboardFilterImage
+            case .starred: return L10n.keyboardFilterStarred
             }
         }
         
@@ -72,7 +72,16 @@ private let maxCacheSize = 20  // 最多缓存 20 张图片
     private let emptyStateLabel = UILabel()
     
     // 筛选器
-    private let filterSegmentedControl = UISegmentedControl(items: ["全部", "文本", "链接", "图片", "收藏"])
+    private lazy var filterSegmentedControl: UISegmentedControl = {
+        let items = [
+            L10n.keyboardFilterAll,
+            L10n.keyboardFilterText,
+            L10n.keyboardFilterLink,
+            L10n.keyboardFilterImage,
+            L10n.keyboardFilterStarred
+        ]
+        return UISegmentedControl(items: items)
+    }()
     
     // 键盘高度约束
     private var heightConstraint: NSLayoutConstraint?
@@ -108,7 +117,7 @@ private let maxCacheSize = 20  // 最多缓存 20 张图片
         view.addSubview(headerView)
         
         // 标题标签
-        headerLabel.text = "📋 ClipStack"
+        headerLabel.text = L10n.keyboardTitle
         headerLabel.font = .systemFont(ofSize: 16, weight: .semibold)
         headerLabel.translatesAutoresizingMaskIntoConstraints = false
         headerView.addSubview(headerLabel)
@@ -140,7 +149,7 @@ private let maxCacheSize = 20  // 最多缓存 20 张图片
         scrollView.addSubview(stackView)
         
         // ===== 空状态标签 =====
-        emptyStateLabel.text = "还没有剪贴板历史\n在主App中添加内容"
+        emptyStateLabel.text = L10n.keyboardEmptyAll
         emptyStateLabel.textAlignment = .center
         emptyStateLabel.numberOfLines = 0
         emptyStateLabel.textColor = .secondaryLabel
@@ -214,50 +223,50 @@ private let maxCacheSize = 20  // 最多缓存 20 张图片
     // MARK: - 数据加载
     
     /// 根据当前筛选器加载数据（支持分页）
-private func loadData(isLoadingMore: Bool = false) {
-    let context = persistenceController.container.viewContext
-    
-    let fetchRequest: NSFetchRequest<ClipItem> = ClipItem.fetchRequest()
-    fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \ClipItem.createdAt, ascending: false)]
-    
-    // 应用筛选条件
-    if let predicate = currentFilter.predicate {
-        fetchRequest.predicate = predicate
-    }
-    
-    // ⭐ 分页加载：只获取当前页的数据
-    if isLoadingMore {
-        currentPage += 1
-    } else {
-        currentPage = 0
-        clipItems.removeAll()
-        imageCache.removeAll()  // 清空缓存
-    }
-    
-    fetchRequest.fetchLimit = itemsPerPage
-    fetchRequest.fetchOffset = currentPage * itemsPerPage
-    
-    do {
-        let newItems = try context.fetch(fetchRequest)
+    private func loadData(isLoadingMore: Bool = false) {
+        let context = persistenceController.container.viewContext
         
-        if isLoadingMore {
-            clipItems.append(contentsOf: newItems)
-        } else {
-            clipItems = newItems
+        let fetchRequest: NSFetchRequest<ClipItem> = ClipItem.fetchRequest()
+        fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \ClipItem.createdAt, ascending: false)]
+        
+        // 应用筛选条件
+        if let predicate = currentFilter.predicate {
+            fetchRequest.predicate = predicate
         }
         
-        hasMoreData = newItems.count == itemsPerPage
+        // ⭐ 分页加载：只获取当前页的数据
+        if isLoadingMore {
+            currentPage += 1
+        } else {
+            currentPage = 0
+            clipItems.removeAll()
+            imageCache.removeAll()  // 清空缓存
+        }
         
-        print("✅ 键盘扩展加载 \(newItems.count) 条数据（第 \(currentPage) 页，筛选器：\(currentFilter.title)）")
-        print("📊 当前总共 \(clipItems.count) 条，还有更多数据：\(hasMoreData)")
+        fetchRequest.fetchLimit = itemsPerPage
+        fetchRequest.fetchOffset = currentPage * itemsPerPage
         
-        updateUI()
-    } catch {
-        print("❌ 键盘扩展数据加载失败: \(error.localizedDescription)")
-        clipItems = []
-        updateUI()
+        do {
+            let newItems = try context.fetch(fetchRequest)
+            
+            if isLoadingMore {
+                clipItems.append(contentsOf: newItems)
+            } else {
+                clipItems = newItems
+            }
+            
+            hasMoreData = newItems.count == itemsPerPage
+            
+            print("✅ 键盘扩展加载 \(newItems.count) 条数据（第 \(currentPage) 页，筛选器：\(currentFilter.title)）")
+            print("📊 当前总共 \(clipItems.count) 条，还有更多数据：\(hasMoreData)")
+            
+            updateUI()
+        } catch {
+            print("❌ 键盘扩展数据加载失败: \(error.localizedDescription)")
+            clipItems = []
+            updateUI()
+        }
     }
-}
     
     // MARK: - UI更新
     
@@ -273,15 +282,15 @@ private func loadData(isLoadingMore: Bool = false) {
             // 根据筛选器显示不同的空状态提示
             switch currentFilter {
             case .all:
-                emptyStateLabel.text = "还没有剪贴板历史\n在主App中添加内容"
+                emptyStateLabel.text = L10n.keyboardEmptyAll
             case .text:
-                emptyStateLabel.text = "还没有文本内容\n试试分享文字到ClipStack"
+                emptyStateLabel.text = L10n.keyboardEmptyText
             case .link:
-                emptyStateLabel.text = "还没有链接\n试试分享网页到ClipStack"
+                emptyStateLabel.text = L10n.keyboardEmptyLink
             case .image:
-                emptyStateLabel.text = "还没有图片\n试试分享照片到ClipStack"
+                emptyStateLabel.text = L10n.keyboardEmptyImage
             case .starred:
-                emptyStateLabel.text = "还没有收藏的内容\n在主App中收藏常用内容"
+                emptyStateLabel.text = L10n.keyboardEmptyStarred
             }
         } else {
             // 显示数据列表
@@ -289,39 +298,39 @@ private func loadData(isLoadingMore: Bool = false) {
             scrollView.isHidden = false
             
             for item in clipItems {
-    let rowView = ClipItemKeyboardRow()
-    rowView.clipItem = item
-    rowView.imageCache = imageCache  // ⭐ 传递缓存池
-    rowView.translatesAutoresizingMaskIntoConstraints = false
-    
-    // 设置点击回调
-    rowView.onTap = { [weak self, weak item] in
-        guard let self = self, let item = item else { return }
-        self.handleItemTap(item)
-    }
-    
-    stackView.addArrangedSubview(rowView)
-    
-    // 设置行高度
-    NSLayoutConstraint.activate([
-        rowView.heightAnchor.constraint(equalToConstant: 60)
-    ])
-}
+                let rowView = ClipItemKeyboardRow()
+                rowView.clipItem = item
+                rowView.imageCache = imageCache  // ⭐ 传递缓存池
+                rowView.translatesAutoresizingMaskIntoConstraints = false
+                
+                // 设置点击回调
+                rowView.onTap = { [weak self, weak item] in
+                    guard let self = self, let item = item else { return }
+                    self.handleItemTap(item)
+                }
+                
+                stackView.addArrangedSubview(rowView)
+                
+                // 设置行高度
+                NSLayoutConstraint.activate([
+                    rowView.heightAnchor.constraint(equalToConstant: 60)
+                ])
+            }
 
-// ⭐ 如果还有更多数据，显示加载提示
-if hasMoreData {
-    let loadingLabel = UILabel()
-    loadingLabel.text = "上滑加载更多..."
-    loadingLabel.textAlignment = .center
-    loadingLabel.font = .systemFont(ofSize: 12)
-    loadingLabel.textColor = .secondaryLabel
-    loadingLabel.translatesAutoresizingMaskIntoConstraints = false
-    stackView.addArrangedSubview(loadingLabel)
-    
-    NSLayoutConstraint.activate([
-        loadingLabel.heightAnchor.constraint(equalToConstant: 40)
-    ])
-}
+            // ⭐ 如果还有更多数据，显示加载提示
+            if hasMoreData {
+                let loadingLabel = UILabel()
+                loadingLabel.text = L10n.keyboardLoadMore
+                loadingLabel.textAlignment = .center
+                loadingLabel.font = .systemFont(ofSize: 12)
+                loadingLabel.textColor = .secondaryLabel
+                loadingLabel.translatesAutoresizingMaskIntoConstraints = false
+                stackView.addArrangedSubview(loadingLabel)
+                
+                NSLayoutConstraint.activate([
+                    loadingLabel.heightAnchor.constraint(equalToConstant: 40)
+                ])
+            }
         }
     }
     
@@ -366,7 +375,7 @@ if hasMoreData {
         guard let imageData = item.imageData,
               let image = UIImage(data: imageData) else {
             print("⚠️ 图片数据为空")
-            showToast("❌ 图片加载失败")
+            showToast(L10n.keyboardImageLoadFailed)
             return
         }
         
@@ -380,7 +389,7 @@ if hasMoreData {
         UIPasteboard.general.image = image
         
         print("📋 图片已复制到剪贴板")
-        showToast("✅ 图片已复制")
+        showToast(L10n.keyboardImageCopied)
         
         // 触觉反馈
         let generator = UIImpactFeedbackGenerator(style: .medium)
@@ -423,7 +432,7 @@ if hasMoreData {
         
         // 标题
         let titleLabel = UILabel()
-        titleLabel.text = "需要开启\"允许完全访问\""
+        titleLabel.text = L10n.keyboardPermissionTitle
         titleLabel.font = .systemFont(ofSize: 16, weight: .semibold)
         titleLabel.textAlignment = .center
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -431,7 +440,7 @@ if hasMoreData {
         
         // 说明
         let messageLabel = UILabel()
-        messageLabel.text = "复制图片到剪贴板需要此权限\n\n设置 → 通用 → 键盘 → ClipStack\n→ 开启\"允许完全访问\""
+        messageLabel.text = L10n.keyboardPermissionMessage
         messageLabel.font = .systemFont(ofSize: 12)
         messageLabel.textColor = .secondaryLabel
         messageLabel.numberOfLines = 0
@@ -441,7 +450,7 @@ if hasMoreData {
         
         // 关闭按钮
         let closeButton = UIButton(type: .system)
-        closeButton.setTitle("我知道了", for: .normal)
+        closeButton.setTitle(L10n.keyboardPermissionGotIt, for: .normal)
         closeButton.titleLabel?.font = .systemFont(ofSize: 14, weight: .medium)
         closeButton.backgroundColor = .systemBlue
         closeButton.setTitleColor(.white, for: .normal)

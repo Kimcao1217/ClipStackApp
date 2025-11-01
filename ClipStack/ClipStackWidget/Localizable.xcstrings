@@ -199,6 +199,63 @@
     "imageViewer.source" : {
       "comment" : "来源信息格式"
     },
+    "keyboard.action.copy" : {
+      "comment" : "键盘-图片操作提示"
+    },
+    "keyboard.action.insert" : {
+      "comment" : "键盘-文本操作提示"
+    },
+    "keyboard.empty.all" : {
+      "comment" : "键盘-空状态提示（全部）"
+    },
+    "keyboard.empty.image" : {
+      "comment" : "键盘-空状态提示（图片）"
+    },
+    "keyboard.empty.link" : {
+      "comment" : "键盘-空状态提示（链接）"
+    },
+    "keyboard.empty.starred" : {
+      "comment" : "键盘-空状态提示（收藏）"
+    },
+    "keyboard.empty.text" : {
+      "comment" : "键盘-空状态提示（文本）"
+    },
+    "keyboard.filter.all" : {
+      "comment" : "键盘-筛选器选项（全部）"
+    },
+    "keyboard.filter.image" : {
+      "comment" : "键盘-筛选器选项（图片）"
+    },
+    "keyboard.filter.link" : {
+      "comment" : "键盘-筛选器选项（链接）"
+    },
+    "keyboard.filter.starred" : {
+      "comment" : "键盘-筛选器选项（收藏）"
+    },
+    "keyboard.filter.text" : {
+      "comment" : "键盘-筛选器选项（文本）"
+    },
+    "keyboard.imageCopied" : {
+      "comment" : "键盘-图片复制成功提示"
+    },
+    "keyboard.imageLoadFailed" : {
+      "comment" : "键盘-图片加载失败提示"
+    },
+    "keyboard.loadMore" : {
+      "comment" : "键盘-加载更多提示"
+    },
+    "keyboard.permission.gotIt" : {
+      "comment" : "键盘-权限提示确认按钮"
+    },
+    "keyboard.permission.message" : {
+      "comment" : "键盘-权限提示内容"
+    },
+    "keyboard.permission.title" : {
+      "comment" : "键盘-权限提示标题"
+    },
+    "keyboard.title" : {
+      "comment" : "键盘-顶部标题"
+    },
     "log.autoDeleteOldItem" : {
       "comment" : "自动删除旧条目"
     },

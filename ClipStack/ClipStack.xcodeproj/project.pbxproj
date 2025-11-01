@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		2605A7A32EB4B63C0060DC83 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 26DE74C22EB4A34A00AAE4BC /* Localizable.xcstrings */; };
+		2605A7A72EB61C650060DC83 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 2605A7A62EB61C650060DC83 /* Localizable.xcstrings */; };
 		262ED03E2E9DEF1A00D8BBDB /* ClipItem+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 262ED03D2E9DEF1A00D8BBDB /* ClipItem+Extensions.swift */; };
 		262ED0472E9F862A00D8BBDB /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 262ED0462E9F862A00D8BBDB /* ShareViewController.swift */; };
 		262ED04A2E9F862A00D8BBDB /* MainInterface.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 262ED0482E9F862A00D8BBDB /* MainInterface.storyboard */; };
@@ -29,7 +30,6 @@
 		26DE74B82EB45A1700AAE4BC /* OnboardingPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26DE74B72EB45A1700AAE4BC /* OnboardingPageView.swift */; };
 		26DE74BA2EB45A2F00AAE4BC /* ToastModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26DE74B92EB45A2F00AAE4BC /* ToastModifier.swift */; };
 		26DE74BD2EB4A2E200AAE4BC /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 26DE74BC2EB4A2E200AAE4BC /* Localizable.xcstrings */; };
-		26DE74BF2EB4A32500AAE4BC /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 26DE74BE2EB4A32500AAE4BC /* Localizable.xcstrings */; };
 		26DE74C12EB4A33700AAE4BC /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 26DE74C02EB4A33700AAE4BC /* Localizable.xcstrings */; };
 		26DE74C52EB4A43800AAE4BC /* LocalizedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26DE74C42EB4A43800AAE4BC /* LocalizedString.swift */; };
 		26DE74C62EB4A43800AAE4BC /* LocalizedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26DE74C42EB4A43800AAE4BC /* LocalizedString.swift */; };
@@ -116,6 +116,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		2605A7A62EB61C650060DC83 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		262ED03D2E9DEF1A00D8BBDB /* ClipItem+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ClipItem+Extensions.swift"; sourceTree = "<group>"; };
 		262ED03F2E9F83A400D8BBDB /* ClipStack.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ClipStack.entitlements; sourceTree = "<group>"; };
 		262ED0442E9F862A00D8BBDB /* ClipStackShare.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ClipStackShare.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -140,7 +141,6 @@
 		26DE74B72EB45A1700AAE4BC /* OnboardingPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingPageView.swift; sourceTree = "<group>"; };
 		26DE74B92EB45A2F00AAE4BC /* ToastModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastModifier.swift; sourceTree = "<group>"; };
 		26DE74BC2EB4A2E200AAE4BC /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
-		26DE74BE2EB4A32500AAE4BC /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		26DE74C02EB4A33700AAE4BC /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		26DE74C22EB4A34A00AAE4BC /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		26DE74C42EB4A43800AAE4BC /* LocalizedString.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizedString.swift; sourceTree = "<group>"; };
@@ -318,7 +318,7 @@
 				26E2F4492EA0840300FD77EE /* KeyboardViewController.swift */,
 				26E2F44B2EA0840300FD77EE /* Info.plist */,
 				26E2F4562EA085AA00FD77EE /* ClipItemKeyboardRow.swift */,
-				26DE74BE2EB4A32500AAE4BC /* Localizable.xcstrings */,
+				2605A7A62EB61C650060DC83 /* Localizable.xcstrings */,
 			);
 			path = ClipStackKeyboard;
 			sourceTree = "<group>";
@@ -550,7 +550,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				26DE74BF2EB4A32500AAE4BC /* Localizable.xcstrings in Resources */,
+				2605A7A72EB61C650060DC83 /* Localizable.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

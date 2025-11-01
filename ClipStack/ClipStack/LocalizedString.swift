@@ -358,6 +358,39 @@ static let appCopied = NSLocalizedString("app.copied", comment: "已复制")
 static let appContentEmpty = NSLocalizedString("app.contentEmpty", comment: "内容为空")
 static let appLoadFailed = NSLocalizedString("app.loadFailed", comment: "加载失败")
     // 🔹 阶段 2 会添加键盘扩展专用 key
+    // MARK: - 键盘扩展（KeyboardViewController + ClipItemKeyboardRow）
+
+static let keyboardTitle = NSLocalizedString("keyboard.title", comment: "键盘-顶部标题")
+
+// 筛选器
+static let keyboardFilterAll = NSLocalizedString("keyboard.filter.all", comment: "键盘-筛选器选项（全部）")
+static let keyboardFilterText = NSLocalizedString("keyboard.filter.text", comment: "键盘-筛选器选项（文本）")
+static let keyboardFilterLink = NSLocalizedString("keyboard.filter.link", comment: "键盘-筛选器选项（链接）")
+static let keyboardFilterImage = NSLocalizedString("keyboard.filter.image", comment: "键盘-筛选器选项（图片）")
+static let keyboardFilterStarred = NSLocalizedString("keyboard.filter.starred", comment: "键盘-筛选器选项（收藏）")
+
+// 空状态
+static let keyboardEmptyAll = NSLocalizedString("keyboard.empty.all", comment: "键盘-空状态提示（全部）")
+static let keyboardEmptyText = NSLocalizedString("keyboard.empty.text", comment: "键盘-空状态提示（文本）")
+static let keyboardEmptyLink = NSLocalizedString("keyboard.empty.link", comment: "键盘-空状态提示（链接）")
+static let keyboardEmptyImage = NSLocalizedString("keyboard.empty.image", comment: "键盘-空状态提示（图片）")
+static let keyboardEmptyStarred = NSLocalizedString("keyboard.empty.starred", comment: "键盘-空状态提示（收藏）")
+
+// 加载提示
+static let keyboardLoadMore = NSLocalizedString("keyboard.loadMore", comment: "键盘-加载更多提示")
+
+// 操作提示
+static let keyboardActionInsert = NSLocalizedString("keyboard.action.insert", comment: "键盘-文本操作提示")
+static let keyboardActionCopy = NSLocalizedString("keyboard.action.copy", comment: "键盘-图片操作提示")
+
+// Toast消息
+static let keyboardImageCopied = NSLocalizedString("keyboard.imageCopied", comment: "键盘-图片复制成功提示")
+static let keyboardImageLoadFailed = NSLocalizedString("keyboard.imageLoadFailed", comment: "键盘-图片加载失败提示")
+
+// 权限提示
+static let keyboardPermissionTitle = NSLocalizedString("keyboard.permission.title", comment: "键盘-权限提示标题")
+static let keyboardPermissionMessage = NSLocalizedString("keyboard.permission.message", comment: "键盘-权限提示内容")
+static let keyboardPermissionGotIt = NSLocalizedString("keyboard.permission.gotIt", comment: "键盘-权限提示确认按钮")
     // 🔹 阶段 3 会添加分享扩展专用 key
     // 🔹 阶段 4 会添加 Widget 专用 key
 }
