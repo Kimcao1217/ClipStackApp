@@ -10,14 +10,96 @@
     "• 清空历史记录：删除所有非收藏条目\n• 清空收藏：删除所有收藏条目\n• 完全重置：删除所有数据（不可恢复）" : {
 
     },
-    "📋 ClipStack" : {
-
-    },
     "🔥 最受欢迎" : {
 
     },
+    "addItem.contentLabel" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Content"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "内容"
+          }
+        }
+      }
+    },
+    "addItem.sourceLabel" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Source App"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "来源应用"
+          }
+        }
+      }
+    },
+    "addItem.sourcePlaceholder" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter app name (optional)"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "输入来源应用名称（可选）"
+          }
+        }
+      }
+    },
+    "addItem.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add Item"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "添加新条目"
+          }
+        }
+      }
+    },
     "App Store 评分" : {
 
+    },
+    "app.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "📋 ClipStack"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "📋 ClipStack"
+          }
+        }
+      }
     },
     "common.cancel" : {
       "extractionState" : "manual",
@@ -240,6 +322,210 @@
         }
       }
     },
+    "empty.history.message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start by saving content from the Share menu or tapping the + button above"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "从分享菜单或点击右上角的 + 按钮添加内容开始使用"
+          }
+        }
+      }
+    },
+    "empty.history.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No History Yet"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "还没有剪贴板历史"
+          }
+        }
+      }
+    },
+    "filter.all" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "全部"
+          }
+        }
+      }
+    },
+    "filter.empty" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No %@ Items"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暂无%@内容"
+          }
+        }
+      }
+    },
+    "filter.image" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Images"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "图片"
+          }
+        }
+      }
+    },
+    "filter.link" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Links"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "链接"
+          }
+        }
+      }
+    },
+    "filter.starred" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Starred"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "收藏"
+          }
+        }
+      }
+    },
+    "filter.switchToAll" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Switch to \"All\" to view all items"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "切换到\"全部\"查看所有内容"
+          }
+        }
+      }
+    },
+    "filter.text" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Text"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文本"
+          }
+        }
+      }
+    },
+    "filter.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filter"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "筛选"
+          }
+        }
+      }
+    },
+    "freeLimit.count" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "History %lld/5 • Starred %lld/5"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "历史 %1$lld/5 • 收藏 %2$lld/5"
+          }
+        }
+      }
+    },
+    "freeLimit.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Free Version Limit"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "免费版限制"
+          }
+        }
+      }
+    },
     "OFF" : {
 
     },
@@ -252,11 +538,124 @@
     "Pro 版本" : {
 
     },
+    "search.noResults" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No results for \"%@\""
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "没有找到\"%@\""
+          }
+        }
+      }
+    },
+    "search.placeholder" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search history..."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜索历史内容..."
+          }
+        }
+      }
+    },
+    "search.tryOtherKeywords" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Try different keywords or switch filter"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "试试其他关键词或切换筛选类型"
+          }
+        }
+      }
+    },
+    "source.manual" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manual Entry"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "手动添加"
+          }
+        }
+      }
+    },
+    "source.unknown" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unknown"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未知"
+          }
+        }
+      }
+    },
     "time.daysAgo" : {
-      "comment" : "X天前"
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld days ago"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 天前"
+          }
+        }
+      }
     },
     "time.hoursAgo" : {
-      "comment" : "X小时前"
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld hours ago"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 小时前"
+          }
+        }
+      }
     },
     "time.justNow" : {
       "extractionState" : "manual",
@@ -276,7 +675,21 @@
       }
     },
     "time.minutesAgo" : {
-      "comment" : "X分钟前"
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld minutes ago"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 分钟前"
+          }
+        }
+      }
     },
     "time.yesterday" : {
       "extractionState" : "manual",
@@ -295,22 +708,132 @@
         }
       }
     },
-    "下一步" : {
-
+    "toast.copied" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "✅ Copied"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "✅ 已复制"
+          }
+        }
+      }
     },
-    "从分享菜单或点击右上角的 + 按钮添加内容开始使用" : {
+    "toast.error" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "❌ Error"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "❌ 操作失败"
+          }
+        }
+      }
+    },
+    "toast.imageCopied" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "✅ Image Copied"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "✅ 图片已复制"
+          }
+        }
+      }
+    },
+    "toast.starred" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⭐ Starred"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⭐ 已收藏"
+          }
+        }
+      }
+    },
+    "toast.starredFull" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⚠️ Starred limit reached (%lld/%lld)"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⚠️ 收藏已满（%1$lld/%2$lld）"
+          }
+        }
+      }
+    },
+    "toast.unstarred" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "☆ Unstarred"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "☆ 已取消收藏"
+          }
+        }
+      }
+    },
+    "upgrade" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Upgrade"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "升级"
+          }
+        }
+      }
+    },
+    "下一步" : {
 
     },
     "使用帮助" : {
 
     },
-    "保存" : {
-
-    },
     "免费版本" : {
-
-    },
-    "免费版限制" : {
 
     },
     "全部删除" : {
@@ -325,15 +848,6 @@
     "其他" : {
 
     },
-    "内容" : {
-
-    },
-    "分享" : {
-
-    },
-    "切换到\"全部\"查看所有内容" : {
-
-    },
     "删除" : {
 
     },
@@ -341,9 +855,6 @@
 
     },
     "加载套餐中..." : {
-
-    },
-    "升级" : {
 
     },
     "升级到 Pro 版" : {
@@ -354,7 +865,7 @@
     },
     "历史 %lld/5 • 收藏 %lld/5" : {
       "localizations" : {
-        "zh-Hans" : {
+        "en" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "历史 %1$lld/5 • 收藏 %2$lld/5"
@@ -377,9 +888,6 @@
     "在 Safari 中打开" : {
 
     },
-    "复制" : {
-
-    },
     "复制内容" : {
 
     },
@@ -397,7 +905,7 @@
     },
     "将删除所有数据：\n• %lld 条历史记录\n• %lld 条收藏\n\n此操作不可恢复！" : {
       "localizations" : {
-        "zh-Hans" : {
+        "en" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "将删除所有数据：\n• %1$lld 条历史记录\n• %2$lld 条收藏\n\n此操作不可恢复！"
@@ -417,9 +925,6 @@
     "意见反馈" : {
 
     },
-    "搜索历史内容..." : {
-
-    },
     "收藏" : {
 
     },
@@ -435,22 +940,10 @@
     "无限制使用 ClipStack" : {
 
     },
-    "暂无%@内容" : {
-
-    },
     "服务条款" : {
 
     },
-    "来源应用" : {
-
-    },
-    "没有找到\"%@\"" : {
-
-    },
     "测试：切换 Pro 状态" : {
-
-    },
-    "添加新条目" : {
 
     },
     "清空" : {
@@ -471,9 +964,6 @@
     "立即购买" : {
 
     },
-    "筛选" : {
-
-    },
     "管理订阅" : {
 
     },
@@ -481,9 +971,6 @@
 
     },
     "设置" : {
-
-    },
-    "试试其他关键词或切换筛选类型" : {
 
     },
     "详情" : {
@@ -499,12 +986,6 @@
 
     },
     "跳过" : {
-
-    },
-    "输入来源应用名称" : {
-
-    },
-    "还没有剪贴板历史" : {
 
     },
     "重新加载" : {

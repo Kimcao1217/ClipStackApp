@@ -35,6 +35,54 @@ enum L10n {
     static let daysAgo = NSLocalizedString("time.daysAgo", comment: "X天前")
     
     // 🔹 阶段 1 会添加更多 key（搜索、筛选、列表等）
+    // MARK: - 主界面（ContentView）
+    static let appTitle = NSLocalizedString("app.title", comment: "应用标题")
+    
+    // 搜索
+    static let searchPlaceholder = NSLocalizedString("search.placeholder", comment: "搜索框占位符")
+    static let searchNoResults = NSLocalizedString("search.noResults", comment: "搜索无结果")
+    static let searchTryOtherKeywords = NSLocalizedString("search.tryOtherKeywords", comment: "搜索建议")
+    
+    // 筛选
+    static let filterTitle = NSLocalizedString("filter.title", comment: "筛选标题")
+    static let filterAll = NSLocalizedString("filter.all", comment: "全部筛选")
+    static let filterText = NSLocalizedString("filter.text", comment: "文本筛选")
+    static let filterLink = NSLocalizedString("filter.link", comment: "链接筛选")
+    static let filterImage = NSLocalizedString("filter.image", comment: "图片筛选")
+    static let filterStarred = NSLocalizedString("filter.starred", comment: "收藏筛选")
+    static let filterEmpty = NSLocalizedString("filter.empty", comment: "筛选结果为空")
+    static let filterSwitchToAll = NSLocalizedString("filter.switchToAll", comment: "切换到全部")
+    
+    // 空状态
+    static let emptyHistoryTitle = NSLocalizedString("empty.history.title", comment: "空历史标题")
+    static let emptyHistoryMessage = NSLocalizedString("empty.history.message", comment: "空历史提示")
+    
+    // 添加条目
+    static let addItemTitle = NSLocalizedString("addItem.title", comment: "添加条目标题")
+    static let addItemContentLabel = NSLocalizedString("addItem.contentLabel", comment: "内容标签")
+    static let addItemSourceLabel = NSLocalizedString("addItem.sourceLabel", comment: "来源标签")
+    static let addItemSourcePlaceholder = NSLocalizedString("addItem.sourcePlaceholder", comment: "来源占位符")
+    
+    // Toast 提示
+    static let toastCopied = NSLocalizedString("toast.copied", comment: "复制成功")
+    static let toastImageCopied = NSLocalizedString("toast.imageCopied", comment: "图片复制成功")
+    static let toastStarred = NSLocalizedString("toast.starred", comment: "收藏成功")
+    static let toastUnstarred = NSLocalizedString("toast.unstarred", comment: "取消收藏")
+    static let toastStarredFull = NSLocalizedString("toast.starredFull", comment: "收藏已满")
+    static let toastError = NSLocalizedString("toast.error", comment: "操作失败")
+    
+    // 来源
+    static let sourceManual = NSLocalizedString("source.manual", comment: "手动添加")
+    static let sourceUnknown = NSLocalizedString("source.unknown", comment: "未知来源")
+    
+    // 免费版限制
+    static let freeLimitTitle = NSLocalizedString("freeLimit.title", comment: "免费版限制标题")
+    static let freeLimitCount = NSLocalizedString("freeLimit.count", comment: "限制计数")
+    
+    // 操作按钮
+    static let star = NSLocalizedString("filter.starred", comment: "收藏")
+    static let unstar = NSLocalizedString("toast.unstarred", comment: "取消收藏")
+    static let upgrade = NSLocalizedString("upgrade", comment: "升级")
     // 🔹 阶段 2 会添加键盘扩展专用 key
     // 🔹 阶段 3 会添加分享扩展专用 key
     // 🔹 阶段 4 会添加 Widget 专用 key
@@ -48,5 +96,14 @@ extension L10n {
     static func format(_ key: String, _ arguments: CVarArg...) -> String {
         let format = NSLocalizedString(key, comment: "")
         return String(format: format, arguments: arguments)
+    }
+}
+
+// MARK: - 格式化工具（扩展）
+
+extension L10n {
+    /// 筛选为空的提示（例如："暂无图片内容"）
+    static func filterEmptyMessage(for filterName: String) -> String {
+        String(format: NSLocalizedString("filter.empty", comment: ""), filterName)
     }
 }

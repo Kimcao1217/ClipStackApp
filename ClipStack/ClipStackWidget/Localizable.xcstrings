@@ -13,6 +13,21 @@
     "📋 ClipStack" : {
 
     },
+    "addItem.contentLabel" : {
+      "comment" : "内容标签"
+    },
+    "addItem.sourceLabel" : {
+      "comment" : "来源标签"
+    },
+    "addItem.sourcePlaceholder" : {
+      "comment" : "来源占位符"
+    },
+    "addItem.title" : {
+      "comment" : "添加条目标题"
+    },
+    "app.title" : {
+      "comment" : "应用标题"
+    },
     "ClipStack" : {
 
     },
@@ -55,6 +70,57 @@
     "common.success" : {
       "comment" : "成功提示"
     },
+    "empty.history.message" : {
+      "comment" : "空历史提示"
+    },
+    "empty.history.title" : {
+      "comment" : "空历史标题"
+    },
+    "filter.all" : {
+      "comment" : "全部筛选"
+    },
+    "filter.empty" : {
+      "comment" : "筛选结果为空"
+    },
+    "filter.image" : {
+      "comment" : "图片筛选"
+    },
+    "filter.link" : {
+      "comment" : "链接筛选"
+    },
+    "filter.starred" : {
+      "comment" : "收藏\n   收藏筛选"
+    },
+    "filter.switchToAll" : {
+      "comment" : "切换到全部"
+    },
+    "filter.text" : {
+      "comment" : "文本筛选"
+    },
+    "filter.title" : {
+      "comment" : "筛选标题"
+    },
+    "freeLimit.count" : {
+      "comment" : "限制计数"
+    },
+    "freeLimit.title" : {
+      "comment" : "免费版限制标题"
+    },
+    "search.noResults" : {
+      "comment" : "搜索无结果"
+    },
+    "search.placeholder" : {
+      "comment" : "搜索框占位符"
+    },
+    "search.tryOtherKeywords" : {
+      "comment" : "搜索建议"
+    },
+    "source.manual" : {
+      "comment" : "手动添加"
+    },
+    "source.unknown" : {
+      "comment" : "未知来源"
+    },
     "time.daysAgo" : {
       "comment" : "X天前"
     },
@@ -69,6 +135,27 @@
     },
     "time.yesterday" : {
       "comment" : "昨天"
+    },
+    "toast.copied" : {
+      "comment" : "复制成功"
+    },
+    "toast.error" : {
+      "comment" : "操作失败"
+    },
+    "toast.imageCopied" : {
+      "comment" : "图片复制成功"
+    },
+    "toast.starred" : {
+      "comment" : "收藏成功"
+    },
+    "toast.starredFull" : {
+      "comment" : "收藏已满"
+    },
+    "toast.unstarred" : {
+      "comment" : "取消收藏"
+    },
+    "upgrade" : {
+      "comment" : "升级"
     },
     "widget.empty" : {
       "extractionState" : "manual",

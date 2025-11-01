@@ -55,7 +55,7 @@ struct ContentView: View {
     
     @State private var showingAddSheet = false
     @State private var newItemContent = ""
-    @State private var newItemSource = "手动添加"
+    @State private var newItemSource = ""
     
     @State private var selectedImageItem: ClipItem?
     @State private var showingImageViewer = false
@@ -83,7 +83,7 @@ struct ContentView: View {
                     clipItemsList
                 }
             }
-            .navigationTitle("📋 ClipStack")
+            .navigationTitle(L10n.appTitle)
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -180,29 +180,29 @@ private func mergePersistentHistoryChanges() {
             
             VStack(spacing: 8) {
                 if !searchText.isEmpty {
-                    Text("没有找到\"\(searchText)\"")
+                    Text(L10n.format("search.noResults", searchText))
                         .font(.title2)
                         .fontWeight(.medium)
                     
-                    Text("试试其他关键词或切换筛选类型")
+                    Text(L10n.searchTryOtherKeywords)
                         .font(.body)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
-                } else if selectedFilter != .all {
-                    Text("暂无\(selectedFilter.rawValue)内容")
+               } else if selectedFilter != .all {
+    Text(L10n.filterEmptyMessage(for: selectedFilter.localizedName))
+        .font(.title2)
+        .fontWeight(.medium)
+    
+    Text(L10n.filterSwitchToAll)
+        .font(.body)
+        .foregroundColor(.secondary)
+        .multilineTextAlignment(.center)
+} else {
+                    Text(L10n.emptyHistoryTitle)
                         .font(.title2)
                         .fontWeight(.medium)
                     
-                    Text("切换到\"全部\"查看所有内容")
-                        .font(.body)
-                        .foregroundColor(.secondary)
-                        .multilineTextAlignment(.center)
-                } else {
-                    Text("还没有剪贴板历史")
-                        .font(.title2)
-                        .fontWeight(.medium)
-                    
-                    Text("从分享菜单或点击右上角的 + 按钮添加内容开始使用")
+                    Text(L10n.emptyHistoryMessage)
                         .font(.body)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
@@ -219,7 +219,7 @@ private func mergePersistentHistoryChanges() {
             Image(systemName: "magnifyingglass")
                 .foregroundColor(.secondary)
             
-            TextField("搜索历史内容...", text: $searchText)
+            TextField(L10n.searchPlaceholder, text: $searchText)
                 .textFieldStyle(.plain)
                 .autocapitalization(.none)
                 .disableAutocorrection(true)
@@ -240,9 +240,9 @@ private func mergePersistentHistoryChanges() {
     }
     
     private var filterSegmentedControl: some View {
-        Picker("筛选", selection: $selectedFilter) {
+        Picker(L10n.filterTitle, selection: $selectedFilter) {
             ForEach(FilterType.allCases, id: \.self) { filterType in
-                Text(filterType.rawValue)
+                Text(filterType.localizedName)
                     .tag(filterType)
             }
         }
@@ -272,7 +272,7 @@ private func mergePersistentHistoryChanges() {
                 Button {
                     copyItem(clipItem)
                 } label: {
-                    Label("复制", systemImage: "doc.on.doc")
+                    Label(L10n.copy, systemImage: "doc.on.doc")
                 }
                 
                 // 2️⃣ 收藏按钮
@@ -280,7 +280,7 @@ private func mergePersistentHistoryChanges() {
                     toggleStarred(clipItem)
                 } label: {
                     Label(
-                        clipItem.isStarred ? "取消收藏" : "收藏",
+                        clipItem.isStarred ? L10n.unstar : L10n.star,
                         systemImage: clipItem.isStarred ? "star.slash" : "star.fill"
                     )
                 }
@@ -289,7 +289,7 @@ private func mergePersistentHistoryChanges() {
                 Button {
                     shareItem(clipItem)
                 } label: {
-                    Label("分享", systemImage: "square.and.arrow.up")
+                    Label(L10n.share, systemImage: "square.and.arrow.up")
                 }
                 
                 Divider()
@@ -298,7 +298,7 @@ private func mergePersistentHistoryChanges() {
                 Button(role: .destructive) {
                     deleteItem(clipItem)
                 } label: {
-                    Label("删除", systemImage: "trash")
+                    Label(L10n.delete, systemImage: "trash")
                 }
             }
             
@@ -307,7 +307,7 @@ private func mergePersistentHistoryChanges() {
                 Button(role: .destructive) {
                     deleteItem(clipItem)
                 } label: {
-                    Label("删除", systemImage: "trash")
+                    Label(L10n.delete, systemImage: "trash")
                 }
             }
             
@@ -317,7 +317,7 @@ private func mergePersistentHistoryChanges() {
                     toggleStarred(clipItem)
                 } label: {
                     Label(
-                        clipItem.isStarred ? "取消收藏" : "收藏",
+                        clipItem.isStarred ? L10n.unstar : L10n.star,
                         systemImage: clipItem.isStarred ? "star.slash.fill" : "star.fill"
                     )
                 }
@@ -337,12 +337,12 @@ private func copyItem(_ item: ClipItem) {
     if item.hasImage {
         if let image = item.thumbnailImage {
             UIPasteboard.general.image = image
-            showToast(message: "✅ 图片已复制")
+            showToast(message: L10n.toastImageCopied)
         }
     } else {
         if let content = item.content {
             UIPasteboard.general.string = content
-            showToast(message: "✅ 已复制")
+            showToast(message: L10n.toastCopied)
         }
     }
     
@@ -397,7 +397,7 @@ private func shareItem(_ item: ClipItem) {
         let newItem = ClipItem(
             content: trimmedContent,
             contentType: self.determineContentType(content: trimmedContent),
-            sourceApp: source,
+            sourceApp: source.isEmpty ? L10n.sourceManual : source,
             context: backgroundContext
         )
 
@@ -461,7 +461,7 @@ private func shareItem(_ item: ClipItem) {
         do {
             let count = try viewContext.count(for: request)
             if !ProManager.shared.isPro && count >= ProManager.freeStarredLimit {
-                showToast(message: "⚠️ 收藏已满（\(count)/\(ProManager.freeStarredLimit)）")
+                showToast(message: String(format: NSLocalizedString("toast.starredFull", comment: ""), count, ProManager.freeStarredLimit))
                 return
             }
         } catch {
@@ -489,7 +489,7 @@ private func shareItem(_ item: ClipItem) {
             try backgroundContext.save()
             
             DispatchQueue.main.async {
-                let message = willBeStarred ? "⭐ 已收藏" : "☆ 已取消收藏"
+                let message = willBeStarred ? L10n.toastStarred : L10n.toastUnstarred
                 self.showToast(message: message)
                 print(message)
                 
@@ -512,7 +512,7 @@ private func shareItem(_ item: ClipItem) {
             DispatchQueue.main.async {
                 let errorGenerator = UINotificationFeedbackGenerator()
                 errorGenerator.notificationOccurred(.error)
-                self.showToast(message: "❌ 操作失败")
+                self.showToast(message: L10n.toastError)
             }
         }
     }
@@ -578,7 +578,7 @@ private func shareItem(_ item: ClipItem) {
     private func dismissAddSheet() {
         showingAddSheet = false
         newItemContent = ""
-        newItemSource = "手动添加"
+        newItemSource = ""
     }
     
     private func determineContentType(content: String) -> String {
@@ -601,11 +601,11 @@ private func shareItem(_ item: ClipItem) {
             .font(.title3)
         
         VStack(alignment: .leading, spacing: 2) {
-            Text("免费版限制")
+            Text(L10n.freeLimitTitle)
                 .font(.subheadline)
                 .fontWeight(.semibold)
             
-            Text("历史 \(historyCount)/5 • 收藏 \(starredCount)/5")
+            Text(String(format: NSLocalizedString("freeLimit.count", comment: ""), historyCount, starredCount))
                 .font(.caption)
                 .foregroundColor(.secondary)
         }
@@ -613,7 +613,7 @@ private func shareItem(_ item: ClipItem) {
         Spacer()
         
         NavigationLink(destination: SettingsView()) {
-            Text("升级")
+            Text(L10n.upgrade)
                 .font(.subheadline)
                 .fontWeight(.semibold)
                 .foregroundColor(.white)
@@ -641,7 +641,7 @@ struct AddItemSheetView: View {
         NavigationView {
             VStack(spacing: 20) {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("内容")
+                    Text(L10n.addItemContentLabel)
                         .font(.headline)
                     
                     TextEditor(text: $content)
@@ -652,27 +652,27 @@ struct AddItemSheetView: View {
                 }
                 
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("来源应用")
+                    Text(L10n.addItemSourceLabel)
                         .font(.headline)
                     
-                    TextField("输入来源应用名称", text: $source)
+                    TextField(L10n.addItemSourcePlaceholder, text: $source)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                 }
                 
                 Spacer()
             }
             .padding()
-            .navigationTitle("添加新条目")
+            .navigationTitle(L10n.addItemTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("取消") {
+                    Button(L10n.cancel) {
                         onCancel()
                     }
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("保存") {
+                    Button(L10n.save) {
                         onSave(content, source)
                     }
                     .disabled(content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
@@ -748,7 +748,7 @@ struct ClipItemRowView: View {
                 }
                 
                 HStack {
-                    Label(clipItem.sourceApp ?? "未知", systemImage: "app.fill")
+                    Label(clipItem.sourceApp ?? L10n.sourceUnknown, systemImage: "app.fill")
                         .font(.caption)
                         .foregroundColor(.secondary)
                     

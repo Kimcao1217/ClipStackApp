@@ -164,9 +164,25 @@ extension PersistenceController {
 // MARK: - 筛选类型枚举
 
 enum FilterType: String, CaseIterable {
-    case all = "全部"
-    case text = "文本"
-    case link = "链接"
-    case image = "图片"
-    case starred = "⭐收藏"
+    case all = "All"
+    case text = "Text"
+    case link = "Links"
+    case image = "Images"
+    case starred = "Starred"
+    
+    /// 本地化显示名称
+    var localizedName: String {
+        switch self {
+        case .all:
+            return L10n.filterAll
+        case .text:
+            return L10n.filterText
+        case .link:
+            return L10n.filterLink
+        case .image:
+            return L10n.filterImage
+        case .starred:
+            return L10n.filterStarred
+        }
+    }
 }
