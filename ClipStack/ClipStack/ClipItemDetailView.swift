@@ -164,41 +164,63 @@ struct ClipItemDetailView: View {
     }
     
     /// 操作按钮
-    private var actionButtonsView: some View {
-        HStack(spacing: 16) {
-            Button(action: {
-                copyToClipboard()
-            }) {
-                Label(L10n.detailCopyContent, systemImage: "doc.on.doc")  // ✅ 本地化
-                    .frame(maxWidth: .infinity)
+    /// 操作按钮（iOS 原生风格：无边框 + 蓝色/红色文字）
+private var actionButtonsView: some View {
+    HStack(spacing: 0) {
+        // 1️⃣ 复制按钮
+        Button(action: {
+            copyToClipboard()
+        }) {
+            VStack(spacing: 4) {
+                Image(systemName: "doc.on.doc")
+                    .font(.system(size: 22))
+                Text(L10n.detailCopyContent)
+                    .font(.system(size: 13))
             }
-            .buttonStyle(.bordered)
-            .tint(.blue)
-            
-            // ⭐ 实时显示收藏按钮状态
-            Button(action: {
-                toggleStarred()
-            }) {
-                Label(
-                    clipItem.isStarred ? L10n.unstar : L10n.star,  // ✅ 本地化
-                    systemImage: clipItem.isStarred ? "star.slash" : "star.fill"
-                )
-                .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.bordered)
-            .tint(.yellow)
-            .id(clipItem.isStarred)  // ⭐ 关键：强制刷新按钮
-            
-            Button(action: {
-                showingDeleteAlert = true
-            }) {
-                Label(L10n.delete, systemImage: "trash")  // ✅ 本地化
-                    .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.bordered)
-            .tint(.red)
+            .frame(maxWidth: .infinity)
+            .frame(height: 60)
         }
+        .foregroundColor(.blue)
+        
+        // 2️⃣ 收藏按钮
+Button(action: {
+    toggleStarred()
+}) {
+    VStack(spacing: 4) {
+        Image(systemName: clipItem.isStarred ? "star.fill" : "star")
+            .font(.system(size: 22))
+        Text(clipItem.isStarred ? L10n.detailUnstar : L10n.detailStar)  
+            .font(.system(size: 13))
     }
+    .frame(maxWidth: .infinity)
+    .frame(height: 60)
+}
+        .foregroundColor(clipItem.isStarred ? .yellow : .blue)
+        .id(clipItem.isStarred)  // ⭐ 关键：强制刷新
+        
+        // 3️⃣ 删除按钮
+        Button(action: {
+            showingDeleteAlert = true
+        }) {
+            VStack(spacing: 4) {
+                Image(systemName: "trash")
+                    .font(.system(size: 22))
+                Text(L10n.delete)
+                    .font(.system(size: 13))
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 60)
+        }
+        .foregroundColor(.red)
+    }
+    .background(Color(UIColor.systemBackground))
+    // .overlay(
+    //     Rectangle()
+    //         .frame(height: 0.5)
+    //         .foregroundColor(Color(UIColor.separator)),
+    //     alignment: .top
+    // )
+}
     
     // MARK: - 辅助方法
     

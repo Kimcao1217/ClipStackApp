@@ -287,12 +287,14 @@ extension ClipItem {
 
     /// ⭐ 新增：图片压缩比例描述（如 "Original 2.3MB → Compressed 45KB (1.9%)"）
     var compressionDescription: String {
-        guard hasImage, originalSize > 0, thumbnailSize > 0 else { return "" }
-        
-        let ratio = Double(thumbnailSize) / Double(originalSize) * 100.0
-        return String(format: L10n.imageCompressionDescription,  // ✅ 本地化
-                      originalSizeText, imageSizeText, ratio)
-    }
+    guard hasImage, originalSize > 0, thumbnailSize > 0 else { return "" }
+    
+    // 计算压缩掉的百分比
+    let compressionRatio = (1.0 - Double(thumbnailSize) / Double(originalSize)) * 100.0
+    
+    return String(format: L10n.imageCompressionDescription,
+                  originalSizeText, imageSizeText, compressionRatio)
+}
     
     /// 图片格式+尺寸+大小的完整描述（如 "JPEG • 1920×1080 • 2.3 MB"）
     var imageFullDescription: String {

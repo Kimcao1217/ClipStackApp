@@ -114,6 +114,8 @@ static func logCurrentStarredCount(_ current: Int, _ limit: Int) -> String {
 }
 
 // MARK: - 详情页面（ClipItemDetailView.swift）
+static let detailStar = NSLocalizedString("detail.star", comment: "收藏按钮")
+static let detailUnstar = NSLocalizedString("detail.unstar", comment: "取消收藏按钮")
 
 static let detailTitle = NSLocalizedString("detail.title", comment: "详情页标题")
 static let detailSource = NSLocalizedString("detail.source", comment: "来源标签")

@@ -526,13 +526,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Copy Content"
+            "value" : "Copy"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "复制内容"
+            "value" : "复制"
           }
         }
       }
@@ -588,6 +588,9 @@
         }
       }
     },
+    "detail.star" : {
+      "comment" : "收藏按钮"
+    },
     "detail.title" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -604,6 +607,9 @@
           }
         }
       }
+    },
+    "detail.unstar" : {
+      "comment" : "取消收藏按钮"
     },
     "empty.history.message" : {
       "extractionState" : "manual",
@@ -1019,13 +1025,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Original %@ → Compressed %@ (%.1f%%)"
+            "value" : "Original %@ → Compressed %@ (-%.1f%%)"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "原图 %1$@ → 压缩后 %2$@ (%.1f%%)"
+            "value" : "原图 %@ → 压缩后 %@ (-%.1f%%)"
           }
         }
       }
@@ -4025,13 +4031,47 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "☆ Unstarred"
+            "value" : "Unstarred"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "☆ 已取消收藏"
+            "value" : "取消收藏"
+          }
+        }
+      }
+    },
+        "detail.star" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Star"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "收藏"
+          }
+        }
+      }
+    },
+    "detail.unstar" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unstar"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "取消收藏"
           }
         }
       }
