@@ -152,7 +152,7 @@ struct ClipItemDetailView: View {
             MetadataRow(
                 icon: "app.fill",
                 label: L10n.detailSource,  // ✅ 本地化
-                value: clipItem.sourceApp ?? L10n.sourceUnknown
+                value: clipItem.displaySourceApp
             )
             
             MetadataRow(

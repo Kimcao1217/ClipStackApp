@@ -21,7 +21,7 @@ struct PersistenceController {
             newItem.id = UUID()
             newItem.content = "Sample item \(i + 1)"  // ✅ 改为英文
             newItem.contentType = "text"
-            newItem.sourceApp = "Preview"  // ✅ 改为英文
+            newItem.sourceApp = ClipItemSource.preview.rawValue
             newItem.createdAt = Date()
             newItem.isStarred = (i == 0)
         }

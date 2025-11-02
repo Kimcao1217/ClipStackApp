@@ -3785,6 +3785,12 @@
         }
       }
     },
+    "source.preview" : {
+      "comment" : "Preview"
+    },
+    "source.shared" : {
+      "comment" : "Shared"
+    },
     "source.unknown" : {
       "extractionState" : "manual",
       "localizations" : {

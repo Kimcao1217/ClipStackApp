@@ -417,10 +417,7 @@ class ShareViewController: UIViewController {
     }
     
     private func getSourceAppName() -> String {
-        if let extensionItem = extensionContext?.inputItems.first as? NSExtensionItem,
-           let sourceApplication = extensionItem.userInfo?["NSExtensionItemSourceApplicationKey"] as? String {
-            return sourceApplication
-        }
-        return L10n.shareDefaultSource
-    }
+    // 统一使用"分享"作为来源（不显示具体第三方应用名）
+    return ClipItemSource.shared.rawValue
+}
 }

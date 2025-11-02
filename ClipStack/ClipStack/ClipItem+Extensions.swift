@@ -11,6 +11,30 @@ import Foundation
 import CoreData
 import UIKit
 
+// MARK: - 来源标识符枚举
+
+/// 剪贴板条目的来源类型
+enum ClipItemSource: String {
+    case manual = "source.manual"      // 手动添加
+    case shared = "source.shared"      // 分享扩展
+    case preview = "source.preview"    // 预览数据
+    case unknown = "source.unknown"    // 未知来源
+    
+    /// 获取本地化显示名称
+    var localizedName: String {
+        switch self {
+        case .manual:
+            return L10n.sourceManual
+        case .shared:
+            return L10n.sourceShared
+        case .preview:
+            return L10n.sourcePreview
+        case .unknown:
+            return L10n.sourceUnknown
+        }
+    }
+}
+
 extension ClipItem {
     
     // MARK: - 便利初始化方法
@@ -51,6 +75,34 @@ extension ClipItem {
         default:
             return "📄"
         }
+    }
+    
+    /// ⭐ 显示用的本地化来源名称（兼容旧数据）
+    var displaySourceApp: String {
+        guard let source = sourceApp, !source.isEmpty else {
+            return L10n.sourceUnknown
+        }
+        
+        // ⭐ 兼容旧数据：英文硬编码映射到新 key
+        let normalizedSource: String
+        switch source.lowercased() {
+        case "manual":
+            normalizedSource = ClipItemSource.manual.rawValue
+        case "shared":
+            normalizedSource = ClipItemSource.shared.rawValue
+        case "preview":
+            normalizedSource = ClipItemSource.preview.rawValue
+        default:
+            normalizedSource = source
+        }
+        
+        // 尝试解析为内置来源
+        if let clipSource = ClipItemSource(rawValue: normalizedSource) {
+            return clipSource.localizedName
+        }
+        
+        // 第三方应用名直接返回（如 "Safari"、"微信"）
+        return source
     }
     
     /// 获取来源应用对应的图标

@@ -3452,6 +3452,40 @@
         }
       }
     },
+    "source.shared": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Shared"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "分享"
+        }
+      }
+    }
+  },
+  "source.preview": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Preview"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "预览"
+        }
+      }
+    }
+  },
     "source.unknown" : {
       "extractionState" : "manual",
       "localizations" : {

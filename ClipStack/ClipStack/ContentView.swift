@@ -397,7 +397,7 @@ private func shareItem(_ item: ClipItem) {
         let newItem = ClipItem(
             content: trimmedContent,
             contentType: self.determineContentType(content: trimmedContent),
-            sourceApp: source.isEmpty ? L10n.sourceManual : source,
+            sourceApp: source.isEmpty ? ClipItemSource.manual.rawValue : source,
             context: backgroundContext
         )
 
@@ -778,7 +778,7 @@ struct ClipItemRowView: View {
                 }
                 
                 HStack {
-                    Label(clipItem.sourceApp ?? L10n.sourceUnknown, systemImage: "app.fill")
+                    Label(clipItem.displaySourceApp, systemImage: "app.fill")
                         .font(.caption)
                         .foregroundColor(.secondary)
                     

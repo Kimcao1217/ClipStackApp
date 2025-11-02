@@ -71,10 +71,6 @@ enum L10n {
     static let toastStarredFull = NSLocalizedString("toast.starredFull", comment: "收藏已满")
     static let toastError = NSLocalizedString("toast.error", comment: "操作失败")
     
-    // 来源
-    static let sourceManual = NSLocalizedString("source.manual", comment: "手动添加")
-    static let sourceUnknown = NSLocalizedString("source.unknown", comment: "未知来源")
-    
     // 免费版限制
     static let freeLimitTitle = NSLocalizedString("freeLimit.title", comment: "免费版限制标题")
     static let freeLimitCount = NSLocalizedString("freeLimit.count", comment: "限制计数")
@@ -456,4 +452,12 @@ extension L10n {
     static func filterEmptyMessage(for filterName: String) -> String {
         String(format: NSLocalizedString("filter.empty", comment: ""), filterName)
     }
+}
+
+extension L10n {
+    // 来源标识符
+    static let sourceManual = NSLocalizedString("source.manual", comment: "Manual")
+    static let sourceShared = NSLocalizedString("source.shared", comment: "Shared")
+    static let sourcePreview = NSLocalizedString("source.preview", comment: "Preview")
+    static let sourceUnknown = NSLocalizedString("source.unknown", comment: "Unknown")
 }
