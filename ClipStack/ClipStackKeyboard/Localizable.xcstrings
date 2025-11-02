@@ -4175,6 +4175,45 @@
           }
         }
       }
+    },
+    "widget.config.description" : {
+      "comment" : "Widget description"
+    },
+    "widget.config.name" : {
+      "comment" : "Widget display name"
+    },
+    "widget.empty.message" : {
+      "comment" : "Empty state message"
+    },
+    "widget.empty.title" : {
+      "comment" : "Empty state title"
+    },
+    "widget.placeholder.content" : {
+      "comment" : "Placeholder sample text"
+    },
+    "widget.preview.large" : {
+      "comment" : "Large widget preview name"
+    },
+    "widget.preview.medium" : {
+      "comment" : "Medium widget preview name"
+    },
+    "widget.preview.photoSource" : {
+      "comment" : "Preview photo source"
+    },
+    "widget.preview.small" : {
+      "comment" : "Small widget preview name"
+    },
+    "widget.preview.text" : {
+      "comment" : "Preview sample text"
+    },
+    "widget.refresh" : {
+      "comment" : "Refresh button"
+    },
+    "widget.separator" : {
+      "comment" : "Separator between info"
+    },
+    "widget.title" : {
+      "comment" : "Widget title"
     }
   },
   "version" : "1.0"

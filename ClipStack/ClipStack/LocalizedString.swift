@@ -416,6 +416,26 @@ static let shareImageLabel = NSLocalizedString("share.imageLabel", comment: "Ima
 // 默认来源
 static let shareDefaultSource = NSLocalizedString("share.defaultSource", comment: "Default share source name")
     // 🔹 阶段 4 会添加 Widget 专用 key
+    // MARK: - Widget（ClipStackWidget.swift + WidgetDataProvider.swift）
+
+// Widget 配置
+static let widgetConfigName = NSLocalizedString("widget.config.name", comment: "Widget display name")
+static let widgetConfigDescription = NSLocalizedString("widget.config.description", comment: "Widget description")
+
+// Widget UI
+static let widgetTitle = NSLocalizedString("widget.title", comment: "Widget title")
+static let widgetRefresh = NSLocalizedString("widget.refresh", comment: "Refresh button")
+static let widgetSeparator = NSLocalizedString("widget.separator", comment: "Separator between info")
+static let widgetEmptyTitle = NSLocalizedString("widget.empty.title", comment: "Empty state title")
+static let widgetEmptyMessage = NSLocalizedString("widget.empty.message", comment: "Empty state message")
+
+// Widget 预览
+static let widgetPlaceholderContent = NSLocalizedString("widget.placeholder.content", comment: "Placeholder sample text")
+static let widgetPreviewText = NSLocalizedString("widget.preview.text", comment: "Preview sample text")
+static let widgetPreviewPhotoSource = NSLocalizedString("widget.preview.photoSource", comment: "Preview photo source")
+static let widgetPreviewSmall = NSLocalizedString("widget.preview.small", comment: "Small widget preview name")
+static let widgetPreviewMedium = NSLocalizedString("widget.preview.medium", comment: "Medium widget preview name")
+static let widgetPreviewLarge = NSLocalizedString("widget.preview.large", comment: "Large widget preview name")
 }
 
 // MARK: - 格式化工具（支持参数替换）

@@ -10,63 +10,52 @@ import SwiftUI
 
 // MARK: - Timeline Entry
 
-/// Widget 的时间线条目（每个时间点显示的数据快照）
 struct ClipStackEntry: TimelineEntry {
-    let date: Date  // 这个快照的时间
-    let items: [WidgetClipItem]  // 要显示的剪贴板条目
+    let date: Date
+    let items: [WidgetClipItem]
 }
 
 // MARK: - Timeline Provider
 
-/// 时间线提供器 - 负责告诉系统"什么时候显示什么内容"
 struct ClipStackProvider: TimelineProvider {
     
-    /// 占位视图（Widget 首次添加到桌面时显示）
-func placeholder(in context: Context) -> ClipStackEntry {
-    print("📦 Widget placeholder 被调用")
-    return ClipStackEntry(date: Date(), items: [
-        WidgetClipItem(
-            id: UUID(),
-            content: "这是示例文本内容",
-            contentType: "text",
-            sourceApp: "ClipStack",
-            createdAt: Date(),
-            isStarred: false,
-            imageData: nil,
-            imageFormat: nil,
-            imageWidth: 0,
-            imageHeight: 0,
-            thumbnailSize: 0
-        )
-    ])
-}
+    func placeholder(in context: Context) -> ClipStackEntry {
+        print("📦 Widget placeholder called")
+        return ClipStackEntry(date: Date(), items: [
+            WidgetClipItem(
+                id: UUID(),
+                content: L10n.widgetPlaceholderContent,
+                contentType: "text",
+                sourceApp: "ClipStack",
+                createdAt: Date(),
+                isStarred: false,
+                imageData: nil,
+                imageFormat: nil,
+                imageWidth: 0,
+                imageHeight: 0,
+                thumbnailSize: 0
+            )
+        ])
+    }
     
-    /// 快照视图（在 Widget 画廊中预览时显示）
     func getSnapshot(in context: Context, completion: @escaping (ClipStackEntry) -> Void) {
-        print("📸 Widget getSnapshot 被调用")
+        print("📸 Widget getSnapshot called")
         let items = WidgetDataProvider.shared.fetchRecentItems(limit: 5)
         let entry = ClipStackEntry(date: Date(), items: items)
         completion(entry)
     }
     
-    /// 时间线（告诉系统"未来一段时间的刷新计划"）
     func getTimeline(in context: Context, completion: @escaping (Timeline<ClipStackEntry>) -> Void) {
-        print("📅 Widget 正在生成时间线...")
+        print("📅 Widget generating timeline...")
         
-        // 1. 加载最新数据
         let items = WidgetDataProvider.shared.fetchRecentItems(limit: 5)
-        print("📊 Widget 加载到 \(items.count) 条数据")
+        print("📊 Widget loaded \(items.count) items")
         
-        // 2. 创建当前时刻的条目
         let currentEntry = ClipStackEntry(date: Date(), items: items)
-        
-        // 3. 设置下次刷新时间（15分钟后）
         let nextUpdateDate = Calendar.current.date(byAdding: .minute, value: 15, to: Date())!
-        
-        // 4. 创建时间线（告诉系统：显示 currentEntry，然后在 nextUpdateDate 时刷新）
         let timeline = Timeline(entries: [currentEntry], policy: .after(nextUpdateDate))
         
-        print("✅ Widget 时间线生成完成，下次刷新: \(nextUpdateDate)")
+        print("✅ Widget timeline completed, next refresh: \(nextUpdateDate)")
         
         completion(timeline)
     }
@@ -74,7 +63,7 @@ func placeholder(in context: Context) -> ClipStackEntry {
 
 // MARK: - Widget Views
 
-/// 小尺寸 Widget（2×2，显示 1 条）⭐ 支持图片
+/// 小尺寸 Widget（2×2，显示 1 条）
 struct SmallWidgetView: View {
     let item: WidgetClipItem?
     
@@ -100,9 +89,8 @@ struct SmallWidgetView: View {
                         
                         Spacer()
                         
-                        // ⭐ 内容区域：图片或文本
+                        // 内容区域
                         if item.hasImage, let image = item.thumbnailImage {
-                            // 显示图片
                             Image(uiImage: image)
                                 .resizable()
                                 .scaledToFill()
@@ -115,7 +103,6 @@ struct SmallWidgetView: View {
                                 .lineLimit(1)
                                 .foregroundColor(.primary)
                         } else {
-                            // 显示文本/链接
                             Text(item.typeIcon)
                                 .font(.title2)
                             
@@ -157,11 +144,10 @@ struct MediumWidgetView: View {
                 VStack(spacing: 0) {
                     // 标题栏
                     HStack {
-                        Text("📋 ClipStack")
+                        Text(L10n.widgetTitle)  
                             .font(.caption)
                             .fontWeight(.semibold)
                         Spacer()
-                        // 手动刷新按钮
                         Link(destination: URL(string: "clipstack://refresh")!) {
                             Image(systemName: "arrow.clockwise")
                                 .font(.caption)
@@ -192,13 +178,12 @@ struct MediumWidgetView: View {
     }
 }
 
-/// 中号 Widget 的单行视图（⭐ 支持图片）
+/// 中号 Widget 的单行视图
 struct MediumItemRow: View {
     let item: WidgetClipItem
     
     var body: some View {
         HStack(spacing: 8) {
-            // ⭐ 左侧：图片缩略图或类型图标
             if item.hasImage, let image = item.thumbnailImage {
                 Image(uiImage: image)
                     .resizable()
@@ -220,7 +205,7 @@ struct MediumItemRow: View {
                 HStack {
                     Text(item.sourceApp)
                         .font(.caption2)
-                    Text("•")
+                    Text(L10n.widgetSeparator) 
                         .font(.caption2)
                     Text(item.timeAgo)
                         .font(.caption2)
@@ -251,15 +236,14 @@ struct LargeWidgetView: View {
                 VStack(spacing: 0) {
                     // 标题栏
                     HStack {
-                        Text("📋 ClipStack")
+                        Text(L10n.widgetTitle)  
                             .font(.body)
                             .fontWeight(.semibold)
                         Spacer()
-                        // 手动刷新按钮
                         Link(destination: URL(string: "clipstack://refresh")!) {
                             HStack(spacing: 4) {
                                 Image(systemName: "arrow.clockwise")
-                                Text("刷新")
+                                Text(L10n.widgetRefresh) 
                             }
                             .font(.caption)
                             .foregroundColor(.blue)
@@ -294,13 +278,12 @@ struct LargeWidgetView: View {
     }
 }
 
-/// 大号 Widget 的单行视图（⭐ 支持图片）
+/// 大号 Widget 的单行视图
 struct LargeItemRow: View {
     let item: WidgetClipItem
     
     var body: some View {
         HStack(spacing: 10) {
-            // ⭐ 左侧：图片缩略图或类型图标
             if item.hasImage, let image = item.thumbnailImage {
                 Image(uiImage: image)
                     .resizable()
@@ -322,7 +305,7 @@ struct LargeItemRow: View {
                 HStack {
                     Text(item.sourceApp)
                         .font(.caption)
-                    Text("•")
+                    Text(L10n.widgetSeparator)
                         .font(.caption)
                     Text(item.timeAgo)
                         .font(.caption)
@@ -352,11 +335,11 @@ private var emptyView: some View {
             .font(.largeTitle)
             .foregroundColor(.secondary)
         
-        Text("还没有剪贴板历史")
+        Text(L10n.widgetEmptyTitle)
             .font(.caption)
             .foregroundColor(.secondary)
         
-        Text("在应用中添加内容")
+        Text(L10n.widgetEmptyMessage)
             .font(.caption2)
             .foregroundColor(.secondary)
     }
@@ -365,7 +348,6 @@ private var emptyView: some View {
 
 // MARK: - Widget Entry View
 
-/// Widget 主视图（根据尺寸显示不同布局）
 struct ClipStackWidgetEntryView: View {
     var entry: ClipStackProvider.Entry
     @Environment(\.widgetFamily) var family
@@ -386,7 +368,6 @@ struct ClipStackWidgetEntryView: View {
 
 // MARK: - Widget Configuration
 
-/// Widget 配置（注册到系统）
 @main
 struct ClipStackWidget: Widget {
     let kind: String = "ClipStackWidget"
@@ -395,8 +376,8 @@ struct ClipStackWidget: Widget {
         StaticConfiguration(kind: kind, provider: ClipStackProvider()) { entry in
             ClipStackWidgetEntryView(entry: entry)
         }
-        .configurationDisplayName("ClipStack")
-        .description("快速访问最近的剪贴板历史")
+        .configurationDisplayName(L10n.widgetConfigName)  
+        .description(L10n.widgetConfigDescription)  
         .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
     }
 }
@@ -404,16 +385,13 @@ struct ClipStackWidget: Widget {
 // MARK: - iOS 17+ containerBackground 兼容扩展
 
 extension View {
-    /// 为 Widget 添加背景（兼容 iOS 15-18）
     @ViewBuilder
     func widgetBackground() -> some View {
         if #available(iOS 17.0, *) {
-            // iOS 17+ 使用新 API
             self.containerBackground(for: .widget) {
                 Color.clear
             }
         } else {
-            // iOS 15-16 使用旧方式
             self.background(Color.clear)
         }
     }
@@ -423,7 +401,6 @@ extension View {
 
 struct ClipStackWidget_Previews: PreviewProvider {
     static var previews: some View {
-        // ⭐ 创建示例图片数据（1×1 红色像素）
         let redPixelData: Data = {
             let size = CGSize(width: 100, height: 100)
             let renderer = UIGraphicsImageRenderer(size: size)
@@ -435,12 +412,11 @@ struct ClipStackWidget_Previews: PreviewProvider {
         }()
         
         let sampleItems = [
-            // 文本类型
             WidgetClipItem(
                 id: UUID(),
-                content: "这是一个示例文本内容，用于测试 Widget 显示效果",
+                content: L10n.widgetPreviewText,
                 contentType: "text",
-                sourceApp: "微信",
+                sourceApp: "WeChat",
                 createdAt: Date().addingTimeInterval(-300),
                 isStarred: false,
                 imageData: nil,
@@ -449,7 +425,6 @@ struct ClipStackWidget_Previews: PreviewProvider {
                 imageHeight: 0,
                 thumbnailSize: 0
             ),
-            // 链接类型
             WidgetClipItem(
                 id: UUID(),
                 content: "https://developer.apple.com/documentation/widgetkit",
@@ -463,12 +438,11 @@ struct ClipStackWidget_Previews: PreviewProvider {
                 imageHeight: 0,
                 thumbnailSize: 0
             ),
-            // ⭐ 图片类型
             WidgetClipItem(
                 id: UUID(),
                 content: "",
                 contentType: "image",
-                sourceApp: "相册",
+                sourceApp: L10n.widgetPreviewPhotoSource,
                 createdAt: Date().addingTimeInterval(-7200),
                 isStarred: false,
                 imageData: redPixelData,
@@ -482,15 +456,15 @@ struct ClipStackWidget_Previews: PreviewProvider {
         Group {
             ClipStackWidgetEntryView(entry: ClipStackEntry(date: Date(), items: sampleItems))
                 .previewContext(WidgetPreviewContext(family: .systemSmall))
-                .previewDisplayName("小号 Widget")
+                .previewDisplayName(L10n.widgetPreviewSmall)
             
             ClipStackWidgetEntryView(entry: ClipStackEntry(date: Date(), items: sampleItems))
                 .previewContext(WidgetPreviewContext(family: .systemMedium))
-                .previewDisplayName("中号 Widget")
+                .previewDisplayName(L10n.widgetPreviewMedium)
             
             ClipStackWidgetEntryView(entry: ClipStackEntry(date: Date(), items: sampleItems))
                 .previewContext(WidgetPreviewContext(family: .systemLarge))
-                .previewDisplayName("大号 Widget")
+                .previewDisplayName(L10n.widgetPreviewLarge)
         }
     }
 }
