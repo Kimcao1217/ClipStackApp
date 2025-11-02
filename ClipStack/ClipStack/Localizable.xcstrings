@@ -282,13 +282,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "📋 ClipStack"
+            "value" : "ClipStack"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "📋 ClipStack"
+            "value" : "ClipStack"
           }
         }
       }
@@ -503,7 +503,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Share"
+            "value" : "Shared"
           }
         },
         "zh-Hans" : {
@@ -3441,13 +3441,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Manual Entry"
+            "value" : "Manual"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "手动添加"
+            "value" : "手动"
           }
         }
       }

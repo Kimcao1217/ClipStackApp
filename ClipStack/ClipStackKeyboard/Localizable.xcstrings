@@ -279,13 +279,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "📋 ClipStack"
+            "value" : "ClipStack"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "📋 ClipStack"
+            "value" : "ClipStack"
           }
         }
       }
@@ -483,7 +483,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Share"
+            "value" : "Shared"
           }
         },
         "zh-Hans" : {
@@ -2270,13 +2270,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "📝 Auto-save clipboard history"
+            "value" : "Auto-save clipboard history"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "📝 自动保存剪贴板历史"
+            "value" : "自动保存剪贴板历史"
           }
         }
       }
@@ -2287,13 +2287,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "🔗 Support text, links, and images"
+            "value" : "Support text, links, and images"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "🔗 支持文本、链接和图片"
+            "value" : "支持文本、链接和图片"
           }
         }
       }
@@ -2304,13 +2304,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "⭐ Star frequently used items"
+            "value" : "Star frequently used items"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "⭐ 收藏常用内容"
+            "value" : "收藏常用内容"
           }
         }
       }
@@ -2321,13 +2321,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "☁️ iCloud sync across devices (coming soon)"
+            "value" : "iCloud sync across devices"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "☁️ iCloud 跨设备同步（即将推出）"
+            "value" : "iCloud 跨设备同步"
           }
         }
       }
@@ -3774,13 +3774,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Manual Entry"
+            "value" : "Manual"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "手动添加"
+            "value" : "手动"
           }
         }
       }

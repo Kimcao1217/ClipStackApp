@@ -589,21 +589,26 @@ private func shareItem(_ item: ClipItem) {
     }
     
     // MARK: - 限制提示横幅
-    
-    private var limitBannerView: some View {
-    // ✅ 正确：统计所有条目，不受搜索/筛选影响
+private var limitBannerView: some View {
     let historyCount = allItems.filter { !$0.isStarred }.count
     let starredCount = allItems.filter { $0.isStarred }.count
     
     return HStack(spacing: 12) {
-        Image(systemName: "info.circle.fill")
-            .foregroundColor(.blue)
-            .font(.title3)
+        ZStack {
+            Circle()
+                .fill(Color.blue.opacity(0.15))
+                .frame(width: 36, height: 36)
+            
+            Image(systemName: "info.circle.fill")
+                .foregroundColor(.blue)
+                .font(.system(size: 18))
+        }
         
-        VStack(alignment: .leading, spacing: 2) {
+        VStack(alignment: .leading, spacing: 3) {
             Text(L10n.freeLimitTitle)
                 .font(.subheadline)
                 .fontWeight(.semibold)
+                .foregroundColor(.primary)
             
             Text(String(format: NSLocalizedString("freeLimit.count", comment: ""), historyCount, starredCount))
                 .font(.caption)
@@ -612,6 +617,7 @@ private func shareItem(_ item: ClipItem) {
         
         Spacer()
         
+        // 优化的升级按钮：渐变 + 阴影）
         NavigationLink(destination: SettingsView()) {
             Text(L10n.upgrade)
                 .font(.subheadline)
@@ -619,13 +625,27 @@ private func shareItem(_ item: ClipItem) {
                 .foregroundColor(.white)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 8)
-                .background(Color.blue)
-                .cornerRadius(8)
+                .background(
+                    LinearGradient(
+                        colors: [Color.blue, Color.blue.opacity(0.85)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+                .cornerRadius(10)
+                .shadow(color: .blue.opacity(0.25), radius: 3, x: 0, y: 2)
         }
     }
-    .padding(12)
-    .background(Color.blue.opacity(0.1))
-    .cornerRadius(12)
+    .padding(14)
+    .background(
+        RoundedRectangle(cornerRadius: 14)
+            .fill(Color(.systemBackground))
+            .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 2)
+    )
+    .overlay(
+        RoundedRectangle(cornerRadius: 14)
+            .stroke(Color.blue.opacity(0.2), lineWidth: 1)
+    )
 }
 }
 
@@ -639,29 +659,39 @@ struct AddItemSheetView: View {
     
     var body: some View {
         NavigationView {
-            VStack(spacing: 20) {
-                VStack(alignment: .leading, spacing: 8) {
+            VStack(spacing: 24) {
+                // ✅ 内容输入框
+                VStack(alignment: .leading, spacing: 10) {
                     Text(L10n.addItemContentLabel)
                         .font(.headline)
+                        .foregroundColor(.primary)
                     
                     TextEditor(text: $content)
-                        .frame(minHeight: 120)
-                        .padding(8)
+                        .frame(minHeight: 140)
+                        .padding(10)
                         .background(Color(.systemGray6))
-                        .cornerRadius(8)
+                        .cornerRadius(10)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10)
+                                .stroke(Color(.systemGray4), lineWidth: 0.5)
+                        )
                 }
                 
-                VStack(alignment: .leading, spacing: 8) {
+                // ✅ 来源输入框
+                VStack(alignment: .leading, spacing: 10) {
                     Text(L10n.addItemSourceLabel)
                         .font(.headline)
+                        .foregroundColor(.primary)
                     
                     TextField(L10n.addItemSourcePlaceholder, text: $source)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .autocapitalization(.none)
+                        .disableAutocorrection(true)
                 }
                 
                 Spacer()
             }
-            .padding()
+            .padding(20)
             .navigationTitle(L10n.addItemTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -675,13 +705,13 @@ struct AddItemSheetView: View {
                     Button(L10n.save) {
                         onSave(content, source)
                     }
+                    .font(.body.weight(.semibold))  // ✅ iOS 15 兼容写法
                     .disabled(content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }
         }
     }
 }
-
 
 // MARK: - 剪贴板条目行视图（⭐ 更新支持图片）
 

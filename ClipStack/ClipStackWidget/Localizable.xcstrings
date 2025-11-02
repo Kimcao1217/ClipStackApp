@@ -285,13 +285,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "📋 ClipStack"
+            "value" : "ClipStack"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "📋 ClipStack"
+            "value" : "ClipStack"
           }
         }
       }
@@ -492,7 +492,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Share"
+            "value" : "Shared"
           }
         },
         "zh-Hans" : {
@@ -1926,13 +1926,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "📝 Auto-save clipboard history"
+            "value" : "Auto-save clipboard history"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "📝 自动保存剪贴板历史"
+            "value" : "自动保存剪贴板历史"
           }
         }
       }
@@ -1943,13 +1943,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "🔗 Support text, links, and images"
+            "value" : "Support text, links, and images"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "🔗 支持文本、链接和图片"
+            "value" : "支持文本、链接和图片"
           }
         }
       }
@@ -1960,13 +1960,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "⭐ Star frequently used items"
+            "value" : "Star frequently used items"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "⭐ 收藏常用内容"
+            "value" : "收藏常用内容"
           }
         }
       }
@@ -1977,13 +1977,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "☁️ iCloud sync across devices (coming soon)"
+            "value" : "iCloud sync across devices"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "☁️ iCloud 跨设备同步（即将推出）"
+            "value" : "iCloud 跨设备同步"
           }
         }
       }
@@ -3383,60 +3383,270 @@
       }
     },
     "share.defaultSource" : {
-      "comment" : "Default share source name"
+  "comment" : "Default share source name",
+  "extractionState" : "manual",
+  "localizations" : {
+    "en" : {
+      "stringUnit" : {
+        "state" : "translated",
+        "value" : "Shared"
+      }
     },
-    "share.error.compressFailed" : {
-      "comment" : "Image compression failed"
+    "zh-Hans" : {
+      "stringUnit" : {
+        "state" : "translated",
+        "value" : "分享"
+      }
+    }
+  }
+},
+"share.error.compressFailed" : {
+  "comment" : "Image compression failed",
+  "extractionState" : "manual",
+  "localizations" : {
+    "en" : {
+      "stringUnit" : {
+        "state" : "translated",
+        "value" : "Failed to compress image"
+      }
     },
-    "share.error.emptyLink" : {
-      "comment" : "Link is empty"
+    "zh-Hans" : {
+      "stringUnit" : {
+        "state" : "translated",
+        "value" : "图片压缩失败"
+      }
+    }
+  }
+},
+"share.error.emptyLink" : {
+  "comment" : "Link is empty",
+  "extractionState" : "manual",
+  "localizations" : {
+    "en" : {
+      "stringUnit" : {
+        "state" : "translated",
+        "value" : "Link cannot be empty"
+      }
     },
-    "share.error.emptyText" : {
-      "comment" : "Text is empty"
+    "zh-Hans" : {
+      "stringUnit" : {
+        "state" : "translated",
+        "value" : "链接不能为空"
+      }
+    }
+  }
+},
+"share.error.emptyText" : {
+  "comment" : "Text is empty",
+  "extractionState" : "manual",
+  "localizations" : {
+    "en" : {
+      "stringUnit" : {
+        "state" : "translated",
+        "value" : "Text cannot be empty"
+      }
     },
-    "share.error.noContent" : {
-      "comment" : "Failed to get shared content"
+    "zh-Hans" : {
+      "stringUnit" : {
+        "state" : "translated",
+        "value" : "文本不能为空"
+      }
+    }
+  }
+},
+"share.error.noContent" : {
+  "comment" : "Failed to get shared content",
+  "extractionState" : "manual",
+  "localizations" : {
+    "en" : {
+      "stringUnit" : {
+        "state" : "translated",
+        "value" : "No content to share"
+      }
     },
-    "share.error.readImageFailed" : {
-      "comment" : "Failed to read image"
+    "zh-Hans" : {
+      "stringUnit" : {
+        "state" : "translated",
+        "value" : "没有可分享的内容"
+      }
+    }
+  }
+},
+"share.error.readImageFailed" : {
+  "comment" : "Failed to read image",
+  "extractionState" : "manual",
+  "localizations" : {
+    "en" : {
+      "stringUnit" : {
+        "state" : "translated",
+        "value" : "Failed to read image"
+      }
     },
-    "share.error.readLinkFailed" : {
-      "comment" : "Failed to read link"
+    "zh-Hans" : {
+      "stringUnit" : {
+        "state" : "translated",
+        "value" : "无法读取图片"
+      }
+    }
+  }
+},
+"share.error.readLinkFailed" : {
+  "comment" : "Failed to read link",
+  "extractionState" : "manual",
+  "localizations" : {
+    "en" : {
+      "stringUnit" : {
+        "state" : "translated",
+        "value" : "Failed to read link"
+      }
     },
-    "share.error.readTextFailed" : {
-      "comment" : "Failed to read text"
+    "zh-Hans" : {
+      "stringUnit" : {
+        "state" : "translated",
+        "value" : "无法读取链接"
+      }
+    }
+  }
+},
+"share.error.readTextFailed" : {
+  "comment" : "Failed to read text",
+  "extractionState" : "manual",
+  "localizations" : {
+    "en" : {
+      "stringUnit" : {
+        "state" : "translated",
+        "value" : "Failed to read text"
+      }
     },
-    "share.error.saveFailed" : {
-      "comment" : "Save failed: %@"
+    "zh-Hans" : {
+      "stringUnit" : {
+        "state" : "translated",
+        "value" : "无法读取文本"
+      }
+    }
+  }
+},
+"share.error.saveFailed" : {
+  "comment" : "Save failed: %@",
+  "extractionState" : "manual",
+  "localizations" : {
+    "en" : {
+      "stringUnit" : {
+        "state" : "translated",
+        "value" : "Save failed: %@"
+      }
     },
-    "share.error.thumbnailFailed" : {
-      "comment" : "Thumbnail generation failed"
+    "zh-Hans" : {
+      "stringUnit" : {
+        "state" : "translated",
+        "value" : "保存失败：%@"
+      }
+    }
+  }
+},
+"share.error.thumbnailFailed" : {
+  "comment" : "Thumbnail generation failed",
+  "extractionState" : "manual",
+  "localizations" : {
+    "en" : {
+      "stringUnit" : {
+        "state" : "translated",
+        "value" : "Failed to generate thumbnail"
+      }
     },
-    "share.error.unsupportedType" : {
-      "comment" : "Unsupported content type"
+    "zh-Hans" : {
+      "stringUnit" : {
+        "state" : "translated",
+        "value" : "缩略图生成失败"
+      }
+    }
+  }
+},
+"share.error.unsupportedType" : {
+  "comment" : "Unsupported content type",
+  "extractionState" : "manual",
+  "localizations" : {
+    "en" : {
+      "stringUnit" : {
+        "state" : "translated",
+        "value" : "Unsupported content type"
+      }
     },
-    "share.imageLabel" : {
-      "comment" : "Image content label"
+    "zh-Hans" : {
+      "stringUnit" : {
+        "state" : "translated",
+        "value" : "不支持的内容类型"
+      }
+    }
+  }
+},
+"share.imageLabel" : {
+  "comment" : "Image content label",
+  "extractionState" : "manual",
+  "localizations" : {
+    "en" : {
+      "stringUnit" : {
+        "state" : "translated",
+        "value" : "Image"
+      }
     },
-    "share.saving" : {
-      "comment" : "Saving indicator"
+    "zh-Hans" : {
+      "stringUnit" : {
+        "state" : "translated",
+        "value" : "图片"
+      }
+    }
+  }
+},
+"share.saving" : {
+  "comment" : "Saving indicator",
+  "extractionState" : "manual",
+  "localizations" : {
+    "en" : {
+      "stringUnit" : {
+        "state" : "translated",
+        "value" : "Saving..."
+      }
     },
-    "share.success" : {
-      "comment" : "Success message"
+    "zh-Hans" : {
+      "stringUnit" : {
+        "state" : "translated",
+        "value" : "保存中..."
+      }
+    }
+  }
+},
+"share.success" : {
+  "comment" : "Success message",
+  "extractionState" : "manual",
+  "localizations" : {
+    "en" : {
+      "stringUnit" : {
+        "state" : "translated",
+        "value" : "Saved to ClipStack"
+      }
     },
+    "zh-Hans" : {
+      "stringUnit" : {
+        "state" : "translated",
+        "value" : "已保存到 ClipStack"
+      }
+    }
+  }
+},
     "source.manual" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Manual Entry"
+            "value" : "Manual"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "手动添加"
+            "value" : "手动"
           }
         }
       }
