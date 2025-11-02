@@ -1937,13 +1937,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "📝 Auto-save clipboard history"
+            "value" : "Auto-save clipboard history"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "📝 自动保存剪贴板历史"
+            "value" : "自动保存剪贴板历史"
           }
         }
       }
@@ -1954,13 +1954,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "🔗 Support text, links, and images"
+            "value" : "Support text, links, and images"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "🔗 支持文本、链接和图片"
+            "value" : "支持文本、链接和图片"
           }
         }
       }
@@ -1971,13 +1971,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "⭐ Star frequently used items"
+            "value" : "Star frequently used items"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "⭐ 收藏常用内容"
+            "value" : "收藏常用内容"
           }
         }
       }
@@ -1988,13 +1988,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "☁️ iCloud sync across devices (coming soon)"
+            "value" : "iCloud sync across devices"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "☁️ iCloud 跨设备同步（即将推出）"
+            "value" : "iCloud 跨设备同步"
           }
         }
       }
@@ -2045,7 +2045,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "我们不会收集你的键入内容，所有数据仅保存在本地"
+            "value" : "我们不会收集您的键入内容，所有数据仅保存在本地"
           }
         }
       }
@@ -2107,13 +2107,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "⚠️ Enable \"Allow Full Access\" (required for copying images)"
+            "value" : "Enable \"Allow Full Access\" (required for copying images)"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "⚠️ 开启\"允许完全访问\"（需要此权限才能复制图片）"
+            "value" : "开启\"允许完全访问\"（需要此权限才能复制图片）"
           }
         }
       }
@@ -2243,13 +2243,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "View and copy frequently used items with one tap"
+            "value" : "Quick access to frequently used clips"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "一键查看和复制常用内容"
+            "value" : "快速访问常用的剪贴内容"
           }
         }
       }

@@ -2,7 +2,7 @@
 //  OnboardingView.swift
 //  ClipStack
 //
-//  首次启动引导流程 - 3页滑动式引导
+//  首次启动引导流程 - 完全模仿 iOS 原生风格
 //
 
 import SwiftUI
@@ -11,67 +11,61 @@ struct OnboardingView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var currentPage = 0
     
+    // ✅ iOS 系统蓝（所有页面统一）
+    private let systemBlue = Color(red: 0.0, green: 0.48, blue: 1.0)
+    
     private let pages: [OnboardingPage] = [
         OnboardingPage(
             icon: "clipboard.fill",
-            iconColor: .blue,
-            title: L10n.onboardingPage1Title,  // ✅ 本地化
-            subtitle: L10n.onboardingPage1Subtitle,  // ✅ 本地化
+            iconColor: Color(red: 0.0, green: 0.48, blue: 1.0),  // 蓝色
+            title: L10n.onboardingPage1Title,
+            subtitle: L10n.onboardingPage1Subtitle,
             features: [
-                L10n.onboardingPage1Feature1,  // ✅ 本地化
-                L10n.onboardingPage1Feature2,  // ✅ 本地化
-                L10n.onboardingPage1Feature3,  // ✅ 本地化
-                L10n.onboardingPage1Feature4   // ✅ 本地化
+                L10n.onboardingPage1Feature1,
+                L10n.onboardingPage1Feature2,
+                L10n.onboardingPage1Feature3,
+                L10n.onboardingPage1Feature4
             ]
         ),
         OnboardingPage(
             icon: "keyboard.fill",
-            iconColor: .green,
-            title: L10n.onboardingPage2Title,  // ✅ 本地化
-            subtitle: L10n.onboardingPage2Subtitle,  // ✅ 本地化
+            iconColor: Color(red: 0.0, green: 0.48, blue: 1.0),  // ✅ 改为蓝色
+            title: L10n.onboardingPage2Title,
+            subtitle: L10n.onboardingPage2Subtitle,
             steps: [
-                ("1", L10n.onboardingPage2Step1),  // ✅ 本地化
-                ("2", L10n.onboardingPage2Step2),  // ✅ 本地化
-                ("3", L10n.onboardingPage2Step3),  // ✅ 本地化
-                ("4", L10n.onboardingPage2Step4)   // ✅ 本地化
+                ("1", L10n.onboardingPage2Step1),
+                ("2", L10n.onboardingPage2Step2),
+                ("3", L10n.onboardingPage2Step3),
+                ("4", L10n.onboardingPage2Step4)
             ],
-            footnote: L10n.onboardingPage2Footnote  // ✅ 本地化
+            footnote: L10n.onboardingPage2Footnote
         ),
         OnboardingPage(
             icon: "square.grid.2x2.fill",
-            iconColor: .orange,
-            title: L10n.onboardingPage3Title,  // ✅ 本地化
-            subtitle: L10n.onboardingPage3Subtitle,  // ✅ 本地化
+            iconColor: Color(red: 0.0, green: 0.48, blue: 1.0),  // ✅ 改为蓝色
+            title: L10n.onboardingPage3Title,
+            subtitle: L10n.onboardingPage3Subtitle,
             steps: [
-                ("1", L10n.onboardingPage3Step1),  // ✅ 本地化
-                ("2", L10n.onboardingPage3Step2),  // ✅ 本地化
-                ("3", L10n.onboardingPage3Step3),  // ✅ 本地化
-                ("4", L10n.onboardingPage3Step4)   // ✅ 本地化
+                ("1", L10n.onboardingPage3Step1),
+                ("2", L10n.onboardingPage3Step2),
+                ("3", L10n.onboardingPage3Step3),
+                ("4", L10n.onboardingPage3Step4)
             ],
-            footnote: L10n.onboardingPage3Footnote  // ✅ 本地化
+            footnote: L10n.onboardingPage3Footnote
         )
     ]
     
     var body: some View {
         ZStack {
-            // 背景渐变
-            LinearGradient(
-                colors: [
-                    pages[currentPage].iconColor.opacity(0.1),
-                    pages[currentPage].iconColor.opacity(0.05)
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
-            .animation(.easeInOut(duration: 0.3), value: currentPage)
+            Color(.systemBackground)
+                .ignoresSafeArea()
             
             VStack(spacing: 0) {
                 // 跳过按钮
                 HStack {
                     Spacer()
                     if currentPage < pages.count - 1 {
-                        Button(L10n.onboardingSkip) {  // ✅ 本地化
+                        Button(L10n.onboardingSkip) {
                             completeOnboarding()
                         }
                         .font(.subheadline)
@@ -96,7 +90,7 @@ struct OnboardingView: View {
                     .padding(.bottom, 40)
             }
         }
-        .interactiveDismissDisabled()  // 禁止下拉关闭
+        .interactiveDismissDisabled()
     }
     
     // MARK: - 底部按钮
@@ -108,7 +102,6 @@ struct OnboardingView: View {
                     currentPage += 1
                 }
                 
-                // 触觉反馈
                 let generator = UIImpactFeedbackGenerator(style: .light)
                 generator.impactOccurred()
             } else {
@@ -116,7 +109,7 @@ struct OnboardingView: View {
             }
         } label: {
             HStack {
-                Text(currentPage < pages.count - 1 ? L10n.onboardingNext : L10n.onboardingStart)  // ✅ 本地化
+                Text(currentPage < pages.count - 1 ? L10n.onboardingNext : L10n.onboardingStart)
                     .fontWeight(.semibold)
                 
                 Image(systemName: currentPage < pages.count - 1 ? "arrow.right" : "checkmark")
@@ -124,25 +117,21 @@ struct OnboardingView: View {
             .frame(maxWidth: .infinity)
             .frame(height: 54)
             .foregroundColor(.white)
-            .background(pages[currentPage].iconColor)
+            .background(systemBlue)  // ✅ 统一蓝色
             .cornerRadius(16)
-            .shadow(color: pages[currentPage].iconColor.opacity(0.3), radius: 10, x: 0, y: 5)
+            .shadow(color: systemBlue.opacity(0.3), radius: 10, x: 0, y: 5)
         }
-        .animation(.easeInOut(duration: 0.3), value: currentPage)
     }
     
     // MARK: - 完成引导
     
     private func completeOnboarding() {
-        // ⭐ 标记已完成引导
         UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
-        print("✅ \(L10n.logOnboardingCompleted)")  // ✅ 本地化
+        print("✅ \(L10n.logOnboardingCompleted)")
         
-        // 触觉反馈
         let generator = UINotificationFeedbackGenerator()
         generator.notificationOccurred(.success)
         
-        // ⭐ 关键：关闭引导页（现在会正常工作了）
         dismiss()
     }
 }
@@ -154,15 +143,21 @@ struct OnboardingPage {
     let iconColor: Color
     let title: String
     let subtitle: String
-    var features: [String] = []  // 功能列表（第1页用）
-    var steps: [(number: String, text: String)] = []  // 步骤列表（第2、3页用）
-    var footnote: String? = nil  // 底部说明文字
+    var features: [String] = []
+    var steps: [(number: String, text: String)] = []
+    var footnote: String? = nil
 }
 
 // MARK: - 预览
 
 struct OnboardingView_Previews: PreviewProvider {
     static var previews: some View {
-        OnboardingView()
+        Group {
+            OnboardingView()
+                .preferredColorScheme(.light)
+            
+            OnboardingView()
+                .preferredColorScheme(.dark)
+        }
     }
 }
