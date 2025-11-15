@@ -5,16 +5,17 @@
 //  键盘上显示的单个剪贴板条目行（支持图片显示）
 
 import UIKit
+import CoreData
 
 class ClipItemKeyboardRow: UIView {
     
     // UI组件
     private let typeIconLabel = UILabel()
-    private let thumbnailImageView = UIImageView()  // ⭐ 新增：图片缩略图
+    private let thumbnailImageView = UIImageView()
     private let contentLabel = UILabel()
     private let timeLabel = UILabel()
     private let starIconView = UIImageView()
-    private let actionLabel = UILabel()  // ⭐ 新增：操作提示（"点击复制"）
+    private let actionLabel = UILabel()
     
     // 数据模型
     var clipItem: ClipItem? {
@@ -26,8 +27,8 @@ class ClipItemKeyboardRow: UIView {
     // 点击回调
     var onTap: (() -> Void)?
 
-    // 图片缓存池（由 KeyboardViewController 传入）
-    var imageCache: [UUID: UIImage]?
+    // ⭐ 改用 NSCache（自动管理内存）
+    var imageCache: NSCache<NSUUID, UIImage>?
     
     // MARK: - 初始化
     
@@ -44,79 +45,65 @@ class ClipItemKeyboardRow: UIView {
     // MARK: - UI设置
     
     private func setupUI() {
-        // 设置背景和圆角
         backgroundColor = UIColor.systemGray6
         layer.cornerRadius = 8
         layer.masksToBounds = true
         
-        // 配置类型图标（文本/链接用）
         typeIconLabel.font = .systemFont(ofSize: 24)
         typeIconLabel.translatesAutoresizingMaskIntoConstraints = false
         addSubview(typeIconLabel)
         
-        // ⭐ 配置图片缩略图（图片用）
         thumbnailImageView.contentMode = .scaleAspectFill
         thumbnailImageView.layer.cornerRadius = 6
         thumbnailImageView.layer.masksToBounds = true
         thumbnailImageView.translatesAutoresizingMaskIntoConstraints = false
-        thumbnailImageView.isHidden = true  // 默认隐藏
+        thumbnailImageView.isHidden = true
         addSubview(thumbnailImageView)
         
-        // 配置内容标签
         contentLabel.font = .systemFont(ofSize: 14)
         contentLabel.numberOfLines = 2
         contentLabel.translatesAutoresizingMaskIntoConstraints = false
         addSubview(contentLabel)
         
-        // 配置时间标签
         timeLabel.font = .systemFont(ofSize: 11)
         timeLabel.textColor = .secondaryLabel
         timeLabel.translatesAutoresizingMaskIntoConstraints = false
         addSubview(timeLabel)
         
-        // 配置收藏图标
         starIconView.image = UIImage(systemName: "star.fill")
         starIconView.tintColor = .systemYellow
         starIconView.translatesAutoresizingMaskIntoConstraints = false
         starIconView.isHidden = true
         addSubview(starIconView)
         
-        // ⭐ 配置操作提示标签
         actionLabel.font = .systemFont(ofSize: 10, weight: .medium)
         actionLabel.textColor = .systemBlue
         actionLabel.translatesAutoresizingMaskIntoConstraints = false
         addSubview(actionLabel)
         
-        // 布局约束
         NSLayoutConstraint.activate([
-            // 类型图标（与缩略图位置相同）
             typeIconLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 8),
             typeIconLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
             typeIconLabel.widthAnchor.constraint(equalToConstant: 44),
             
-            // ⭐ 图片缩略图
             thumbnailImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 8),
             thumbnailImageView.centerYAnchor.constraint(equalTo: centerYAnchor),
             thumbnailImageView.widthAnchor.constraint(equalToConstant: 44),
             thumbnailImageView.heightAnchor.constraint(equalToConstant: 44),
             
-            // 内容标签
             contentLabel.leadingAnchor.constraint(equalTo: typeIconLabel.trailingAnchor, constant: 8),
             contentLabel.topAnchor.constraint(equalTo: topAnchor, constant: 8),
             contentLabel.trailingAnchor.constraint(equalTo: starIconView.leadingAnchor, constant: -8),
             
-            // 时间标签
             timeLabel.leadingAnchor.constraint(equalTo: contentLabel.leadingAnchor),
             timeLabel.topAnchor.constraint(equalTo: contentLabel.bottomAnchor, constant: 2),
             timeLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -8),
             
-            // 收藏图标
             starIconView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -12),
             starIconView.topAnchor.constraint(equalTo: topAnchor, constant: 8),
             starIconView.widthAnchor.constraint(equalToConstant: 16),
             starIconView.heightAnchor.constraint(equalToConstant: 16),
             
-            // ⭐ 操作提示标签
             actionLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -12),
             actionLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -8)
         ])
@@ -129,7 +116,6 @@ class ClipItemKeyboardRow: UIView {
     }
     
     @objc private func handleTap() {
-        // 添加点击动画
         UIView.animate(withDuration: 0.1, animations: {
             self.alpha = 0.5
         }) { _ in
@@ -146,24 +132,22 @@ class ClipItemKeyboardRow: UIView {
     private func updateUI() {
         guard let item = clipItem else { return }
         
-        // ⭐ 判断是否为图片
         if item.contentType == "image" {
-            // 显示图片缩略图
             typeIconLabel.isHidden = true
             thumbnailImageView.isHidden = false
             
             // ⭐ 优先从缓存读取
-            if let itemID = item.id, let cachedImage = imageCache?[itemID] {
+            if let itemID = item.id, let cachedImage = imageCache?.object(forKey: itemID as NSUUID) {
                 thumbnailImageView.image = cachedImage
                 print("📦 从缓存读取图片: \(itemID)")
             } else if let thumbnailData = item.keyboardThumbnail {
-                // ⭐ 从 keyboardThumbnail 字段读取（超小缩略图）
+                // 从 keyboardThumbnail 字段读取
                 if let image = UIImage(data: thumbnailData) {
                     thumbnailImageView.image = image
                     
-                    // 存入缓存
+                    // 存入缓存（NSCache 会自动管理内存）
                     if let itemID = item.id {
-                        imageCache?[itemID] = image
+                        imageCache?.setObject(image, forKey: itemID as NSUUID, cost: thumbnailData.count)
                     }
                     
                     print("✅ 加载键盘缩略图: \(thumbnailData.count) 字节")
@@ -171,42 +155,35 @@ class ClipItemKeyboardRow: UIView {
                     thumbnailImageView.image = UIImage(systemName: "photo")
                     thumbnailImageView.contentMode = .center
                 }
-            } else {
-                // 兜底：尝试从 imageData 读取（兼容旧数据）
-                if let imageData = item.imageData, let image = UIImage(data: imageData) {
-                    // 实时压缩为超小缩略图（避免内存占用）
-                    if let smallThumb = compressToKeyboardSize(image) {
-                        thumbnailImageView.image = smallThumb
-                        
-                        if let itemID = item.id {
-                            imageCache?[itemID] = smallThumb
-                        }
-                    } else {
-                        thumbnailImageView.image = image
+            } else if let imageData = item.imageData {
+                // 兜底：尝试实时压缩
+                if let image = UIImage(data: imageData),
+                   let smallThumb = compressToKeyboardSize(image) {
+                    thumbnailImageView.image = smallThumb
+                    
+                    if let itemID = item.id {
+                        imageCache?.setObject(smallThumb, forKey: itemID as NSUUID)
                     }
                     
-                    print("⚠️ 从 imageData 读取（旧数据），建议重新保存")
+                    print("⚠️ 实时压缩图片（建议重新保存）")
                 } else {
                     thumbnailImageView.image = UIImage(systemName: "photo")
                     thumbnailImageView.contentMode = .center
                 }
+            } else {
+                thumbnailImageView.image = UIImage(systemName: "photo")
+                thumbnailImageView.contentMode = .center
             }
             
-            // 显示图片信息
             contentLabel.text = item.imageFullDescription
-            
-            // 操作提示
             actionLabel.text = L10n.keyboardActionCopy
             
         } else {
-            // 显示类型图标
             typeIconLabel.isHidden = false
             thumbnailImageView.isHidden = true
             
-            // 类型图标
             typeIconLabel.text = item.typeIcon
             
-            // 内容文本（限制更短，适合键盘高度）
             if let content = item.content {
                 let maxLength = 60
                 if content.count <= maxLength {
@@ -219,18 +196,14 @@ class ClipItemKeyboardRow: UIView {
                 contentLabel.text = ""
             }
             
-            // 操作提示
             actionLabel.text = L10n.keyboardActionInsert
         }
         
-        // 时间显示
         timeLabel.text = item.relativeTimeString
-        
-        // 收藏状态
         starIconView.isHidden = !item.isStarred
     }
 
-    /// 实时压缩为键盘尺寸（兜底方案，兼容旧数据）
+    /// 实时压缩为键盘尺寸（兜底方案）
     private func compressToKeyboardSize(_ image: UIImage) -> UIImage? {
         let targetSize = CGSize(width: 60, height: 60)
         

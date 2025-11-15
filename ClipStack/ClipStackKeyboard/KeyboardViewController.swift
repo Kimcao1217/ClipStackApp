@@ -14,8 +14,8 @@ class KeyboardViewController: UIInputViewController {
     // Core Data持久化控制器
     private let persistenceController = PersistenceController.shared
     
-    // 剪贴板条目数据
-    private var clipItems: [ClipItem] = []
+    // ⭐ 优化：只保存 NSManagedObjectID（不直接持有 Core Data 对象）
+    private var clipItemIDs: [NSManagedObjectID] = []
 
     // 分页加载相关
     private var currentPage = 0
@@ -23,9 +23,13 @@ class KeyboardViewController: UIInputViewController {
     private var isLoadingMore = false
     private var hasMoreData = true
 
-    // 图片缓存池（自动管理内存）
-    private var imageCache: [UUID: UIImage] = [:]
-    private let maxCacheSize = 20  // 最多缓存 20 张图片
+    // ⭐ 优化：图片缓存池（限制大小，自动清理）
+    private var imageCache: NSCache<NSUUID, UIImage> = {
+        let cache = NSCache<NSUUID, UIImage>()
+        cache.countLimit = 20  // 最多缓存 20 张图片
+        cache.totalCostLimit = 10 * 1024 * 1024  // 最多 10MB
+        return cache
+    }()
     
     // 当前选中的筛选类型
     private enum FilterType: Int {
@@ -104,6 +108,23 @@ class KeyboardViewController: UIInputViewController {
         // 每次显示键盘时刷新数据
         print("👀 键盘即将显示，刷新数据")
         loadData()
+    }
+    
+    // ⭐ 新增：内存警告处理
+    override func didReceiveMemoryWarning() {
+        super.didReceiveMemoryWarning()
+        print("⚠️ 键盘扩展收到内存警告，清理缓存")
+        
+        // 清空图片缓存
+        imageCache.removeAllObjects()
+        
+        // 只保留当前页数据
+        if clipItemIDs.count > itemsPerPage {
+            clipItemIDs = Array(clipItemIDs.prefix(itemsPerPage))
+            currentPage = 0
+            hasMoreData = true
+            updateUI()
+        }
     }
     
     // MARK: - UI设置
@@ -222,11 +243,12 @@ class KeyboardViewController: UIInputViewController {
     
     // MARK: - 数据加载
     
-    /// 根据当前筛选器加载数据（支持分页）
+    /// ⭐ 优化：只加载 ObjectID（不直接持有对象）
     private func loadData(isLoadingMore: Bool = false) {
         let context = persistenceController.container.viewContext
         
-        let fetchRequest: NSFetchRequest<ClipItem> = ClipItem.fetchRequest()
+        let fetchRequest: NSFetchRequest<NSManagedObjectID> = NSFetchRequest(entityName: "ClipItem")
+        fetchRequest.resultType = .managedObjectIDResultType
         fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \ClipItem.createdAt, ascending: false)]
         
         // 应用筛选条件
@@ -234,36 +256,36 @@ class KeyboardViewController: UIInputViewController {
             fetchRequest.predicate = predicate
         }
         
-        // ⭐ 分页加载：只获取当前页的数据
+        // ⭐ 分页加载
         if isLoadingMore {
             currentPage += 1
         } else {
             currentPage = 0
-            clipItems.removeAll()
-            imageCache.removeAll()  // 清空缓存
+            clipItemIDs.removeAll()
+            imageCache.removeAllObjects()  // 清空缓存
         }
         
         fetchRequest.fetchLimit = itemsPerPage
         fetchRequest.fetchOffset = currentPage * itemsPerPage
         
         do {
-            let newItems = try context.fetch(fetchRequest)
+            let newIDs = try context.fetch(fetchRequest) as! [NSManagedObjectID]
             
             if isLoadingMore {
-                clipItems.append(contentsOf: newItems)
+                clipItemIDs.append(contentsOf: newIDs)
             } else {
-                clipItems = newItems
+                clipItemIDs = newIDs
             }
             
-            hasMoreData = newItems.count == itemsPerPage
+            hasMoreData = newIDs.count == itemsPerPage
             
-            print("✅ 键盘扩展加载 \(newItems.count) 条数据（第 \(currentPage) 页，筛选器：\(currentFilter.title)）")
-            print("📊 当前总共 \(clipItems.count) 条，还有更多数据：\(hasMoreData)")
+            print("✅ 键盘扩展加载 \(newIDs.count) 个 ObjectID（第 \(currentPage) 页，筛选器：\(currentFilter.title)）")
+            print("📊 当前总共 \(clipItemIDs.count) 个，还有更多数据：\(hasMoreData)")
             
             updateUI()
         } catch {
             print("❌ 键盘扩展数据加载失败: \(error.localizedDescription)")
-            clipItems = []
+            clipItemIDs = []
             updateUI()
         }
     }
@@ -274,12 +296,11 @@ class KeyboardViewController: UIInputViewController {
         // 清空现有视图
         stackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
         
-        if clipItems.isEmpty {
-            // 显示空状态（根据筛选器调整提示文案）
+        if clipItemIDs.isEmpty {
+            // 显示空状态
             emptyStateLabel.isHidden = false
             scrollView.isHidden = true
             
-            // 根据筛选器显示不同的空状态提示
             switch currentFilter {
             case .all:
                 emptyStateLabel.text = L10n.keyboardEmptyAll
@@ -297,16 +318,22 @@ class KeyboardViewController: UIInputViewController {
             emptyStateLabel.isHidden = true
             scrollView.isHidden = false
             
-            for item in clipItems {
+            let context = persistenceController.container.viewContext
+            
+            for objectID in clipItemIDs {
+                // ⭐ 按需加载对象（而不是一次性全部加载）
+                guard let item = try? context.existingObject(with: objectID) as? ClipItem else {
+                    continue
+                }
+                
                 let rowView = ClipItemKeyboardRow()
                 rowView.clipItem = item
-                rowView.imageCache = imageCache  // ⭐ 传递缓存池
+                rowView.imageCache = imageCache  // ⭐ 传递 NSCache
                 rowView.translatesAutoresizingMaskIntoConstraints = false
                 
                 // 设置点击回调
-                rowView.onTap = { [weak self, weak item] in
-                    guard let self = self, let item = item else { return }
-                    self.handleItemTap(item)
+                rowView.onTap = { [weak self] in
+                    self?.handleItemTap(objectID: objectID)
                 }
                 
                 stackView.addArrangedSubview(rowView)
@@ -317,7 +344,7 @@ class KeyboardViewController: UIInputViewController {
                 ])
             }
 
-            // ⭐ 如果还有更多数据，显示加载提示
+            // 如果还有更多数据，显示加载提示
             if hasMoreData {
                 let loadingLabel = UILabel()
                 loadingLabel.text = L10n.keyboardLoadMore
@@ -337,12 +364,10 @@ class KeyboardViewController: UIInputViewController {
     // MARK: - 用户交互
     
     @objc private func handleSwitchKeyboard() {
-        // 切换到系统默认键盘或其他键盘
         advanceToNextInputMode()
         print("🌐 切换键盘")
     }
     
-    /// 筛选器切换处理
     @objc private func handleFilterChanged() {
         let selectedIndex = filterSegmentedControl.selectedSegmentIndex
         guard let newFilter = FilterType(rawValue: selectedIndex) else { return }
@@ -351,21 +376,25 @@ class KeyboardViewController: UIInputViewController {
         
         currentFilter = newFilter
         
-        // 添加轻微的触觉反馈
         let generator = UISelectionFeedbackGenerator()
         generator.selectionChanged()
         
-        // 重新加载数据
         loadData()
     }
     
-    private func handleItemTap(_ item: ClipItem) {
-        // ⭐ 根据内容类型处理
+    /// ⭐ 优化：通过 ObjectID 处理点击（避免持有强引用）
+    private func handleItemTap(objectID: NSManagedObjectID) {
+        let context = persistenceController.container.viewContext
+        
+        guard let item = try? context.existingObject(with: objectID) as? ClipItem else {
+            print("⚠️ 条目不存在或已被删除")
+            showToast(L10n.toastError)
+            return
+        }
+        
         if item.contentType == "image" {
-            // 图片类型：复制到剪贴板
             copyImageToPasteboard(item)
         } else {
-            // 文本/链接类型：插入到输入框
             insertTextToInputField(item)
         }
     }
@@ -379,31 +408,26 @@ class KeyboardViewController: UIInputViewController {
             return
         }
         
-        // ⭐ 检查是否有完全访问权限
         if !hasFullAccess() {
             showFullAccessRequiredAlert()
             return
         }
         
-        // 复制到系统剪贴板
         UIPasteboard.general.image = image
         
         print("📋 图片已复制到剪贴板")
         showToast(L10n.keyboardImageCopied)
         
-        // 触觉反馈
         let generator = UIImpactFeedbackGenerator(style: .medium)
         generator.impactOccurred()
     }
     
-    /// ⭐ 检测是否有完全访问权限
+    /// 检测是否有完全访问权限
     private func hasFullAccess() -> Bool {
-        // 方法1：尝试访问剪贴板
         if UIPasteboard.general.hasStrings || UIPasteboard.general.hasImages {
             return true
         }
         
-        // 方法2：检查是否能写入
         let testString = "test"
         UIPasteboard.general.string = testString
         let canWrite = UIPasteboard.general.string == testString
@@ -411,9 +435,8 @@ class KeyboardViewController: UIInputViewController {
         return canWrite
     }
     
-    /// ⭐ 显示权限请求提示
+    /// 显示权限请求提示
     private func showFullAccessRequiredAlert() {
-        // 创建提示视图
         let alertView = UIView()
         alertView.backgroundColor = UIColor.systemBackground
         alertView.layer.cornerRadius = 12
@@ -423,14 +446,12 @@ class KeyboardViewController: UIInputViewController {
         alertView.layer.shadowRadius = 8
         alertView.translatesAutoresizingMaskIntoConstraints = false
         
-        // 图标
         let iconLabel = UILabel()
         iconLabel.text = "🔒"
         iconLabel.font = .systemFont(ofSize: 40)
         iconLabel.translatesAutoresizingMaskIntoConstraints = false
         alertView.addSubview(iconLabel)
         
-        // 标题
         let titleLabel = UILabel()
         titleLabel.text = L10n.keyboardPermissionTitle
         titleLabel.font = .systemFont(ofSize: 16, weight: .semibold)
@@ -438,7 +459,6 @@ class KeyboardViewController: UIInputViewController {
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         alertView.addSubview(titleLabel)
         
-        // 说明
         let messageLabel = UILabel()
         messageLabel.text = L10n.keyboardPermissionMessage
         messageLabel.font = .systemFont(ofSize: 12)
@@ -448,7 +468,6 @@ class KeyboardViewController: UIInputViewController {
         messageLabel.translatesAutoresizingMaskIntoConstraints = false
         alertView.addSubview(messageLabel)
         
-        // 关闭按钮
         let closeButton = UIButton(type: .system)
         closeButton.setTitle(L10n.keyboardPermissionGotIt, for: .normal)
         closeButton.titleLabel?.font = .systemFont(ofSize: 14, weight: .medium)
@@ -459,13 +478,9 @@ class KeyboardViewController: UIInputViewController {
         closeButton.addTarget(self, action: #selector(dismissAlert), for: .touchUpInside)
         alertView.addSubview(closeButton)
         
-        // 添加到视图
         view.addSubview(alertView)
-        
-        // 保存引用（用于关闭）
         alertView.tag = 999
         
-        // 布局
         NSLayoutConstraint.activate([
             alertView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             alertView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
@@ -489,7 +504,6 @@ class KeyboardViewController: UIInputViewController {
             closeButton.bottomAnchor.constraint(equalTo: alertView.bottomAnchor, constant: -20)
         ])
         
-        // 淡入动画
         alertView.alpha = 0
         alertView.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
         UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0, options: [], animations: {
@@ -520,19 +534,16 @@ class KeyboardViewController: UIInputViewController {
         
         print("📝 准备插入文本: \(content.prefix(50))...")
         
-        // 使用textDocumentProxy插入文本到当前输入框
         textDocumentProxy.insertText(content)
         
-        // 触觉反馈
         let generator = UIImpactFeedbackGenerator(style: .light)
         generator.impactOccurred()
         
         print("✅ 文本插入成功")
     }
     
-    /// ⭐ 显示提示信息（Toast）
+    /// 显示提示信息（Toast）
     private func showToast(_ message: String) {
-        // 创建一个临时标签显示提示
         let toastLabel = UILabel()
         toastLabel.text = message
         toastLabel.font = .systemFont(ofSize: 14, weight: .medium)
@@ -552,24 +563,12 @@ class KeyboardViewController: UIInputViewController {
             toastLabel.widthAnchor.constraint(greaterThanOrEqualToConstant: 120)
         ])
         
-        // 1.5秒后淡出消失
         UIView.animate(withDuration: 0.3, delay: 1.5, options: [], animations: {
             toastLabel.alpha = 0
         }) { _ in
             toastLabel.removeFromSuperview()
         }
     }
-    
-    // MARK: - 系统方法重写
-    
-    override func textWillChange(_ textInput: UITextInput?) {
-        // 当输入框即将变化时调用（例如切换输入框）
-    }
-    
-    override func textDidChange(_ textInput: UITextInput?) {
-        // 当输入框内容变化时调用
-    }
-    
 }
 
 // MARK: - UIScrollViewDelegate（分页加载）
@@ -577,18 +576,13 @@ class KeyboardViewController: UIInputViewController {
 extension KeyboardViewController: UIScrollViewDelegate {
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        // 滚动到底部时加载更多
         let offsetY = scrollView.contentOffset.y
         let contentHeight = scrollView.contentSize.height
         let scrollViewHeight = scrollView.frame.height
         
-        // 当滚动到距离底部 50pt 时触发
         if offsetY > contentHeight - scrollViewHeight - 50 {
             loadMoreIfNeeded()
         }
-        
-        // ⭐ 主动释放不可见的图片缓存
-        cleanupInvisibleImageCache()
     }
     
     private func loadMoreIfNeeded() {
@@ -597,24 +591,9 @@ extension KeyboardViewController: UIScrollViewDelegate {
         print("📥 触发加载更多...")
         isLoadingMore = true
         
-        // 延迟 0.1 秒加载（防止重复触发）
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
             self?.loadData(isLoadingMore: true)
             self?.isLoadingMore = false
         }
-    }
-    
-    /// 清理不可见的图片缓存
-    private func cleanupInvisibleImageCache() {
-        guard imageCache.count > maxCacheSize else { return }
-        
-        // 获取当前可见的行
-        let visibleRows = stackView.arrangedSubviews.compactMap { $0 as? ClipItemKeyboardRow }
-        let visibleIDs = Set(visibleRows.compactMap { $0.clipItem?.id })
-        
-        // 移除不可见的缓存
-        imageCache = imageCache.filter { visibleIDs.contains($0.key) }
-        
-        print("🧹 清理图片缓存，剩余 \(imageCache.count) 张")
     }
 }

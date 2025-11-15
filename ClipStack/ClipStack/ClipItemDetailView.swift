@@ -251,13 +251,13 @@ Button(action: {
     
     private func toggleStarred() {
         // ✅ 收藏前检查限制
-        if !clipItem.isStarred {
-            let (currentCount, canStar) = PersistenceController.checkStarredLimit(context: viewContext)
-            if !canStar {
-                showToast(message: String(format: L10n.toastStarredFull, currentCount, ProManager.freeStarredLimit))  // ✅ 本地化
-                return
-            }
+    if !clipItem.isStarred {
+        let (currentCount, limitCount, exceeded) = PersistenceController.checkStarredLimit(context: viewContext)
+        if exceeded {
+            showToast(message: String(format: L10n.toastStarredFull, currentCount, limitCount))
+            return
         }
+    }
         
         // ✅ 添加触觉反馈
         let generator = UIImpactFeedbackGenerator(style: .medium)

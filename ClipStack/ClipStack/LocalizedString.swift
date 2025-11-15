@@ -434,6 +434,19 @@ static let widgetPreviewPhotoSource = NSLocalizedString("widget.preview.photoSou
 static let widgetPreviewSmall = NSLocalizedString("widget.preview.small", comment: "Small widget preview name")
 static let widgetPreviewMedium = NSLocalizedString("widget.preview.medium", comment: "Medium widget preview name")
 static let widgetPreviewLarge = NSLocalizedString("widget.preview.large", comment: "Large widget preview name")
+    
+    // MARK: - CloudKit 同步状态（CloudKitSyncManager.swift）
+
+    /// 同步状态文本
+    static let syncNotStarted = NSLocalizedString("sync.notStarted", comment: "未开始同步")
+    static let syncInProgress = NSLocalizedString("sync.inProgress", comment: "正在同步")
+    static let syncSucceeded = NSLocalizedString("sync.succeeded", comment: "同步成功")
+    static let syncFailed = NSLocalizedString("sync.failed", comment: "同步失败（带参数）")
+
+    /// 同步错误提示
+    static let syncErrorNotLoggedIn = NSLocalizedString("sync.error.notLoggedIn", comment: "未登录 iCloud")
+    static let syncErrorNetwork = NSLocalizedString("sync.error.network", comment: "网络不可用")
+    static let syncErrorQuotaExceeded = NSLocalizedString("sync.error.quotaExceeded", comment: "iCloud 空间不足")
 }
 
 // MARK: - 格式化工具（支持参数替换）

@@ -12,8 +12,9 @@ import UIKit
 struct ContentView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @StateObject private var proManager = ProManager.shared
+    @StateObject private var syncManager = CloudKitSyncManager.shared  // ✅ 新增
     
-    // ✅ 改回 @FetchRequest（自动监听 Core Data 变化）
+    // ✅ @FetchRequest 自动监听 Core Data 变化（包括 CloudKit 同步）
     @FetchRequest(
         sortDescriptors: [NSSortDescriptor(keyPath: \ClipItem.createdAt, ascending: false)],
         animation: .default
@@ -69,6 +70,17 @@ struct ContentView: View {
                         .padding(.top, 8)
                 }
                 
+                // ✅ 新增：同步状态横幅（仅在同步中或失败时显示）
+                if case .inProgress = syncManager.syncStatus {
+                    syncStatusBanner
+                        .padding(.horizontal)
+                        .padding(.top, 8)
+                } else if case .failed = syncManager.syncStatus {
+                    syncStatusBanner
+                        .padding(.horizontal)
+                        .padding(.top, 8)
+                }
+                
                 searchBarView
                     .padding(.horizontal)
                     .padding(.top, 8)
@@ -96,8 +108,19 @@ struct ContentView: View {
                 }
                 ToolbarItem(placement: .navigationBarLeading) {
                     NavigationLink(destination: SettingsView()) {
-                        Image(systemName: "gearshape")
-                            .foregroundColor(.primary)
+                        // ✅ 根据同步状态显示不同图标
+                        ZStack {
+                            Image(systemName: "gearshape")
+                                .foregroundColor(.primary)
+                            
+                            // 同步中显示小徽章
+                            if case .inProgress = syncManager.syncStatus {
+                                Circle()
+                                    .fill(Color.blue)
+                                    .frame(width: 8, height: 8)
+                                    .offset(x: 8, y: -8)
+                            }
+                        }
                     }
                 }
             }
@@ -114,59 +137,63 @@ struct ContentView: View {
                 )
             }
         }
-        .onAppear {
-            setupDarwinNotificationObserver()
-        }
-        // ✅ 删除 onChange 监听（不需要手动刷新）
+        // ❌ 删除：不再需要手动监听 Darwin 通知
+        // ✅ @FetchRequest 会自动接收 CloudKit 的变更
     }
 
-    // MARK: - Darwin 跨进程通知监听
-    @State private var lastHistoryToken: NSPersistentHistoryToken?
-
-private func setupDarwinNotificationObserver() {
-    DarwinNotificationCenter.shared.addObserver {
-        print("🔔 检测到 Share Extension 保存数据，启动历史变更合并")
-        mergePersistentHistoryChanges()
-        
-        DispatchQueue.main.async {
-            WidgetCenter.shared.reloadAllTimelines()
-            print("🔄 主 App 合并完成，通知 Widget 刷新")
-        }
-    }
-}
-
-/// 合并历史变更（Apple 推荐的做法）
-private func mergePersistentHistoryChanges() {
-    let container = PersistenceController.shared.container
-    let viewContext = container.viewContext
-
-    // ✅ 在后台队列执行
-    container.performBackgroundTask { backgroundContext in
-        // 获取最近的历史变更
-        let fetchRequest = NSPersistentHistoryChangeRequest.fetchHistory(after: self.lastHistoryToken)
-        do {
-            if let result = try backgroundContext.execute(fetchRequest) as? NSPersistentHistoryResult,
-               let transactions = result.result as? [NSPersistentHistoryTransaction],
-               !transactions.isEmpty {
-
-                print("📦 合并 \(transactions.count) 个历史事务")
-
-                // 保存最后 token，防止重复合并
-                self.lastHistoryToken = transactions.last?.token
-
-                // 合并到主 context（Apple 推荐方式）
-                viewContext.perform {
-                    for transaction in transactions {
-                        viewContext.mergeChanges(fromContextDidSave: transaction.objectIDNotification())
-                    }
-                    print("✅ 主 App 已合并 Share Extension 修改")
-                }
+    // ✅ 新增：同步状态横幅
+    private var syncStatusBanner: some View {
+        HStack(spacing: 12) {
+            if case .inProgress = syncManager.syncStatus {
+                ProgressView()
+                    .scaleEffect(0.8)
+            } else {
+                Image(systemName: syncManager.syncStatus.iconName)
+                    .foregroundColor(syncStatusColor)
             }
-        } catch {
-            print("❌ 合并历史变更失败: \(error)")
+            
+            Text(syncManager.syncStatus.displayText)
+                .font(.subheadline)
+                .foregroundColor(.primary)
+            
+            Spacer()
+        }
+        .padding(12)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(syncStatusBackgroundColor)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(syncStatusColor.opacity(0.3), lineWidth: 1)
+        )
+    }
+    
+    private var syncStatusColor: Color {
+        switch syncManager.syncStatus {
+        case .notStarted:
+            return .secondary
+        case .inProgress:
+            return .blue
+        case .succeeded:
+            return .green
+        case .failed:
+            return .red
         }
     }
-}
+    
+    private var syncStatusBackgroundColor: Color {
+        switch syncManager.syncStatus {
+        case .notStarted:
+            return Color(.systemGray6)
+        case .inProgress:
+            return Color.blue.opacity(0.1)
+        case .succeeded:
+            return Color.green.opacity(0.1)
+        case .failed:
+            return Color.red.opacity(0.1)
+        }
+    }
     
     // MARK: - 子视图
     
@@ -236,7 +263,6 @@ private func mergePersistentHistoryChanges() {
         .padding(8)
         .background(Color(.systemGray6))
         .cornerRadius(10)
-        // ✅ 删除 onChange（过滤在计算属性中自动完成）
     }
     
     private var filterSegmentedControl: some View {
@@ -247,7 +273,6 @@ private func mergePersistentHistoryChanges() {
             }
         }
         .pickerStyle(.segmented)
-        // ✅ 删除 onChange（过滤在计算属性中自动完成）
     }
     
     private var clipItemsList: some View {
@@ -266,16 +291,13 @@ private func mergePersistentHistoryChanges() {
             }
             .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
             
-            // ✅ 长按上下文菜单（快速操作）
             .contextMenu {
-                // 1️⃣ 复制按钮（首位，最常用）
                 Button {
                     copyItem(clipItem)
                 } label: {
                     Label(L10n.copy, systemImage: "doc.on.doc")
                 }
                 
-                // 2️⃣ 收藏按钮
                 Button {
                     toggleStarred(clipItem)
                 } label: {
@@ -285,7 +307,6 @@ private func mergePersistentHistoryChanges() {
                     )
                 }
                 
-                // 3️⃣ 分享按钮
                 Button {
                     shareItem(clipItem)
                 } label: {
@@ -294,7 +315,6 @@ private func mergePersistentHistoryChanges() {
                 
                 Divider()
                 
-                // 4️⃣ 删除按钮（危险操作放最后）
                 Button(role: .destructive) {
                     deleteItem(clipItem)
                 } label: {
@@ -302,7 +322,6 @@ private func mergePersistentHistoryChanges() {
                 }
             }
             
-            // ✅ 向左滑动：只显示删除（红色）
             .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                 Button(role: .destructive) {
                     deleteItem(clipItem)
@@ -311,7 +330,6 @@ private func mergePersistentHistoryChanges() {
                 }
             }
             
-            // ✅ 向右滑动：只显示收藏（黄色）
             .swipeActions(edge: .leading, allowsFullSwipe: true) {
                 Button {
                     toggleStarred(clipItem)
@@ -327,13 +345,15 @@ private func mergePersistentHistoryChanges() {
     }
     .listStyle(.plain)
     .refreshable {
-        print("♻️ 下拉刷新（@FetchRequest 自动更新）")
+        // ✅ 下拉刷新：手动触发同步
+        print("♻️ 用户下拉刷新")
+        syncManager.manualSync()
     }
 }
     
     // MARK: - 数据操作方法
-    // ✅ 新增：复制条目内容
-private func copyItem(_ item: ClipItem) {
+    
+    private func copyItem(_ item: ClipItem) {
     if item.hasImage {
         if let image = item.thumbnailImage {
             UIPasteboard.general.image = image
@@ -346,12 +366,10 @@ private func copyItem(_ item: ClipItem) {
         }
     }
     
-    // ✅ 触觉反馈
     let generator = UINotificationFeedbackGenerator()
     generator.notificationOccurred(.success)
 }
 
-// ✅ 新增：分享条目
 private func shareItem(_ item: ClipItem) {
     guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
           let rootVC = windowScene.windows.first?.rootViewController else {
@@ -373,7 +391,6 @@ private func shareItem(_ item: ClipItem) {
         applicationActivities: nil
     )
     
-    // ✅ iPad 支持（避免崩溃）
     if let popover = activityVC.popoverPresentationController {
         popover.sourceView = rootVC.view
         popover.sourceRect = CGRect(x: rootVC.view.bounds.midX, y: rootVC.view.bounds.midY, width: 0, height: 0)
@@ -388,10 +405,9 @@ private func shareItem(_ item: ClipItem) {
     let trimmedContent = content.trimmingCharacters(in: .whitespacesAndNewlines)
     guard !trimmedContent.isEmpty else { return }
 
-    // ✅ 1. 立即关闭弹窗（用户体验好）
     dismissAddSheet()
 
-    // ✅ 2. 后台保存新条目
+    // ✅ 使用后台 context 保存
     let backgroundContext = PersistenceController.shared.container.newBackgroundContext()
     backgroundContext.perform {
         let newItem = ClipItem(
@@ -405,13 +421,15 @@ private func shareItem(_ item: ClipItem) {
             try backgroundContext.save()
             print("✅ 新条目已保存")
             
-            // ✅ 3. 刷新 Widget
+            // ✅ 保存后会自动触发 CloudKit 同步
+            // ✅ @FetchRequest 会自动更新 UI
+            
             DispatchQueue.main.async {
                 WidgetCenter.shared.reloadAllTimelines()
                 print("🔄 已通知 Widget 刷新")
             }
             
-            // ✅ 4. 保存成功后，再检查限制（避免误删）
+            // 检查免费版限制
             DispatchQueue.global(qos: .utility).async {
                 let cleanupContext = PersistenceController.shared.container.newBackgroundContext()
                 cleanupContext.perform {
@@ -426,7 +444,6 @@ private func shareItem(_ item: ClipItem) {
 
     
     private func deleteItem(_ item: ClipItem) {
-    // ✅ 后台执行删除（避免主线程阻塞）
     let backgroundContext = PersistenceController.shared.container.newBackgroundContext()
     let objectID = item.objectID
     
@@ -441,7 +458,6 @@ private func shareItem(_ item: ClipItem) {
             try backgroundContext.save()
             print("🗑️ 已删除条目")
             
-            // ✅ 刷新 Widget
             DispatchQueue.main.async {
                 WidgetCenter.shared.reloadAllTimelines()
                 print("🔄 已通知 Widget 刷新")
@@ -453,7 +469,6 @@ private func shareItem(_ item: ClipItem) {
 }
     
     private func toggleStarred(_ item: ClipItem) {
-    // ✅ 收藏前检查限制（只查数量，不加载数据）
     if !item.isStarred {
         let request: NSFetchRequest<ClipItem> = ClipItem.fetchRequest()
         request.predicate = NSPredicate(format: "isStarred == %@", NSNumber(value: true))
@@ -469,11 +484,9 @@ private func shareItem(_ item: ClipItem) {
         }
     }
     
-    // ✅ 触觉反馈
     let generator = UIImpactFeedbackGenerator(style: .medium)
     generator.impactOccurred()
     
-    // ✅ 后台执行收藏操作（避免主线程阻塞）
     let backgroundContext = PersistenceController.shared.container.newBackgroundContext()
     let objectID = item.objectID
     
@@ -493,12 +506,10 @@ private func shareItem(_ item: ClipItem) {
                 self.showToast(message: message)
                 print(message)
                 
-                // ✅ 刷新 Widget（新增这 2 行）
                 WidgetCenter.shared.reloadAllTimelines()
                 print("🔄 已通知 Widget 刷新")
             }
             
-            // ✅ 取消收藏后在后台检查限制
             if !willBeStarred {
                 DispatchQueue.global(qos: .utility).async {
                     let cleanupContext = PersistenceController.shared.container.newBackgroundContext()
@@ -525,7 +536,6 @@ private func shareItem(_ item: ClipItem) {
             return
         }
         
-        // ✅ 创建原生风格的 Toast（类似 iOS 系统提示）
         let hud = UIView()
         hud.backgroundColor = UIColor.systemBackground.withAlphaComponent(0.95)
         hud.layer.cornerRadius = 16
@@ -555,7 +565,6 @@ private func shareItem(_ item: ClipItem) {
             label.bottomAnchor.constraint(equalTo: hud.bottomAnchor, constant: -12)
         ])
         
-        // ✅ 优雅的淡入淡出动画
         UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseOut, animations: {
             hud.alpha = 1
             hud.transform = CGAffineTransform(scaleX: 1.05, y: 1.05)
@@ -565,7 +574,6 @@ private func shareItem(_ item: ClipItem) {
             })
         }
         
-        // ✅ 1.5 秒后自动消失
         UIView.animate(withDuration: 0.3, delay: 1.5, options: .curveEaseIn, animations: {
             hud.alpha = 0
             hud.transform = CGAffineTransform(scaleX: 0.95, y: 0.95)
@@ -617,7 +625,6 @@ private var limitBannerView: some View {
         
         Spacer()
         
-        // 优化的升级按钮：渐变 + 阴影）
         NavigationLink(destination: SettingsView()) {
             Text(L10n.upgrade)
                 .font(.subheadline)
@@ -660,7 +667,6 @@ struct AddItemSheetView: View {
     var body: some View {
         NavigationView {
             VStack(spacing: 24) {
-                // ✅ 内容输入框
                 VStack(alignment: .leading, spacing: 10) {
                     Text(L10n.addItemContentLabel)
                         .font(.headline)
@@ -677,7 +683,6 @@ struct AddItemSheetView: View {
                         )
                 }
                 
-                // ✅ 来源输入框
                 VStack(alignment: .leading, spacing: 10) {
                     Text(L10n.addItemSourceLabel)
                         .font(.headline)
@@ -705,7 +710,7 @@ struct AddItemSheetView: View {
                     Button(L10n.save) {
                         onSave(content, source)
                     }
-                    .font(.body.weight(.semibold))  // ✅ iOS 15 兼容写法
+                    .font(.body.weight(.semibold))
                     .disabled(content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }
@@ -713,7 +718,7 @@ struct AddItemSheetView: View {
     }
 }
 
-// MARK: - 剪贴板条目行视图（⭐ 更新支持图片）
+// MARK: - 剪贴板条目行视图
 
 struct ClipItemRowView: View {
     @ObservedObject var clipItem: ClipItem
@@ -722,7 +727,6 @@ struct ClipItemRowView: View {
     
     var body: some View {
         HStack(spacing: 12) {
-            // ✅ 左侧图标（带收藏角标）
             ZStack(alignment: .topLeading) {
                 if clipItem.hasImage {
                     Button {
@@ -754,7 +758,6 @@ struct ClipItemRowView: View {
                     .frame(width: 40, alignment: .center)
                 }
                 
-                // ✅ 收藏角标（左上角小星星）
                 if clipItem.isStarred {
                     Image(systemName: "star.fill")
                         .font(.system(size: 12))
@@ -764,7 +767,6 @@ struct ClipItemRowView: View {
                 }
             }
             
-            // 主要内容
             VStack(alignment: .leading, spacing: 4) {
                 if clipItem.hasImage {
                     Text(clipItem.imageFullDescription)

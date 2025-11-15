@@ -3967,6 +3967,27 @@
         }
       }
     },
+    "sync.error.network" : {
+      "comment" : "网络不可用"
+    },
+    "sync.error.notLoggedIn" : {
+      "comment" : "未登录 iCloud"
+    },
+    "sync.error.quotaExceeded" : {
+      "comment" : "iCloud 空间不足"
+    },
+    "sync.failed" : {
+      "comment" : "同步失败（带参数）"
+    },
+    "sync.inProgress" : {
+      "comment" : "正在同步"
+    },
+    "sync.notStarted" : {
+      "comment" : "未开始同步"
+    },
+    "sync.succeeded" : {
+      "comment" : "同步成功"
+    },
     "time.daysAgo" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4161,40 +4182,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Unstarred"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "取消收藏"
-          }
-        }
-      }
-    },
-        "detail.star" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Star"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "收藏"
-          }
-        }
-      }
-    },
-    "detail.unstar" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unstar"
           }
         },
         "zh-Hans" : {

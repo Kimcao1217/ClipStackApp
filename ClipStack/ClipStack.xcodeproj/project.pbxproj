@@ -26,6 +26,7 @@
 		26ADDD4F2E9CC9E100D3B9E6 /* ClipStackTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26ADDD4E2E9CC9E100D3B9E6 /* ClipStackTests.swift */; };
 		26ADDD592E9CC9E100D3B9E6 /* ClipStackUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26ADDD582E9CC9E100D3B9E6 /* ClipStackUITests.swift */; };
 		26ADDD5B2E9CC9E100D3B9E6 /* ClipStackUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26ADDD5A2E9CC9E100D3B9E6 /* ClipStackUITestsLaunchTests.swift */; };
+		26B396422EC849F4009667A5 /* CloudKitSyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26B396412EC849F4009667A5 /* CloudKitSyncManager.swift */; };
 		26DE74B62EB459EF00AAE4BC /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26DE74B52EB459EF00AAE4BC /* OnboardingView.swift */; };
 		26DE74B82EB45A1700AAE4BC /* OnboardingPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26DE74B72EB45A1700AAE4BC /* OnboardingPageView.swift */; };
 		26DE74BA2EB45A2F00AAE4BC /* ToastModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26DE74B92EB45A2F00AAE4BC /* ToastModifier.swift */; };
@@ -137,6 +138,7 @@
 		26ADDD542E9CC9E100D3B9E6 /* ClipStackUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ClipStackUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		26ADDD582E9CC9E100D3B9E6 /* ClipStackUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipStackUITests.swift; sourceTree = "<group>"; };
 		26ADDD5A2E9CC9E100D3B9E6 /* ClipStackUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipStackUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		26B396412EC849F4009667A5 /* CloudKitSyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudKitSyncManager.swift; sourceTree = "<group>"; };
 		26DE74B52EB459EF00AAE4BC /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		26DE74B72EB45A1700AAE4BC /* OnboardingPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingPageView.swift; sourceTree = "<group>"; };
 		26DE74B92EB45A2F00AAE4BC /* ToastModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastModifier.swift; sourceTree = "<group>"; };
@@ -282,6 +284,7 @@
 				26DE74B92EB45A2F00AAE4BC /* ToastModifier.swift */,
 				26DE74BC2EB4A2E200AAE4BC /* Localizable.xcstrings */,
 				26DE74C42EB4A43800AAE4BC /* LocalizedString.swift */,
+				26B396412EC849F4009667A5 /* CloudKitSyncManager.swift */,
 			);
 			path = ClipStack;
 			sourceTree = "<group>";
@@ -597,6 +600,7 @@
 				262ED03E2E9DEF1A00D8BBDB /* ClipItem+Extensions.swift in Sources */,
 				26E270182EAB5C2200884641 /* ProManager.swift in Sources */,
 				26E270252EB31FD200884641 /* StoreHelper.swift in Sources */,
+				26B396422EC849F4009667A5 /* CloudKitSyncManager.swift in Sources */,
 				26ADDD392E9CC9DF00D3B9E6 /* ClipStackApp.swift in Sources */,
 				26E270142EA8D68800884641 /* ImageViewer.swift in Sources */,
 				26DE74B62EB459EF00AAE4BC /* OnboardingView.swift in Sources */,
